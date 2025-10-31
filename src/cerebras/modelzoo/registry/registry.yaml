@@ -2,6 +2,16 @@ version: 0.1
 
 models:
 
+- name: gnn
+  path: cerebras.modelzoo.models.gnn.model.GNNModel
+  data_processor_paths:
+  - cerebras.modelzoo.models.gnn.data.GNNDataProcessor
+
+- name: graphsage
+  path: cerebras.modelzoo.models.gnn.model.GraphSAGEModel
+  data_processor_paths:
+  - cerebras.modelzoo.models.gnn.data.GNNDataProcessor
+
 - name: llava
   path: cerebras.modelzoo.models.multimodal.llava.model.LlavaModel
   data_processor_paths:
@@ -164,7 +174,6 @@ models:
   path: cerebras.modelzoo.models.vision.vision_transformer.model.ViTClassificationWrapperModel
   data_processor_paths:
   - cerebras.modelzoo.data.vision.classification.data.imagenet.ImageNet1KProcessor
-
 
 
 

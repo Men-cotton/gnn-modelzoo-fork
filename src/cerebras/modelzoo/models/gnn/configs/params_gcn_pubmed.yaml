@@ -1,0 +1,77 @@
+trainer:
+  init:
+    model_dir: ./model_dir_gnn
+    seed: 42
+    model:
+      name: gnn
+
+      # GNN Architecture parameters (from GNNArchConfig)
+      # These are dataset-specific (n_feat, n_class) or architecture-specific.
+      n_feat: 500 # PubMed: Dimensionality of node features
+      n_class: 3 # PubMed: Number of classes
+      n_hid: 64 # Retained for GCN compatibility; unused for GraphSAGE
+
+      # GNNModel wrapper parameters (from GNNModelConfig)
+      compute_eval_metrics: True
+      disable_log_softmax: False
+      core_architecture: GCN
+      graphsage_hidden_dim: 128
+      graphsage_num_layers: 2
+      graphsage_dropout: 0.5
+      graphsage_aggregator: mean
+
+    optimizer:
+      AdamW:
+        learning_rate: 0.01
+        weight_decay: 0.0005
+
+    precision:
+      enabled: True
+      fp16_type: "float16"
+      loss_scaling_factor: "dynamic"
+
+    loop:
+      max_steps: 200
+      steps_per_epoch: 1
+      eval_frequency: 10
+
+    logging:
+      log_steps: 1
+
+    # checkpoint:
+    # steps: 50
+    # save_initial_checkpoint: True
+
+  fit:
+    train_dataloader:
+      data_processor: GNNDataProcessor # Must match GNNDataProcessorConfig.data_processor
+      dataset_name: PubMed # Example: "PubMed", "Cora", "ogbn-arxiv"
+      data_dir: ./data/datasets/ # Root path for various datasets
+      sampling_mode: full_graph
+      batch_size: 1
+      drop_last_batch: True
+      shuffle: False
+      num_workers: 0
+      split: train
+
+    val_dataloader: &val_dataloader_params
+      data_processor: GNNDataProcessor
+      dataset_name: PubMed
+      data_dir: ./data/datasets/
+      sampling_mode: full_graph
+      batch_size: 1
+      drop_last_batch: True
+      shuffle: False
+      num_workers: 0
+      split: val
+
+  validate:
+    val_dataloader: *val_dataloader_params
+
+  validate_all:
+    val_dataloaders:
+      - *val_dataloader_params
+
+runconfig:
+  python_paths:
+    - src

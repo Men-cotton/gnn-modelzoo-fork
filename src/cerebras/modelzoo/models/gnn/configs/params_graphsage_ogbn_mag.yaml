@@ -1,0 +1,73 @@
+trainer:
+  init:
+    model_dir: ./model_dir_gnn/ogbn_mag_graphsage
+    seed: 42
+    model:
+      name: graphsage
+
+      # Dataset-specific dimensions for ogbn-mag (paper nodes)
+      n_feat: 128
+      n_class: 349
+      n_hid: 256
+
+      to_float16: False
+      compute_eval_metrics: True
+      disable_log_softmax: False
+      core_architecture: GraphSAGE
+      graphsage_hidden_dim: 256
+      graphsage_num_layers: 2
+      graphsage_dropout: 0.5
+      graphsage_aggregator: mean
+
+    optimizer:
+      AdamW:
+        learning_rate: 0.0025
+        weight_decay: 0.0005
+
+    loop:
+      max_steps: 2500
+      steps_per_epoch: 600
+      eval_frequency: 600
+
+    logging:
+      log_steps: 25
+
+  fit:
+    train_dataloader:
+      data_processor: GNNDataProcessor
+      dataset_profiles: &ogbn_mag_dataset
+        ogbn_mag:
+          dataset_name: ogbn-mag
+          data_dir: ./data/datasets/
+          sampling_mode: neighbor
+          fanouts: [20, 10]
+          pad_node_id: 0
+      dataset: ogbn_mag
+      batch_size: 1024
+      drop_last_batch: False
+      shuffle: True
+      num_workers: 0
+      sampler_seed: 42
+      split: train
+
+    val_dataloader: &ogbn_mag_eval_loader
+      data_processor: GNNDataProcessor
+      dataset_profiles: *ogbn_mag_dataset
+      dataset: ogbn_mag
+      batch_size: 2048
+      drop_last_batch: False
+      shuffle: False
+      num_workers: 0
+      sampler_seed: 42
+      split: val
+
+  validate:
+    val_dataloader: *ogbn_mag_eval_loader
+
+  validate_all:
+    val_dataloaders:
+      - *ogbn_mag_eval_loader
+
+runconfig:
+  python_paths:
+    - src

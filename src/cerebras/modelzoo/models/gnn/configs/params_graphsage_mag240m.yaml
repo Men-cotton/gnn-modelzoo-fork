@@ -1,0 +1,73 @@
+trainer:
+  init:
+    model_dir: ./model_dir_gnn/mag240m_graphsage
+    seed: 42
+    model:
+      name: graphsage
+
+      # Dataset-specific dimensions for MAG240M
+      n_feat: 1536
+      n_class: 153
+      n_hid: 512
+
+      to_float16: False
+      compute_eval_metrics: True
+      disable_log_softmax: False
+      core_architecture: GraphSAGE
+      graphsage_hidden_dim: 512
+      graphsage_num_layers: 3
+      graphsage_dropout: 0.4
+      graphsage_aggregator: mean
+
+    optimizer:
+      AdamW:
+        learning_rate: 0.0015
+        weight_decay: 0.0005
+
+    loop:
+      max_steps: 3000
+      steps_per_epoch: 1000
+      eval_frequency: 1000
+
+    logging:
+      log_steps: 25
+
+  fit:
+    train_dataloader:
+      data_processor: GNNDataProcessor
+      dataset_profiles: &mag240m_dataset
+        mag240m:
+          dataset_name: MAG240M
+          data_dir: ./data/datasets/
+          sampling_mode: neighbor
+          fanouts: [15, 10, 5]
+          pad_node_id: 0
+      dataset: mag240m
+      batch_size: 768
+      drop_last_batch: False
+      shuffle: True
+      num_workers: 0
+      sampler_seed: 42
+      split: train
+
+    val_dataloader: &mag240m_eval_loader
+      data_processor: GNNDataProcessor
+      dataset_profiles: *mag240m_dataset
+      dataset: mag240m
+      batch_size: 1536
+      drop_last_batch: False
+      shuffle: False
+      num_workers: 0
+      sampler_seed: 42
+      split: val
+
+  validate:
+    val_dataloader: *mag240m_eval_loader
+
+  validate_all:
+    val_dataloaders:
+      - *mag240m_eval_loader
+
+runconfig:
+  python_paths:
+    - src
