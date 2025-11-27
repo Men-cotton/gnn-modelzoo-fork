@@ -19,6 +19,7 @@ try:
 
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt  # noqa: E402  pylint: disable=wrong-import-position
+    from matplotlib.patches import Rectangle  # noqa: E402  pylint: disable=wrong-import-position
 except ImportError:  # pragma: no cover - handled at runtime
     matplotlib = None  # type: ignore[assignment]
     plt = None  # type: ignore[assignment]
@@ -56,6 +57,8 @@ class WioReport:
     compute_core_size: Tuple[int, int]
     lanes: int
     lane_width: int
+    buffer_columns: int | None
+    buffer_rows_below_core: int | None
     total_wios: int
     total_capacity: int
     left_wios: int
@@ -75,6 +78,7 @@ def parse_wio_report(path: Path) -> WioReport:
     fabric_columns = fabric_rows = None
     compute_core_origin = compute_core_size = None
     lanes = lane_width = None
+    buffer_columns = buffer_rows_below_core = None
     flows: Dict[str, int] = {}
     total_wios = total_capacity = left_wios = right_wios = None
     placements: List[WioPlacement] = []
@@ -114,6 +118,24 @@ def parse_wio_report(path: Path) -> WioReport:
             if lane_width_match:
                 lane_width = int(lane_width_match.group(1))
             idx += 5
+            continue
+
+        if stripped.startswith("I/O kernels and buffers"):
+            j = idx + 1
+            while j < len(lines):
+                probe = lines[j].strip()
+                if not probe:
+                    break
+                if probe.startswith("Buffer columns"):
+                    match = re.search(r"Buffer columns:\s*(\d+)", probe)
+                    if match:
+                        buffer_columns = int(match.group(1))
+                if probe.startswith("Buffer rows (below core)"):
+                    match = re.search(r"Buffer rows \(below core\):\s*(\d+)", probe)
+                    if match:
+                        buffer_rows_below_core = int(match.group(1))
+                j += 1
+            idx = j
             continue
 
         if stripped.startswith("WIO utilization by flow"):
@@ -176,6 +198,8 @@ def parse_wio_report(path: Path) -> WioReport:
         compute_core_size=compute_core_size,  # type: ignore[arg-type]
         lanes=lanes,  # type: ignore[arg-type]
         lane_width=lane_width,  # type: ignore[arg-type]
+        buffer_columns=buffer_columns,
+        buffer_rows_below_core=buffer_rows_below_core,
         total_wios=total_wios,  # type: ignore[arg-type]
         total_capacity=total_capacity,  # type: ignore[arg-type]
         left_wios=left_wios,  # type: ignore[arg-type]
@@ -291,8 +315,8 @@ def render_wio_report(report: WioReport, output_path: Path, fmt: str = "png") ->
     for placement in report.placements:
         edge_flow_counts[placement.edge][placement.flow] += 1
 
-    fig, (ax_bar, ax_scatter) = plt.subplots(
-        nrows=2, figsize=(11, 10), gridspec_kw={"height_ratios": [1, 2.5]}
+    fig, (ax_bar, ax_table, ax_tile) = plt.subplots(
+        nrows=3, figsize=(11, 14), gridspec_kw={"height_ratios": [1, 1.4, 2.6]}
     )
 
     edges = ["left", "right"]
@@ -315,35 +339,114 @@ def render_wio_report(report: WioReport, output_path: Path, fmt: str = "png") ->
     ax_bar.set_title("WIO utilization by edge and flow")
     ax_bar.legend(loc="lower right", ncol=len(flow_order))
 
-    # Scatter of placements by Y with domain offsets on X.
-    domain_offsets = {
-        ("left", 3): -1.5,
-        ("left", 2): -1.0,
-        ("right", 0): 1.0,
-        ("right", 1): 1.5,
-    }
+    # Tabular view of placements by domain and row span.
+    # Collapse to a single span per domain with its edge.
+    domain_spans: Dict[int, Tuple[int, int, str]] = {}
     for placement in report.placements:
-        x_pos = domain_offsets.get((placement.edge, placement.domain), 0 if placement.edge == "left" else 2)
-        y_pos = (placement.y_start + placement.y_end) / 2.0
-        height = placement.y_end - placement.y_start + 1
-        color = FLOW_COLORS.get(placement.flow, "#1f77b4")
-        ax_scatter.scatter(
-            x_pos,
-            y_pos,
-            s=max(20, height * 0.5),
-            color=color,
-            alpha=0.8,
-            edgecolors="black",
-            linewidths=0.5,
-        )
+        current = domain_spans.get(placement.domain)
+        if current is None:
+            domain_spans[placement.domain] = (placement.y_start, placement.y_end, placement.edge)
+        else:
+            min_y = min(current[0], placement.y_start)
+            max_y = max(current[1], placement.y_end)
+            domain_spans[placement.domain] = (min_y, max_y, current[2])
 
-    ax_scatter.set_ylabel("Fabric row (Y)")
-    ax_scatter.set_title("WIO placement by edge, domain, and flow")
-    ax_scatter.set_ylim(0, report.fabric_rows)
-    ax_scatter.set_xlim(-2, 2)
-    ax_scatter.set_xticks([-1.5, -1.0, 1.0, 1.5])
-    ax_scatter.set_xticklabels(["Domain 3", "Domain 2", "Domain 0", "Domain 1"])
-    ax_scatter.grid(axis="y", linestyle="--", alpha=0.4)
+    table_rows = []
+    for domain, (start, end, edge) in sorted(domain_spans.items(), key=lambda x: x[0]):
+        interval = f"{start}-{end}"
+        table_rows.append([domain, interval, edge])
+    columns = ["Domain", "Row span", "Edge"]
+    ax_table.axis("off")
+    table = ax_table.table(
+        cellText=table_rows,
+        colLabels=columns,
+        loc="center",
+        cellLoc="center",
+    )
+    table.scale(1, 1.2)
+    ax_table.set_title("WIO placement spans by domain")
+
+    # 2D fabric tile map.
+    fabric_w, fabric_h = report.fabric_columns, report.fabric_rows
+    ax_tile.add_patch(
+        Rectangle(
+            (0, 0),
+            fabric_w,
+            fabric_h,
+            fill=False,
+            edgecolor="#444",
+            linewidth=1.5,
+            linestyle="-",
+            label="Fabric",
+        )
+    )
+    if report.buffer_columns:
+        ax_tile.add_patch(
+            Rectangle(
+                (0, 0),
+                report.buffer_columns,
+                fabric_h,
+                facecolor="#f0e6ff",
+                edgecolor="none",
+                alpha=0.4,
+                label="Buffers",
+            )
+        )
+        ax_tile.add_patch(
+            Rectangle(
+                (fabric_w - report.buffer_columns, 0),
+                report.buffer_columns,
+                fabric_h,
+                facecolor="#f0e6ff",
+                edgecolor="none",
+                alpha=0.4,
+            )
+        )
+    if report.buffer_rows_below_core:
+        start_y = report.compute_core_origin[1] + report.compute_core_size[1]
+        ax_tile.add_patch(
+            Rectangle(
+                (0, start_y),
+                fabric_w,
+                report.buffer_rows_below_core,
+                facecolor="#ffe6cc",
+                edgecolor="none",
+                alpha=0.4,
+                label="Below-core buffers",
+            )
+        )
+    ax_tile.add_patch(
+        Rectangle(
+            report.compute_core_origin,
+            report.compute_core_size[0],
+            report.compute_core_size[1],
+            facecolor="#c7e9ff",
+            edgecolor="#2c7fb8",
+            linewidth=1.5,
+            alpha=0.5,
+            label="Compute core",
+        )
+    )
+    for placement in report.placements:
+        y_pos = (placement.y_start + placement.y_end) / 2.0
+        color = FLOW_COLORS.get(placement.flow, "#1f77b4")
+        ax_tile.scatter(
+            placement.x,
+            y_pos,
+            s=14,
+            color=color,
+            alpha=0.85,
+            edgecolors="black",
+            linewidths=0.3,
+        )
+    ax_tile.set_xlim(0, fabric_w)
+    ax_tile.set_ylim(0, fabric_h)
+    ax_tile.set_xticks([0, fabric_w])
+    ax_tile.set_yticks([0, fabric_h])
+    ax_tile.set_xlabel(f"Fabric column (X), max={fabric_w}")
+    ax_tile.set_ylabel(f"Fabric row (Y), max={fabric_h}")
+    ax_tile.set_title("Fabric tile map (compute core, buffers, WIOs)")
+    ax_tile.grid(alpha=0.25, linestyle="--", axis="both")
 
     # Summary text box.
     summary = (

@@ -17,6 +17,8 @@ class WioVisualizerTests(TestCase):
         self.assertEqual(report.total_capacity, 124)
         self.assertEqual(report.left_wios, 62)
         self.assertEqual(report.right_wios, 61)
+        self.assertEqual(report.buffer_columns, 14)
+        self.assertEqual(report.buffer_rows_below_core, 1)
         self.assertIn("ACT", report.flows)
         self.assertEqual(report.flows["ACT"], 101)
         self.assertGreater(len(report.placements), 0)

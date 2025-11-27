@@ -19,7 +19,7 @@ UV_CACHE_DIR=.uv_cache uv run python analyze/wio_visualizer.py \
   --output analyze/output/wio_report_1.png
 ```
 
-Outputs land in `analyze/output/` by default; the directory is created as needed. Use `--format svg` for vector output or pass multiple `--input` files to batch render (then `--output` must be a directory).
+Outputs land in `analyze/output/` by default; the directory is created as needed. Use `--format svg` for vector output or pass multiple `--input` files to batch render (then `--output` must be a directory). The figure includes flow stacked bars, per-flow placement dots, and a 2D fabric tile view showing the fabric outline, compute core footprint, buffer columns/rows, and WIO dots at their reported coordinates.
 
 ## Requirements
 
