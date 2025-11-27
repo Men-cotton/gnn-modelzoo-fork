@@ -7,6 +7,7 @@ and buffer layouts from the parsed log data.
 
 from __future__ import annotations
 
+import re
 from typing import Dict, Iterable, List, Sequence
 
 import matplotlib
@@ -212,82 +213,55 @@ class WSEVisualizer:
 
     def draw_buffer_layout(self, parsed: ParsedLog):
         df = parsed.buffers
-        geometry = parsed.geometry
         fig, ax = plt.subplots(figsize=(10, 8))
         if df.empty:
             ax.text(0.5, 0.5, "No buffer data", ha="center", va="center")
             return fig
+        ax.axis("off")
 
-        core_x = geometry["core_origin_x"]
-        core_y = geometry["core_origin_y"]
-        core_w = geometry["core_width"]
-        core_h = geometry["core_height"]
-        ax.add_patch(
-            Rectangle(
-                (core_x, core_y),
-                core_w,
-                core_h,
-                facecolor="#e0f0ff",
-                edgecolor="#2c7fb8",
-                linewidth=1.4,
-                alpha=0.7,
-            )
+        def placement_label(loc: str) -> str:
+            if loc == "left":
+                return "Left edge (west)"
+            if loc == "right":
+                return "Right edge (east)"
+            if loc == "below-core":
+                return "Below core (south)"
+            if loc == "above-core":
+                return "Above core (north)"
+            return loc
+
+        cleaned_kind = df["buffer_kind"].str.replace(
+            r"\s*buffers", "", flags=re.IGNORECASE, regex=True
+        ).str.strip()
+        table_df = (
+            df.sort_values(["location", "sequence"])
+            .assign(
+                buffer=cleaned_kind,
+                columns=df["columns"].fillna(0).astype(int),
+                rows=df["rows"].fillna(0).astype(int),
+                buffers=df["buffers"].fillna(0).astype(int),
+                y_offset=df["y_offset"].fillna(0).astype(int),
+                placement=df["location"].apply(placement_label),
+            )[
+                [
+                    "buffer",
+                    "flow_type",
+                    "placement",
+                    "columns",
+                    "rows",
+                    "buffers",
+                    "y_offset",
+                ]
+            ]
         )
-
-        left_offset = 0
-        right_offset = 0
-        for _, row in df.sort_values(["location", "sequence"]).iterrows():
-            cols_val = 0 if pd.isna(row.columns) else int(row.columns)
-            rows_val = 0 if pd.isna(row.rows) else int(row.rows)
-            width = max(1, cols_val)
-            height = max(1, rows_val)
-            y_offset = 0 if pd.isna(row.y_offset) else int(row.y_offset)
-            y = core_y + y_offset
-            color = self.colors.get(row.flow_type, self.default_color)
-            if row.location == "left":
-                x = core_x - left_offset - width
-                left_offset += width
-            elif row.location == "right":
-                x = core_x + core_w + right_offset
-                right_offset += width
-            elif row.location == "below-core":
-                x = core_x
-                y = core_y + core_h + y_offset
-            else:  # above-core
-                x = core_x
-                y = core_y - height - y_offset
-            ax.add_patch(
-                Rectangle(
-                    (x, y),
-                    width,
-                    height,
-                    facecolor=color,
-                    edgecolor="#333",
-                    linewidth=0.7,
-                    alpha=0.5,
-                )
-            )
-            label = f"{row.buffer_kind}\n{row.columns}x{row.rows} cols/rows"
-            if row.buffers:
-                label += f"\n{row.buffers} buffers"
-            if row.y_offset:
-                label += f"\ny_offset={row.y_offset}"
-            ax.text(
-                x + width / 2,
-                y + height / 2,
-                label,
-                ha="center",
-                va="center",
-                fontsize=7,
-            )
-
-        ax.set_xlim(core_x - max(40, left_offset + 10), core_x + core_w + max(40, right_offset + 10))
-        ax.set_ylim(
-            core_y - 40,
-            core_y + core_h + geometry.get("buffer_rows_below_core", 0) + 60,
+        table = ax.table(
+            cellText=table_df.values,
+            colLabels=table_df.columns,
+            loc="center",
+            cellLoc="center",
         )
-        ax.set_xlabel("Columns (approximate physical layout)")
-        ax.set_ylabel("Rows (absolute coordinates)")
-        ax.set_title("Buffer placement relative to compute core")
-        ax.grid(alpha=0.3, linestyle="--")
+        table.auto_set_font_size(False)
+        table.set_fontsize(8)
+        table.scale(1, 1.2)
+        ax.set_title("Buffer placement summary (edges, no schematic)")
         return fig
