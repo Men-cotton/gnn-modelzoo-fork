@@ -2,15 +2,17 @@ import tempfile
 from pathlib import Path
 from unittest import TestCase
 
-from analyze import wse_log_viz
+from analyze import wio_log_visualizer_cli
 
 
-class WSELogVizCLITests(TestCase):
+class WIOLogVisualizerCLITests(TestCase):
     def test_render_figures_produces_outputs(self) -> None:
-        fixture_path = Path(__file__).resolve().parent.parent / "wio_report_1.txt"
+        fixture_path = (
+            Path(__file__).resolve().parent.parent / "raw_report" / "wio_report_1.txt"
+        )
         with tempfile.TemporaryDirectory() as tmpdir:
             out_dir = Path(tmpdir)
-            generated = wse_log_viz.render_figures(
+            generated = wio_log_visualizer_cli.render_figures(
                 fixture_path.read_text(),
                 out_dir,
                 fmt="png",

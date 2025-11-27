@@ -17,14 +17,14 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402  pylint: disable=wrong-import-position
 
-# Allow running as a script (python analyze/wse_log_viz.py) by adding repo root.
+# Allow running as a script (python analyze/wio_log_visualizer_cli.py) by adding repo root.
 if __package__ is None or __package__ == "":
     repo_root = Path(__file__).resolve().parents[1]
     sys.path.insert(0, str(repo_root))
 
-from analyze.cerebras_log_parser import CerebrasLogParser
-from analyze.wio_visualizer import parse_wio_report, render_wio_report
-from analyze.wse_visualizer import WSEVisualizer
+from analyze.wio_summary_visualizer import parse_wio_report, render_wio_report
+from analyze.wio_log_parser import CerebrasLogParser
+from analyze.wio_log_visualizer import WSEVisualizer
 
 
 def render_figures(

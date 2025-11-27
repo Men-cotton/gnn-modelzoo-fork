@@ -18,7 +18,7 @@ import pandas as pd  # noqa: E402  pylint: disable=wrong-import-position
 from matplotlib.collections import LineCollection  # noqa: E402  pylint: disable=wrong-import-position
 from matplotlib.patches import Rectangle  # noqa: E402  pylint: disable=wrong-import-position
 
-from analyze.cerebras_log_parser import ParsedLog
+from analyze.wio_log_parser import ParsedLog
 
 FLOW_COLORS: Dict[str, str] = {
     "ACT": "#2ca02c",

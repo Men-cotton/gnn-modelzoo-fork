@@ -1,36 +1,46 @@
-# WIO Summary Visualizer
+# Cerebras WIO and WSE visualizers
 
-This utility parses the wafer I/O (WIO) summary reports in this directory and renders quick visual summaries of utilization and placement along the fabric edges.
+Two small utilities live here:
+- `wio_summary_visualizer.py` reads wafer I/O (WIO) summary reports (`analyze/raw_report/wio_report_*.txt`) and renders per-flow stacked bars, edge placement dots, and a fabric outline.
+- `wio_log_visualizer_cli.py` is the CLI/driver that parses full Cerebras WSE logs and renders connectivity, periphery floorplan, shard-domain heatmaps, buffer layouts, and (optionally) the WIO summary plot above.
 
-## What it does
-
-- Reads `analyze/wio_report_*.txt` files and extracts fabric geometry, flow-level WIO counts, and per-WIO placement by edge/domain.
-- Generates PNG or SVG images that show per-flow stacked bars and placement dots, plus a text summary of total/left/right WIO usage.
-- Prints a textual summary when requested.
-
-## Quick start
+## WIO report quick start
 
 Run from the repo root:
 
 ```bash
-UV_CACHE_DIR=.uv_cache uv run python analyze/wio_visualizer.py \
-  --input analyze/wio_report_1.txt \
+UV_CACHE_DIR=.uv_cache uv run python analyze/wio_summary_visualizer.py \
+  --input analyze/raw_report/wio_report_1.txt \
   --show-summary \
   --output analyze/output/wio_report_1.png
 ```
 
-Outputs land in `analyze/output/` by default; the directory is created as needed. Use `--format svg` for vector output or pass multiple `--input` files to batch render (then `--output` must be a directory). The figure includes flow stacked bars, per-flow placement dots, and a 2D fabric tile view showing the fabric outline, compute core footprint, buffer columns/rows, and WIO dots at their reported coordinates.
+To render all figures (connectivity, floorplan, domains, buffers, and the WIO summary) from the same report:
+
+```bash
+UV_CACHE_DIR=.uv_cache uv run python analyze/wio_log_visualizer_cli.py \
+  --input analyze/raw_report/wio_report_1.txt \
+  --output analyze/output \
+  --format png
+```
+
+Outputs land in `analyze/output/` by default; use `--format svg` for vector output or pass multiple `--input` files to batch render (then `--output` must be a directory).
+
+Select specific plots with flags such as `--connectivity`, `--floorplan`, `--domain-heatmap`, `--buffer-layout`, or `--all` (default). The summary plot uses the same input path as the WIO report.
 
 ## Requirements
 
-The visualizer depends on matplotlib (installed when you run `uv pip install matplotlib==3.9.2`). Rendering is headless (Agg backend) so no GUI is needed. Use `UV_CACHE_DIR=.uv_cache` with `uv run` if your default UV cache is not writable.
+Both scripts depend on matplotlib (installed via `uv pip install matplotlib==3.9.2`). Rendering uses the Agg backend, so no GUI is required. Set `UV_CACHE_DIR=.uv_cache` with `uv run` if your default UV cache is not writable.
 
 ## Tests
 
-Run the small regression suite:
+Run the regression suite from repo root:
 
 ```bash
-UV_CACHE_DIR=.uv_cache uv run python -m unittest discover -s analyze/tests -p 'test_wio_visualizer.py'
+UV_CACHE_DIR=.uv_cache uv run python -m unittest discover -s analyze/tests -p 'test_*.py'
 ```
 
-Tests cover parsing correctness and verify that rendering produces an image file.
+Individual files:
+- `analyze/tests/test_wio_summary_visualizer.py`
+- `analyze/tests/test_wio_log_visualizer_cli.py`
+- `analyze/tests/test_wio_log_parser.py`

@@ -2,6 +2,10 @@
 
 This document provides guidelines for running and contributing to the models within the Cerebras ModelZoo, with a specific focus on the Graph Neural Network (GNN) models.
 
+## ExecPlans
+ 
+When writing complex features or significant refactors, use an ExecPlan (as described in agent/PLANS.md) from design to implementation.
+
 ## Introduction to the Cerebras ModelZoo
 
 The Cerebras ModelZoo is a collection of deep learning models and utilities optimized to run on Cerebras hardware. The repository provides reference implementations, configuration files, and utilities that demonstrate best practices for training and deploying models using Cerebras systems.
@@ -58,7 +62,7 @@ If you prefer to set up the environment manually, follow these steps using `uv`:
 
 ### Running the Models
 
-Once the environment is set up, navigate to the GNN model directory. **All subsequent commands should be run from this directory.**
+Once the environment is set up, navigate to the GNN model directory. **All subsequent commands should be run from this directory, and scripts must be invoked via `uv run` (do not call `python`/`python3` directly).**
 
 ```bash
 cd src/cerebras/modelzoo/models/gnn

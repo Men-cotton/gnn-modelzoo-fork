@@ -1,5 +1,5 @@
 """
-Summary visualizer for Cerebras wafer I/O (WIO) reports produced under analyze/wio_report_*.txt.
+Summary visualizer for Cerebras wafer I/O (WIO) reports produced under analyze/raw_report/wio_report_*.txt.
 
 Parses the textual summary report, aggregates WIO utilization, and renders a PNG/SVG
 showing per-flow counts and placement along the fabric edges.
@@ -476,7 +476,7 @@ def main() -> None:
         "-i",
         nargs="+",
         default=None,
-        help="One or more report files (default: analyze/wio_report_*.txt).",
+        help="One or more report files (default: analyze/raw_report/wio_report_*.txt).",
     )
     parser.add_argument(
         "--output",
@@ -506,7 +506,7 @@ def main() -> None:
 
     input_paths: List[Path]
     if args.input is None:
-        input_paths = sorted(Path("analyze").glob("wio_report_*.txt"))
+        input_paths = sorted(Path("analyze/raw_report").glob("wio_report_*.txt"))
     else:
         input_paths = [Path(p) for p in args.input]
 

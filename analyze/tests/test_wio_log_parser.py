@@ -3,12 +3,14 @@ from unittest import TestCase
 
 import pandas as pd
 
-from analyze.cerebras_log_parser import CerebrasLogParser
+from analyze.wio_log_parser import CerebrasLogParser
 
 
 class CerebrasLogParserTests(TestCase):
     def setUp(self) -> None:
-        fixture_path = Path(__file__).resolve().parent.parent / "wio_report_1.txt"
+        fixture_path = (
+            Path(__file__).resolve().parent.parent / "raw_report" / "wio_report_1.txt"
+        )
         self.parser = CerebrasLogParser(fixture_path.read_text())
         self.parsed = self.parser.parse()
 
