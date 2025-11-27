@@ -1,9 +1,8 @@
 """
 CLI entrypoint for Cerebras WSE log visualization.
 
-Uses the bundled SAMPLE_WSE_LOG string by default; optionally accepts a custom
-log file path via --input. Renders connectivity, floorplan, domain heatmap,
-and buffer layout figures into analyze/output/ (or a user-provided directory).
+Requires a log file path via --input. Renders connectivity, floorplan, domain heatmap,
+buffer layout, and summary figures into analyze/output/ (or a user-provided directory).
 """
 
 from __future__ import annotations
@@ -24,7 +23,6 @@ if __package__ is None or __package__ == "":
     sys.path.insert(0, str(repo_root))
 
 from analyze.cerebras_log_parser import CerebrasLogParser
-from analyze.sample_wse_log import SAMPLE_WSE_LOG
 from analyze.wio_visualizer import parse_wio_report, render_wio_report
 from analyze.wse_visualizer import WSEVisualizer
 
@@ -92,7 +90,7 @@ def main() -> None:
         "--input",
         "-i",
         default=None,
-        help="Path to a log file. Defaults to the bundled sample log if omitted.",
+        help="Path to a log file (also used for the summary plot).",
     )
     parser.add_argument(
         "--output",
@@ -130,11 +128,6 @@ def main() -> None:
         help="Render only the buffer layout plot.",
     )
     parser.add_argument(
-        "--summary-report",
-        default="analyze/wio_report_1.txt",
-        help="Path to a WIO summary report to render alongside detailed plots.",
-    )
-    parser.add_argument(
         "--all",
         dest="render_all",
         action="store_true",
@@ -162,16 +155,17 @@ def main() -> None:
         ]
 
     raw_text: str
+    input_path: Path | None = None
     if args.input:
         input_path = Path(args.input)
         if not input_path.exists():
             raise SystemExit(f"Input log not found: {input_path}")
         raw_text = input_path.read_text()
     else:
-        raw_text = SAMPLE_WSE_LOG
+        raise SystemExit("Error: --input is required to render plots.")
 
     output_dir = Path(args.output)
-    summary_path = Path(args.summary_report) if args.summary_report else None
+    summary_path = input_path
     generated = render_figures(
         raw_text, output_dir, args.format, plot_flags, summary_report=summary_path
     )

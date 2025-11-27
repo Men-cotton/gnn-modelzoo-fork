@@ -4,12 +4,12 @@ from unittest import TestCase
 import pandas as pd
 
 from analyze.cerebras_log_parser import CerebrasLogParser
-from analyze.sample_wse_log import SAMPLE_WSE_LOG
 
 
 class CerebrasLogParserTests(TestCase):
     def setUp(self) -> None:
-        self.parser = CerebrasLogParser(SAMPLE_WSE_LOG)
+        fixture_path = Path(__file__).resolve().parent.parent / "wio_report_1.txt"
+        self.parser = CerebrasLogParser(fixture_path.read_text())
         self.parsed = self.parser.parse()
 
     def test_geometry_fields(self) -> None:

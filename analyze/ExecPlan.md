@@ -20,8 +20,8 @@ Enable anyone to parse Cerebras wafer-scale engine (WSE) log text and render hig
 
 ## Decision Log
 
-- Decision: Bundle analyze/wio_report_1.txt as SAMPLE_WSE_LOG in analyze/sample_wse_log.py so the CLI can run offline and tests remain deterministic.
-  Rationale: Avoids reliance on external files or network; keeps validation self-contained.
+- Decision: Remove bundled SAMPLE_WSE_LOG in favor of requiring an explicit --input file (use analyze/wio_report_1.txt in tests); simplifies dependency surface and keeps outputs tied to concrete log files.
+  Rationale: Avoid stale embedded fixtures and keep CLI/test behavior aligned with real inputs.
   Date/Author: 2025-11-27 / assistant
 
 ## Outcomes & Retrospective
@@ -38,7 +38,7 @@ Begin by creating a dedicated module (analyze/cerebras_log_parser.py) that defin
 
 Create a companion visualization module (analyze/wse_visualizer.py) with a WSEVisualizer class that accepts parsed data and renders four plots: (1) a bipartite connectivity LineCollection view with WIO dots at x=-50/750 and core rows across the core span, colored by flow type with alpha blending to reveal density and fan-out markers; (2) a periphery floorplan strip chart using rectangles and a broken axis to show left/right periphery zones while skipping the core bulk, explicitly labeling wide modules such as CSG_BUF and PAD; (3) a shard-to-domain heatmap (shards as rows, domains as columns) using imshow/pcolormesh with in-cell annotations; and (4) a buffer layout schematic that draws the compute core rectangle plus edge-attached buffer blocks positioned by their column widths, row counts, and y_offset distances. Reuse a consistent flow-type color palette across plots.
 
-Add an executable Python entrypoint (analyze/wse_log_viz.py) that bundles a sample log string (copied from analyze/wio_report_1.txt into analyze/sample_wse_log.py to keep runs self-contained), invokes CerebrasLogParser to produce structured data, and drives WSEVisualizer to emit PNG outputs into analyze/output/. Provide CLI flags for choosing output directory/format and toggling which plots to generate. Keep rendering headless (Agg) and set dpi=300 per GOALS.
+Add an executable Python entrypoint (analyze/wse_log_viz.py) that loads a provided log file via --input (no bundled sample), invokes CerebrasLogParser to produce structured data, and drives WSEVisualizer to emit PNG outputs into analyze/output/. Provide CLI flags for choosing output directory/format and toggling which plots to generate. Keep rendering headless (Agg) and set dpi=300 per GOALS.
 
 Extend the test suite in analyze/tests with focused unit tests for the parser (geometry fields, connectivity expansion, floorplan widths, buffer offsets, and domain mapping) using the bundled log string as a fixture. Add a smoke test for the CLI that writes to a temporary directory and asserts files exist. Keep tests deterministic by seeding Matplotlib if needed and avoiding reliance on system fonts.
 
