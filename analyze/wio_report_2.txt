@@ -1,0 +1,606 @@
+Fabric size:
+   Size: 762 columns x 1172 rows
+
+Compute core 0:
+   Origin    : (29, 1)
+   Size      : 704 columns x 800 rows
+   Lanes     : 32
+   Lane width: 22 columns
+
+I/O kernels and buffers:
+      Buffer columns:           14
+      Buffer rows (below core): 1
+         ACT pre-demux buffers: 0 columns
+           Left edge: 0 columns x 9 rows x 50 buffers
+          Right edge: 0 columns x 9 rows x 51 buffers
+         ACT post-demux buffers: 0 columns
+           Left edge: 0 columns x 2 rows x 50 buffers
+          Right edge: 0 columns x 2 rows x 51 buffers
+         ACT below-core buffers: 0 columns x 0 rows x 1 buffer
+         ACT sink mem buffers:
+           Left edge: 3 columns x 1 rows x 50 buffers, y_offset is 17
+          Right edge: 3 columns x 1 rows x 51 buffers, y_offset is 17
+         EVT post-mux buffers: 0 columns
+           Left edge: 0 columns x 7 rows x 50 buffers
+          Right edge: 0 columns x 7 rows x 51 buffers
+         EVT below-core buffers: 0 columns x 1 rows x 1 buffer
+         EVT sink mem buffers:
+           Left edge: 4 columns x 1 rows x 50 buffers, y_offset is 17
+          Right edge: 4 columns x 1 rows x 51 buffers, y_offset is 17
+         WGT buffers: 6 columns
+           Left edge: 3 columns x 35 rows x 11 buffers
+          Right edge: 3 columns x 35 rows x 10 buffers
+         GRD buffers: 8 columns
+           Left edge: 4 columns x 35 rows x 11 buffers
+          Right edge: 4 columns x 35 rows x 10 buffers
+         GRD above-core buffers: 22 columns x 0 rows
+
+Connectivity between WIO and compute core 0:
+   Core slices fed by ACT WIOs on left edge: 350
+                              on right edge: 354
+   Core columns fed by WGT WIOs on left edge: 352 (11 per lane x 32 lanes)
+                               on right edge: 352 (11 per lane x 32 lanes)
+
+WIO utilization by flow: 
+   Flow CMD: 1 WIOs organized into 1 port groups with at most 1 WIOs per port group
+       Left edge: 1 WIOs, 1 port groups
+      Right edge: 0 WIOs, 0 port groups
+          Shards: 1
+   Flow ACT: 101 WIOs organized into 21 port groups with at most 5 WIOs per port group
+       Left edge: 50 WIOs, 10 port groups
+      Right edge: 51 WIOs, 11 port groups
+          Shards: 21
+   Flow EVT: 101 WIOs organized into 21 port groups with at most 5 WIOs per port group
+       Left edge: 50 WIOs, 10 port groups
+      Right edge: 51 WIOs, 11 port groups
+          Shards: 21
+   Flow WGT: 21 WIOs organized into 21 port groups with at most 1 WIOs per port group
+       Left edge: 11 WIOs, 11 port groups
+      Right edge: 10 WIOs, 10 port groups
+          Shards: 21
+   Flow GRD: 21 WIOs organized into 21 port groups with at most 1 WIOs per port group
+       Left edge: 11 WIOs, 11 port groups
+      Right edge: 10 WIOs, 10 port groups
+          Shards: 21
+   Flow DBG: 1 WIOs organized into 1 port groups with at most 1 WIOs per port group
+       Left edge: 1 WIOs, 1 port groups
+      Right edge: 0 WIOs, 0 port groups
+          Shards: 1
+
+WIO utilization: 123 / 124
+   Left edge: 62 / 62
+      Domain 3: 31 / 31
+      Domain 2: 31 / 31
+   Right edge: 61 / 62
+      Domain 0: 30 / 31
+      Domain 1: 31 / 31
+
+WIO placement and configuration: 
+-------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------
+ Domain 3                                                                                        | Domain 0
+                                                                                                 |
+ X    Y                     Shard(s)          Port Group(s)     Core  Slice  Init TxRx  Channel  | X    Y                     Shard(s)          Port Group(s)     Core  Slice  Init TxRx  Channel  
+-------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------
+ 0    0,1                   CMD-0             CMD-0             0            7:1        0        | -    -                     -                 -                 -     -      -          -        
+ 0    18,19                 WGT-0             WGT-0             0            7:1        1        | 761  18,19                 WGT-11            WGT-11            0            7:1        1        
+ 0    36,37                 ACT-9             ACT-0             0            7:1        2        | 761  36,37                 ACT-10            ACT-10            0            7:1        2        
+ 0    54,55                 WGT-1             WGT-1             0            7:1        3        | 761  54,55                 WGT-12            WGT-12            0            7:1        3        
+ 0    72,73                 ACT-9             ACT-0             0            7:1        4        | 761  72,73                 ACT-10            ACT-10            0            7:1        4        
+ 0    90,91                 WGT-2             WGT-2             0            7:1        5        | 761  90,91                 WGT-13            WGT-13            0            7:1        5        
+ 0    108,109               ACT-9             ACT-0             0            7:1        6        | 761  108,109               ACT-10            ACT-10            0            7:1        6        
+ 0    126,127               WGT-3             WGT-3             0            7:1        7        | 761  126,127               WGT-14            WGT-14            0            7:1        7        
+ 0    144,145               ACT-9             ACT-0             0            7:1        8        | 761  144,145               ACT-10            ACT-10            0            7:1        8        
+ 0    162,163               WGT-4             WGT-4             0            7:1        9        | 761  162,163               WGT-15            WGT-15            0            7:1        9        
+ 0    180,181               ACT-9             ACT-0             0            7:1        10       | 761  180,181               ACT-10            ACT-10            0            7:1        10       
+ 0    198,199               ACT-8             ACT-1             0            7:1        11       | 761  198,199               ACT-11            ACT-11            0            7:1        11       
+ 0    216,217               ACT-8             ACT-1             0            7:1        12       | 761  216,217               ACT-11            ACT-11            0            7:1        12       
+ 0    234,235               ACT-8             ACT-1             0            7:1        13       | 761  234,235               ACT-11            ACT-11            0            7:1        13       
+ 0    252,253               ACT-8             ACT-1             0            7:1        14       | 761  252,253               ACT-11            ACT-11            0            7:1        14       
+ 0    270,271               ACT-8             ACT-1             0            7:1        15       | 761  270,271               ACT-11            ACT-11            0            7:1        15       
+ 0    288,289               ACT-7             ACT-2             0            7:1        16       | 761  288,289               ACT-12            ACT-12            0            7:1        16       
+ 0    306,307               ACT-7             ACT-2             0            7:1        17       | 761  306,307               ACT-12            ACT-12            0            7:1        17       
+ 0    324,325               ACT-7             ACT-2             0            7:1        18       | 761  324,325               ACT-12            ACT-12            0            7:1        18       
+ 0    342,343               ACT-7             ACT-2             0            7:1        19       | 761  342,343               ACT-12            ACT-12            0            7:1        19       
+ 0    360,361               ACT-7             ACT-2             0            7:1        20       | 761  360,361               ACT-12            ACT-12            0            7:1        20       
+ 0    378,379               ACT-6             ACT-3             0            7:1        21       | 761  378,379               ACT-13            ACT-13            0            7:1        21       
+ 0    396,397               ACT-6             ACT-3             0            7:1        22       | 761  396,397               ACT-13            ACT-13            0            7:1        22       
+ 0    414,415               ACT-6             ACT-3             0            7:1        23       | 761  414,415               ACT-13            ACT-13            0            7:1        23       
+ 0    432,433               ACT-6             ACT-3             0            7:1        24       | 761  432,433               ACT-13            ACT-13            0            7:1        24       
+ 0    450,451               ACT-6             ACT-3             0            7:1        25       | 761  450,451               ACT-13            ACT-13            0            7:1        25       
+ 0    468,469               ACT-5             ACT-4             0            7:1        26       | 761  468,469               ACT-14            ACT-14            0            7:1        26       
+ 0    486,487               ACT-5             ACT-4             0            7:1        27       | 761  486,487               ACT-14            ACT-14            0            7:1        27       
+ 0    504,505               ACT-5             ACT-4             0            7:1        28       | 761  504,505               ACT-14            ACT-14            0            7:1        28       
+ 0    522,523               ACT-5             ACT-4             0            7:1        29       | 761  522,523               ACT-14            ACT-14            0            7:1        29       
+ 0    540,541               ACT-5             ACT-4             0            7:1        30       | 761  540,541               ACT-14            ACT-14            0            7:1        30       
+-------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------
+ Domain 2                                                                                        | Domain 1
+                                                                                                 |
+ X    Y                     Shard(s)          Port Group(s)     Core  Slice  Init TxRx  Channel  | X    Y                     Shard(s)          Port Group(s)     Core  Slice  Init TxRx  Channel  
+-------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------
+ 0    558,559               WGT-5             WGT-5             0            7:1        0        | 761  558,559               WGT-16            WGT-16            0            7:1        0        
+ 0    576,577               ACT-4             ACT-5             0            7:1        1        | 761  576,577               ACT-15            ACT-15            0            7:1        1        
+ 0    594,595               WGT-6             WGT-6             0            7:1        2        | 761  594,595               WGT-17            WGT-17            0            7:1        2        
+ 0    612,613               ACT-4             ACT-5             0            7:1        3        | 761  612,613               ACT-15            ACT-15            0            7:1        3        
+ 0    630,631               WGT-7             WGT-7             0            7:1        4        | 761  630,631               WGT-18            WGT-18            0            7:1        4        
+ 0    648,649               ACT-4             ACT-5             0            7:1        5        | 761  648,649               ACT-15            ACT-15            0            7:1        5        
+ 0    666,667               WGT-8             WGT-8             0            7:1        6        | 761  666,667               WGT-19            WGT-19            0            7:1        6        
+ 0    684,685               ACT-4             ACT-5             0            7:1        7        | 761  684,685               ACT-15            ACT-15            0            7:1        7        
+ 0    702,703               WGT-9             WGT-9             0            7:1        8        | 761  702,703               WGT-20            WGT-20            0            7:1        8        
+ 0    720,721               ACT-4             ACT-5             0            7:1        9        | 761  720,721               ACT-15            ACT-15            0            7:1        9        
+ 0    738,739               WGT-10            WGT-10            0            7:1        10       | 761  738,739               ACT-16            ACT-16            0            7:1        10       
+ 0    756,757               ACT-3             ACT-6             0            7:1        11       | 761  756,757               ACT-16            ACT-16            0            7:1        11       
+ 0    774,775               ACT-3             ACT-6             0            7:1        12       | 761  774,775               ACT-16            ACT-16            0            7:1        12       
+ 0    792,793               ACT-3             ACT-6             0            7:1        13       | 761  792,793               ACT-16            ACT-16            0            7:1        13       
+ 0    810,811               ACT-3             ACT-6             0            7:1        14       | 761  810,811               ACT-16            ACT-16            0            7:1        14       
+ 0    828,829               ACT-3             ACT-6             0            7:1        15       | 761  828,829               ACT-17            ACT-17            0            7:1        15       
+ 0    846,847               ACT-2             ACT-7             0            7:1        16       | 761  846,847               ACT-17            ACT-17            0            7:1        16       
+ 0    864,865               ACT-2             ACT-7             0            7:1        17       | 761  864,865               ACT-17            ACT-17            0            7:1        17       
+ 0    882,883               ACT-2             ACT-7             0            7:1        18       | 761  882,883               ACT-17            ACT-17            0            7:1        18       
+ 0    900,901               ACT-2             ACT-7             0            7:1        19       | 761  900,901               ACT-17            ACT-17            0            7:1        19       
+ 0    918,919               ACT-2             ACT-7             0            7:1        20       | 761  918,919               ACT-18            ACT-18            0            7:1        20       
+ 0    936,937               ACT-1             ACT-8             0            7:1        21       | 761  936,937               ACT-18            ACT-18            0            7:1        21       
+ 0    954,955               ACT-1             ACT-8             0            7:1        22       | 761  954,955               ACT-18            ACT-18            0            7:1        22       
+ 0    972,973               ACT-1             ACT-8             0            7:1        23       | 761  972,973               ACT-18            ACT-18            0            7:1        23       
+ 0    990,991               ACT-1             ACT-8             0            7:1        24       | 761  990,991               ACT-18            ACT-18            0            7:1        24       
+ 0    1008,1009             ACT-1             ACT-8             0            7:1        25       | 761  1008,1009             ACT-19            ACT-19            0            7:1        25       
+ 0    1026,1027             ACT-0             ACT-9             0            7:1        26       | 761  1026,1027             ACT-19            ACT-19            0            7:1        26       
+ 0    1044,1045             ACT-0             ACT-9             0            7:1        27       | 761  1044,1045             ACT-19            ACT-19            0            7:1        27       
+ 0    1062,1063             ACT-0             ACT-9             0            7:1        28       | 761  1062,1063             ACT-19            ACT-19            0            7:1        28       
+ 0    1080,1081             ACT-0             ACT-9             0            7:1        29       | 761  1080,1081             ACT-19            ACT-19            0            7:1        29       
+ 0    1098,1099             ACT-0             ACT-9             0            7:1        30       | 761  1098,1099             ACT-20            ACT-20            0            7:1        30       
+
+======================================================================================================================================================
+Floorplan detail:
+======================================================================================================================================================
+Floorplan:
+   Fabric size: 762 columns x 1172 rows
+   Total columns required: 761
+   Columns required by periphery routing (shareable with I/O kernels):
+      Left edge: 18
+      Right edge: 18
+
+   Core: 0
+      Group ID: 0
+      Origin: (29, 1)
+      Size: 704 columns x 800 rows
+      Act regions: rx=[0; 703], tx=[0; 0]
+      Total CSG buffers: 200
+      CSG buffer size: 17 columns x 8 rows
+      LEFT edge modules
+         Module Type          Column Range    Width
+         WGT_BUF              0-2             3
+         ACT_IO_BUF           0-2             3
+         WGT_WIO              0               1
+         GRD_WIO              0               1
+         ACT_WIO              0               1
+         EVT_WIO              0               1
+         CMD_WIO              0               1
+         GRD_BUF              3-6             4
+         EVT_IO_BUF           3-6             4
+         CTX_CMD_FILTER       6               1
+         WGT_DECOMP           7-10            4
+         CTX_CMD_BCAST        7               1
+         CSG_BUF              8-24            17
+         PAD                  11-24           14
+         WGT_POPCMD           25              1
+         ACT_ADAPTER          25              1
+         ACT_DEMUX            25              1
+         EVT_MUX              25              1
+         WGT_REINDEX          26              1
+         CMD_FAN              27              1
+         CMD_SNOOP            27              1
+         GRD_SUM              28              1
+         GRD_FAN              28              1
+         CTX_CMD_POP          28              1
+         POP_NDAT_CTX_CMD     28              1
+      RIGHT edge modules
+         Module Type          Column Range    Width
+         GRD_SUM              733             1
+         GRD_FAN              733             1
+         CTX_CMD_POP          733             1
+         POP_NDAT_CTX_CMD     733             1
+         CMD_FAN              734             1
+         WGT_REINDEX          735             1
+         WGT_POPCMD           736             1
+         ACT_ADAPTER          736             1
+         ACT_DEMUX            736             1
+         EVT_MUX              736             1
+         CSG_BUF              737-753         17
+         PAD                  737-750         14
+         WGT_DECOMP           751-754         4
+         CTX_CMD_BCAST        754             1
+         GRD_BUF              755-758         4
+         EVT_IO_BUF           755-758         4
+         CTX_CMD_FILTER       755             1
+         WGT_BUF              759-761         3
+         ACT_IO_BUF           759-761         3
+         WGT_WIO              761             1
+         GRD_WIO              761             1
+         ACT_WIO              761             1
+         EVT_WIO              761             1
+
+======================================================================================================================================================
+Detailed connectivity between WIOs and core rows:
+======================================================================================================================================================
+Core 0, WGT port group 0, domain 3, LEFT edge
+   WIO[0] at y=18 connected to 1 core rows (abs coordinates): [33]
+Core 0, WGT port group 1, domain 3, LEFT edge
+   WIO[0] at y=54 connected to 1 core rows (abs coordinates): [97]
+Core 0, WGT port group 2, domain 3, LEFT edge
+   WIO[0] at y=90 connected to 1 core rows (abs coordinates): [161]
+Core 0, WGT port group 3, domain 3, LEFT edge
+   WIO[0] at y=126 connected to 1 core rows (abs coordinates): [225]
+Core 0, WGT port group 4, domain 3, LEFT edge
+   WIO[0] at y=162 connected to 1 core rows (abs coordinates): [289]
+Core 0, WGT port group 5, domain 2, LEFT edge
+   WIO[0] at y=558 connected to 1 core rows (abs coordinates): [446]
+Core 0, WGT port group 6, domain 2, LEFT edge
+   WIO[0] at y=594 connected to 1 core rows (abs coordinates): [510]
+Core 0, WGT port group 7, domain 2, LEFT edge
+   WIO[0] at y=630 connected to 1 core rows (abs coordinates): [574]
+Core 0, WGT port group 8, domain 2, LEFT edge
+   WIO[0] at y=666 connected to 1 core rows (abs coordinates): [638]
+Core 0, WGT port group 9, domain 2, LEFT edge
+   WIO[0] at y=702 connected to 1 core rows (abs coordinates): [702]
+Core 0, WGT port group 10, domain 2, LEFT edge
+   WIO[0] at y=738 connected to 1 core rows (abs coordinates): [799]
+Core 0, WGT port group 11, domain 0, RIGHT edge
+   WIO[0] at y=18 connected to 1 core rows (abs coordinates): [65]
+Core 0, WGT port group 12, domain 0, RIGHT edge
+   WIO[0] at y=54 connected to 1 core rows (abs coordinates): [129]
+Core 0, WGT port group 13, domain 0, RIGHT edge
+   WIO[0] at y=90 connected to 1 core rows (abs coordinates): [193]
+Core 0, WGT port group 14, domain 0, RIGHT edge
+   WIO[0] at y=126 connected to 1 core rows (abs coordinates): [257]
+Core 0, WGT port group 15, domain 0, RIGHT edge
+   WIO[0] at y=162 connected to 1 core rows (abs coordinates): [321]
+Core 0, WGT port group 16, domain 1, RIGHT edge
+   WIO[0] at y=558 connected to 1 core rows (abs coordinates): [478]
+Core 0, WGT port group 17, domain 1, RIGHT edge
+   WIO[0] at y=594 connected to 1 core rows (abs coordinates): [542]
+Core 0, WGT port group 18, domain 1, RIGHT edge
+   WIO[0] at y=630 connected to 1 core rows (abs coordinates): [606]
+Core 0, WGT port group 19, domain 1, RIGHT edge
+   WIO[0] at y=666 connected to 1 core rows (abs coordinates): [670]
+Core 0, WGT port group 20, domain 1, RIGHT edge
+   WIO[0] at y=702 connected to 2 core rows (abs coordinates): [734, 767]
+
+Core 0, GRD port group 0, domain 3, LEFT edge
+   WIO[0] at y=19 connected to 1 core rows (abs coordinates): [33]
+Core 0, GRD port group 1, domain 3, LEFT edge
+   WIO[0] at y=55 connected to 1 core rows (abs coordinates): [97]
+Core 0, GRD port group 2, domain 3, LEFT edge
+   WIO[0] at y=91 connected to 1 core rows (abs coordinates): [161]
+Core 0, GRD port group 3, domain 3, LEFT edge
+   WIO[0] at y=127 connected to 1 core rows (abs coordinates): [225]
+Core 0, GRD port group 4, domain 3, LEFT edge
+   WIO[0] at y=163 connected to 1 core rows (abs coordinates): [289]
+Core 0, GRD port group 5, domain 2, LEFT edge
+   WIO[0] at y=559 connected to 1 core rows (abs coordinates): [446]
+Core 0, GRD port group 6, domain 2, LEFT edge
+   WIO[0] at y=595 connected to 1 core rows (abs coordinates): [510]
+Core 0, GRD port group 7, domain 2, LEFT edge
+   WIO[0] at y=631 connected to 1 core rows (abs coordinates): [574]
+Core 0, GRD port group 8, domain 2, LEFT edge
+   WIO[0] at y=667 connected to 1 core rows (abs coordinates): [638]
+Core 0, GRD port group 9, domain 2, LEFT edge
+   WIO[0] at y=703 connected to 1 core rows (abs coordinates): [702]
+Core 0, GRD port group 10, domain 2, LEFT edge
+   WIO[0] at y=739 connected to 1 core rows (abs coordinates): [799]
+Core 0, GRD port group 11, domain 0, RIGHT edge
+   WIO[0] at y=19 connected to 1 core rows (abs coordinates): [65]
+Core 0, GRD port group 12, domain 0, RIGHT edge
+   WIO[0] at y=55 connected to 1 core rows (abs coordinates): [129]
+Core 0, GRD port group 13, domain 0, RIGHT edge
+   WIO[0] at y=91 connected to 1 core rows (abs coordinates): [193]
+Core 0, GRD port group 14, domain 0, RIGHT edge
+   WIO[0] at y=127 connected to 1 core rows (abs coordinates): [257]
+Core 0, GRD port group 15, domain 0, RIGHT edge
+   WIO[0] at y=163 connected to 1 core rows (abs coordinates): [321]
+Core 0, GRD port group 16, domain 1, RIGHT edge
+   WIO[0] at y=559 connected to 1 core rows (abs coordinates): [478]
+Core 0, GRD port group 17, domain 1, RIGHT edge
+   WIO[0] at y=595 connected to 1 core rows (abs coordinates): [542]
+Core 0, GRD port group 18, domain 1, RIGHT edge
+   WIO[0] at y=631 connected to 1 core rows (abs coordinates): [606]
+Core 0, GRD port group 19, domain 1, RIGHT edge
+   WIO[0] at y=667 connected to 1 core rows (abs coordinates): [670]
+Core 0, GRD port group 20, domain 1, RIGHT edge
+   WIO[0] at y=703 connected to 2 core rows (abs coordinates): [734, 767]
+
+Core 0, ACT port group 0, domain 3, LEFT edge
+   WIO[0] at y=36 connected to 7 core rows (abs coordinates): [37, 39, 41, 43, 45, 47, 49]
+   WIO[1] at y=72 connected to 7 core rows (abs coordinates): [67, 69, 71, 73, 75, 77, 79]
+   WIO[2] at y=108 connected to 7 core rows (abs coordinates): [82, 84, 86, 88, 90, 92, 94]
+   WIO[3] at y=144 connected to 7 core rows (abs coordinates): [97, 99, 101, 103, 105, 107, 109]
+   WIO[4] at y=180 connected to 7 core rows (abs coordinates): [112, 114, 116, 118, 120, 122, 124]
+Core 0, ACT port group 1, domain 3, LEFT edge
+   WIO[0] at y=198 connected to 7 core rows (abs coordinates): [127, 129, 131, 133, 135, 137, 139]
+   WIO[1] at y=216 connected to 7 core rows (abs coordinates): [142, 144, 146, 148, 150, 152, 154]
+   WIO[2] at y=234 connected to 7 core rows (abs coordinates): [157, 159, 161, 163, 165, 167, 169]
+   WIO[3] at y=252 connected to 7 core rows (abs coordinates): [172, 174, 176, 178, 180, 182, 184]
+   WIO[4] at y=270 connected to 7 core rows (abs coordinates): [187, 189, 191, 193, 195, 197, 199]
+Core 0, ACT port group 2, domain 3, LEFT edge
+   WIO[0] at y=288 connected to 7 core rows (abs coordinates): [202, 204, 206, 208, 210, 212, 214]
+   WIO[1] at y=306 connected to 7 core rows (abs coordinates): [217, 219, 221, 223, 225, 227, 229]
+   WIO[2] at y=324 connected to 7 core rows (abs coordinates): [232, 234, 236, 238, 240, 242, 244]
+   WIO[3] at y=342 connected to 7 core rows (abs coordinates): [247, 249, 251, 253, 255, 257, 259]
+   WIO[4] at y=360 connected to 7 core rows (abs coordinates): [262, 264, 266, 268, 270, 272, 274]
+Core 0, ACT port group 3, domain 3, LEFT edge
+   WIO[0] at y=378 connected to 7 core rows (abs coordinates): [277, 279, 281, 283, 285, 287, 289]
+   WIO[1] at y=396 connected to 7 core rows (abs coordinates): [292, 294, 296, 298, 300, 302, 304]
+   WIO[2] at y=414 connected to 7 core rows (abs coordinates): [307, 309, 311, 313, 315, 317, 319]
+   WIO[3] at y=432 connected to 7 core rows (abs coordinates): [322, 324, 326, 328, 330, 332, 334]
+   WIO[4] at y=450 connected to 7 core rows (abs coordinates): [337, 339, 341, 343, 345, 347, 349]
+Core 0, ACT port group 4, domain 3, LEFT edge
+   WIO[0] at y=468 connected to 7 core rows (abs coordinates): [352, 354, 356, 358, 360, 362, 364]
+   WIO[1] at y=486 connected to 7 core rows (abs coordinates): [367, 369, 371, 373, 375, 377, 379]
+   WIO[2] at y=504 connected to 7 core rows (abs coordinates): [382, 384, 386, 388, 390, 392, 394]
+   WIO[3] at y=522 connected to 7 core rows (abs coordinates): [397, 399, 401, 403, 405, 407, 409]
+   WIO[4] at y=540 connected to 7 core rows (abs coordinates): [412, 414, 416, 418, 420, 422, 424]
+Core 0, ACT port group 5, domain 2, LEFT edge
+   WIO[0] at y=576 connected to 7 core rows (abs coordinates): [427, 429, 431, 433, 435, 437, 439]
+   WIO[1] at y=612 connected to 7 core rows (abs coordinates): [442, 444, 446, 448, 450, 452, 454]
+   WIO[2] at y=648 connected to 7 core rows (abs coordinates): [457, 459, 461, 463, 465, 467, 469]
+   WIO[3] at y=684 connected to 7 core rows (abs coordinates): [472, 474, 476, 478, 480, 482, 484]
+   WIO[4] at y=720 connected to 7 core rows (abs coordinates): [487, 489, 491, 493, 495, 497, 499]
+Core 0, ACT port group 6, domain 2, LEFT edge
+   WIO[0] at y=756 connected to 7 core rows (abs coordinates): [502, 504, 506, 508, 510, 512, 514]
+   WIO[1] at y=774 connected to 7 core rows (abs coordinates): [517, 519, 521, 523, 525, 527, 529]
+   WIO[2] at y=792 connected to 7 core rows (abs coordinates): [532, 534, 536, 538, 540, 542, 544]
+   WIO[3] at y=810 connected to 7 core rows (abs coordinates): [547, 549, 551, 553, 555, 557, 559]
+   WIO[4] at y=828 connected to 7 core rows (abs coordinates): [562, 564, 566, 568, 570, 572, 574]
+Core 0, ACT port group 7, domain 2, LEFT edge
+   WIO[0] at y=846 connected to 7 core rows (abs coordinates): [577, 579, 581, 583, 585, 587, 589]
+   WIO[1] at y=864 connected to 7 core rows (abs coordinates): [592, 594, 596, 598, 600, 602, 604]
+   WIO[2] at y=882 connected to 7 core rows (abs coordinates): [607, 609, 611, 613, 615, 617, 619]
+   WIO[3] at y=900 connected to 7 core rows (abs coordinates): [622, 624, 626, 628, 630, 632, 634]
+   WIO[4] at y=918 connected to 7 core rows (abs coordinates): [637, 639, 641, 643, 645, 647, 649]
+Core 0, ACT port group 8, domain 2, LEFT edge
+   WIO[0] at y=936 connected to 7 core rows (abs coordinates): [652, 654, 656, 658, 660, 662, 664]
+   WIO[1] at y=954 connected to 7 core rows (abs coordinates): [667, 669, 671, 673, 675, 677, 679]
+   WIO[2] at y=972 connected to 7 core rows (abs coordinates): [682, 684, 686, 688, 690, 692, 694]
+   WIO[3] at y=990 connected to 7 core rows (abs coordinates): [697, 699, 701, 703, 705, 707, 709]
+   WIO[4] at y=1008 connected to 7 core rows (abs coordinates): [712, 714, 716, 718, 720, 722, 724]
+Core 0, ACT port group 9, domain 2, LEFT edge
+   WIO[0] at y=1026 connected to 7 core rows (abs coordinates): [727, 729, 731, 733, 735, 737, 739]
+   WIO[1] at y=1044 connected to 7 core rows (abs coordinates): [742, 744, 746, 748, 750, 752, 754]
+   WIO[2] at y=1062 connected to 7 core rows (abs coordinates): [757, 759, 761, 763, 765, 767, 769]
+   WIO[3] at y=1080 connected to 7 core rows (abs coordinates): [772, 774, 776, 778, 780, 782, 784]
+   WIO[4] at y=1098 connected to 7 core rows (abs coordinates): [787, 789, 791, 793, 795, 797, 799]
+Core 0, ACT port group 10, domain 0, RIGHT edge
+   WIO[0] at y=36 connected to 7 core rows (abs coordinates): [37, 39, 41, 43, 45, 47, 49]
+   WIO[1] at y=72 connected to 7 core rows (abs coordinates): [58, 60, 62, 64, 66, 68, 70]
+   WIO[2] at y=108 connected to 7 core rows (abs coordinates): [73, 75, 77, 79, 81, 83, 85]
+   WIO[3] at y=144 connected to 7 core rows (abs coordinates): [88, 90, 92, 94, 96, 98, 100]
+   WIO[4] at y=180 connected to 7 core rows (abs coordinates): [103, 105, 107, 109, 111, 113, 115]
+Core 0, ACT port group 11, domain 0, RIGHT edge
+   WIO[0] at y=198 connected to 7 core rows (abs coordinates): [118, 120, 122, 124, 126, 128, 130]
+   WIO[1] at y=216 connected to 7 core rows (abs coordinates): [133, 135, 137, 139, 141, 143, 145]
+   WIO[2] at y=234 connected to 7 core rows (abs coordinates): [148, 150, 152, 154, 156, 158, 160]
+   WIO[3] at y=252 connected to 7 core rows (abs coordinates): [163, 165, 167, 169, 171, 173, 175]
+   WIO[4] at y=270 connected to 7 core rows (abs coordinates): [178, 180, 182, 184, 186, 188, 190]
+Core 0, ACT port group 12, domain 0, RIGHT edge
+   WIO[0] at y=288 connected to 7 core rows (abs coordinates): [193, 195, 197, 199, 201, 203, 205]
+   WIO[1] at y=306 connected to 7 core rows (abs coordinates): [208, 210, 212, 214, 216, 218, 220]
+   WIO[2] at y=324 connected to 7 core rows (abs coordinates): [223, 225, 227, 229, 231, 233, 235]
+   WIO[3] at y=342 connected to 7 core rows (abs coordinates): [238, 240, 242, 244, 246, 248, 250]
+   WIO[4] at y=360 connected to 7 core rows (abs coordinates): [253, 255, 257, 259, 261, 263, 265]
+Core 0, ACT port group 13, domain 0, RIGHT edge
+   WIO[0] at y=378 connected to 7 core rows (abs coordinates): [268, 270, 272, 274, 276, 278, 280]
+   WIO[1] at y=396 connected to 7 core rows (abs coordinates): [283, 285, 287, 289, 291, 293, 295]
+   WIO[2] at y=414 connected to 7 core rows (abs coordinates): [298, 300, 302, 304, 306, 308, 310]
+   WIO[3] at y=432 connected to 7 core rows (abs coordinates): [313, 315, 317, 319, 321, 323, 325]
+   WIO[4] at y=450 connected to 7 core rows (abs coordinates): [328, 330, 332, 334, 336, 338, 340]
+Core 0, ACT port group 14, domain 0, RIGHT edge
+   WIO[0] at y=468 connected to 7 core rows (abs coordinates): [343, 345, 347, 349, 351, 353, 355]
+   WIO[1] at y=486 connected to 7 core rows (abs coordinates): [358, 360, 362, 364, 366, 368, 370]
+   WIO[2] at y=504 connected to 7 core rows (abs coordinates): [373, 375, 377, 379, 381, 383, 385]
+   WIO[3] at y=522 connected to 7 core rows (abs coordinates): [388, 390, 392, 394, 396, 398, 400]
+   WIO[4] at y=540 connected to 7 core rows (abs coordinates): [403, 405, 407, 409, 411, 413, 415]
+Core 0, ACT port group 15, domain 1, RIGHT edge
+   WIO[0] at y=576 connected to 7 core rows (abs coordinates): [418, 420, 422, 424, 426, 428, 430]
+   WIO[1] at y=612 connected to 7 core rows (abs coordinates): [433, 435, 437, 439, 441, 443, 445]
+   WIO[2] at y=648 connected to 7 core rows (abs coordinates): [448, 450, 452, 454, 456, 458, 460]
+   WIO[3] at y=684 connected to 7 core rows (abs coordinates): [463, 465, 467, 469, 471, 473, 475]
+   WIO[4] at y=720 connected to 7 core rows (abs coordinates): [478, 480, 482, 484, 486, 488, 490]
+Core 0, ACT port group 16, domain 1, RIGHT edge
+   WIO[0] at y=738 connected to 7 core rows (abs coordinates): [493, 495, 497, 499, 501, 503, 505]
+   WIO[1] at y=756 connected to 7 core rows (abs coordinates): [508, 510, 512, 514, 516, 518, 520]
+   WIO[2] at y=774 connected to 7 core rows (abs coordinates): [523, 525, 527, 529, 531, 533, 535]
+   WIO[3] at y=792 connected to 7 core rows (abs coordinates): [538, 540, 542, 544, 546, 548, 550]
+   WIO[4] at y=810 connected to 7 core rows (abs coordinates): [553, 555, 557, 559, 561, 563, 565]
+Core 0, ACT port group 17, domain 1, RIGHT edge
+   WIO[0] at y=828 connected to 7 core rows (abs coordinates): [568, 570, 572, 574, 576, 578, 580]
+   WIO[1] at y=846 connected to 7 core rows (abs coordinates): [583, 585, 587, 589, 591, 593, 595]
+   WIO[2] at y=864 connected to 7 core rows (abs coordinates): [598, 600, 602, 604, 606, 608, 610]
+   WIO[3] at y=882 connected to 7 core rows (abs coordinates): [613, 615, 617, 619, 621, 623, 625]
+   WIO[4] at y=900 connected to 7 core rows (abs coordinates): [628, 630, 632, 634, 636, 638, 640]
+Core 0, ACT port group 18, domain 1, RIGHT edge
+   WIO[0] at y=918 connected to 7 core rows (abs coordinates): [643, 645, 647, 649, 651, 653, 655]
+   WIO[1] at y=936 connected to 7 core rows (abs coordinates): [658, 660, 662, 664, 666, 668, 670]
+   WIO[2] at y=954 connected to 7 core rows (abs coordinates): [673, 675, 677, 679, 681, 683, 685]
+   WIO[3] at y=972 connected to 7 core rows (abs coordinates): [688, 690, 692, 694, 696, 698, 700]
+   WIO[4] at y=990 connected to 7 core rows (abs coordinates): [703, 705, 707, 709, 711, 713, 715]
+Core 0, ACT port group 19, domain 1, RIGHT edge
+   WIO[0] at y=1008 connected to 7 core rows (abs coordinates): [718, 720, 722, 724, 726, 728, 730]
+   WIO[1] at y=1026 connected to 7 core rows (abs coordinates): [733, 735, 737, 739, 741, 743, 745]
+   WIO[2] at y=1044 connected to 7 core rows (abs coordinates): [748, 750, 752, 754, 756, 758, 760]
+   WIO[3] at y=1062 connected to 7 core rows (abs coordinates): [763, 765, 767, 769, 771, 773, 775]
+   WIO[4] at y=1080 connected to 7 core rows (abs coordinates): [778, 780, 782, 784, 786, 788, 790]
+Core 0, ACT port group 20, domain 1, RIGHT edge
+   WIO[0] at y=1098 connected to 4 core rows (abs coordinates): [793, 795, 797, 799]
+
+Core 0, EVT port group 0, domain 3, LEFT edge
+   WIO[0] at y=37 connected to 7 core rows (abs coordinates): [38, 40, 42, 44, 46, 48, 50]
+   WIO[1] at y=73 connected to 7 core rows (abs coordinates): [68, 70, 72, 74, 76, 78, 80]
+   WIO[2] at y=109 connected to 7 core rows (abs coordinates): [83, 85, 87, 89, 91, 93, 95]
+   WIO[3] at y=145 connected to 7 core rows (abs coordinates): [98, 100, 102, 104, 106, 108, 110]
+   WIO[4] at y=181 connected to 7 core rows (abs coordinates): [113, 115, 117, 119, 121, 123, 125]
+Core 0, EVT port group 1, domain 3, LEFT edge
+   WIO[0] at y=199 connected to 7 core rows (abs coordinates): [128, 130, 132, 134, 136, 138, 140]
+   WIO[1] at y=217 connected to 7 core rows (abs coordinates): [143, 145, 147, 149, 151, 153, 155]
+   WIO[2] at y=235 connected to 7 core rows (abs coordinates): [158, 160, 162, 164, 166, 168, 170]
+   WIO[3] at y=253 connected to 7 core rows (abs coordinates): [173, 175, 177, 179, 181, 183, 185]
+   WIO[4] at y=271 connected to 7 core rows (abs coordinates): [188, 190, 192, 194, 196, 198, 200]
+Core 0, EVT port group 2, domain 3, LEFT edge
+   WIO[0] at y=289 connected to 7 core rows (abs coordinates): [203, 205, 207, 209, 211, 213, 215]
+   WIO[1] at y=307 connected to 7 core rows (abs coordinates): [218, 220, 222, 224, 226, 228, 230]
+   WIO[2] at y=325 connected to 7 core rows (abs coordinates): [233, 235, 237, 239, 241, 243, 245]
+   WIO[3] at y=343 connected to 7 core rows (abs coordinates): [248, 250, 252, 254, 256, 258, 260]
+   WIO[4] at y=361 connected to 7 core rows (abs coordinates): [263, 265, 267, 269, 271, 273, 275]
+Core 0, EVT port group 3, domain 3, LEFT edge
+   WIO[0] at y=379 connected to 7 core rows (abs coordinates): [278, 280, 282, 284, 286, 288, 290]
+   WIO[1] at y=397 connected to 7 core rows (abs coordinates): [293, 295, 297, 299, 301, 303, 305]
+   WIO[2] at y=415 connected to 7 core rows (abs coordinates): [308, 310, 312, 314, 316, 318, 320]
+   WIO[3] at y=433 connected to 7 core rows (abs coordinates): [323, 325, 327, 329, 331, 333, 335]
+   WIO[4] at y=451 connected to 7 core rows (abs coordinates): [338, 340, 342, 344, 346, 348, 350]
+Core 0, EVT port group 4, domain 3, LEFT edge
+   WIO[0] at y=469 connected to 7 core rows (abs coordinates): [353, 355, 357, 359, 361, 363, 365]
+   WIO[1] at y=487 connected to 7 core rows (abs coordinates): [368, 370, 372, 374, 376, 378, 380]
+   WIO[2] at y=505 connected to 7 core rows (abs coordinates): [383, 385, 387, 389, 391, 393, 395]
+   WIO[3] at y=523 connected to 7 core rows (abs coordinates): [398, 400, 402, 404, 406, 408, 410]
+   WIO[4] at y=541 connected to 7 core rows (abs coordinates): [413, 415, 417, 419, 421, 423, 425]
+Core 0, EVT port group 5, domain 2, LEFT edge
+   WIO[0] at y=577 connected to 7 core rows (abs coordinates): [428, 430, 432, 434, 436, 438, 440]
+   WIO[1] at y=613 connected to 7 core rows (abs coordinates): [443, 445, 447, 449, 451, 453, 455]
+   WIO[2] at y=649 connected to 7 core rows (abs coordinates): [458, 460, 462, 464, 466, 468, 470]
+   WIO[3] at y=685 connected to 7 core rows (abs coordinates): [473, 475, 477, 479, 481, 483, 485]
+   WIO[4] at y=721 connected to 7 core rows (abs coordinates): [488, 490, 492, 494, 496, 498, 500]
+Core 0, EVT port group 6, domain 2, LEFT edge
+   WIO[0] at y=757 connected to 7 core rows (abs coordinates): [503, 505, 507, 509, 511, 513, 515]
+   WIO[1] at y=775 connected to 7 core rows (abs coordinates): [518, 520, 522, 524, 526, 528, 530]
+   WIO[2] at y=793 connected to 7 core rows (abs coordinates): [533, 535, 537, 539, 541, 543, 545]
+   WIO[3] at y=811 connected to 7 core rows (abs coordinates): [548, 550, 552, 554, 556, 558, 560]
+   WIO[4] at y=829 connected to 7 core rows (abs coordinates): [563, 565, 567, 569, 571, 573, 575]
+Core 0, EVT port group 7, domain 2, LEFT edge
+   WIO[0] at y=847 connected to 7 core rows (abs coordinates): [578, 580, 582, 584, 586, 588, 590]
+   WIO[1] at y=865 connected to 7 core rows (abs coordinates): [593, 595, 597, 599, 601, 603, 605]
+   WIO[2] at y=883 connected to 7 core rows (abs coordinates): [608, 610, 612, 614, 616, 618, 620]
+   WIO[3] at y=901 connected to 7 core rows (abs coordinates): [623, 625, 627, 629, 631, 633, 635]
+   WIO[4] at y=919 connected to 7 core rows (abs coordinates): [638, 640, 642, 644, 646, 648, 650]
+Core 0, EVT port group 8, domain 2, LEFT edge
+   WIO[0] at y=937 connected to 7 core rows (abs coordinates): [653, 655, 657, 659, 661, 663, 665]
+   WIO[1] at y=955 connected to 7 core rows (abs coordinates): [668, 670, 672, 674, 676, 678, 680]
+   WIO[2] at y=973 connected to 7 core rows (abs coordinates): [683, 685, 687, 689, 691, 693, 695]
+   WIO[3] at y=991 connected to 7 core rows (abs coordinates): [698, 700, 702, 704, 706, 708, 710]
+   WIO[4] at y=1009 connected to 7 core rows (abs coordinates): [713, 715, 717, 719, 721, 723, 725]
+Core 0, EVT port group 9, domain 2, LEFT edge
+   WIO[0] at y=1027 connected to 7 core rows (abs coordinates): [728, 730, 732, 734, 736, 738, 740]
+   WIO[1] at y=1045 connected to 7 core rows (abs coordinates): [743, 745, 747, 749, 751, 753, 755]
+   WIO[2] at y=1063 connected to 7 core rows (abs coordinates): [758, 760, 762, 764, 766, 768, 770]
+   WIO[3] at y=1081 connected to 7 core rows (abs coordinates): [773, 775, 777, 779, 781, 783, 785]
+   WIO[4] at y=1099 connected to 7 core rows (abs coordinates): [788, 790, 792, 794, 796, 798, 800]
+Core 0, EVT port group 10, domain 0, RIGHT edge
+   WIO[0] at y=37 connected to 7 core rows (abs coordinates): [38, 40, 42, 44, 46, 48, 50]
+   WIO[1] at y=73 connected to 7 core rows (abs coordinates): [59, 61, 63, 65, 67, 69, 71]
+   WIO[2] at y=109 connected to 7 core rows (abs coordinates): [74, 76, 78, 80, 82, 84, 86]
+   WIO[3] at y=145 connected to 7 core rows (abs coordinates): [89, 91, 93, 95, 97, 99, 101]
+   WIO[4] at y=181 connected to 7 core rows (abs coordinates): [104, 106, 108, 110, 112, 114, 116]
+Core 0, EVT port group 11, domain 0, RIGHT edge
+   WIO[0] at y=199 connected to 7 core rows (abs coordinates): [119, 121, 123, 125, 127, 129, 131]
+   WIO[1] at y=217 connected to 7 core rows (abs coordinates): [134, 136, 138, 140, 142, 144, 146]
+   WIO[2] at y=235 connected to 7 core rows (abs coordinates): [149, 151, 153, 155, 157, 159, 161]
+   WIO[3] at y=253 connected to 7 core rows (abs coordinates): [164, 166, 168, 170, 172, 174, 176]
+   WIO[4] at y=271 connected to 7 core rows (abs coordinates): [179, 181, 183, 185, 187, 189, 191]
+Core 0, EVT port group 12, domain 0, RIGHT edge
+   WIO[0] at y=289 connected to 7 core rows (abs coordinates): [194, 196, 198, 200, 202, 204, 206]
+   WIO[1] at y=307 connected to 7 core rows (abs coordinates): [209, 211, 213, 215, 217, 219, 221]
+   WIO[2] at y=325 connected to 7 core rows (abs coordinates): [224, 226, 228, 230, 232, 234, 236]
+   WIO[3] at y=343 connected to 7 core rows (abs coordinates): [239, 241, 243, 245, 247, 249, 251]
+   WIO[4] at y=361 connected to 7 core rows (abs coordinates): [254, 256, 258, 260, 262, 264, 266]
+Core 0, EVT port group 13, domain 0, RIGHT edge
+   WIO[0] at y=379 connected to 7 core rows (abs coordinates): [269, 271, 273, 275, 277, 279, 281]
+   WIO[1] at y=397 connected to 7 core rows (abs coordinates): [284, 286, 288, 290, 292, 294, 296]
+   WIO[2] at y=415 connected to 7 core rows (abs coordinates): [299, 301, 303, 305, 307, 309, 311]
+   WIO[3] at y=433 connected to 7 core rows (abs coordinates): [314, 316, 318, 320, 322, 324, 326]
+   WIO[4] at y=451 connected to 7 core rows (abs coordinates): [329, 331, 333, 335, 337, 339, 341]
+Core 0, EVT port group 14, domain 0, RIGHT edge
+   WIO[0] at y=469 connected to 7 core rows (abs coordinates): [344, 346, 348, 350, 352, 354, 356]
+   WIO[1] at y=487 connected to 7 core rows (abs coordinates): [359, 361, 363, 365, 367, 369, 371]
+   WIO[2] at y=505 connected to 7 core rows (abs coordinates): [374, 376, 378, 380, 382, 384, 386]
+   WIO[3] at y=523 connected to 7 core rows (abs coordinates): [389, 391, 393, 395, 397, 399, 401]
+   WIO[4] at y=541 connected to 7 core rows (abs coordinates): [404, 406, 408, 410, 412, 414, 416]
+Core 0, EVT port group 15, domain 1, RIGHT edge
+   WIO[0] at y=577 connected to 7 core rows (abs coordinates): [419, 421, 423, 425, 427, 429, 431]
+   WIO[1] at y=613 connected to 7 core rows (abs coordinates): [434, 436, 438, 440, 442, 444, 446]
+   WIO[2] at y=649 connected to 7 core rows (abs coordinates): [449, 451, 453, 455, 457, 459, 461]
+   WIO[3] at y=685 connected to 7 core rows (abs coordinates): [464, 466, 468, 470, 472, 474, 476]
+   WIO[4] at y=721 connected to 7 core rows (abs coordinates): [479, 481, 483, 485, 487, 489, 491]
+Core 0, EVT port group 16, domain 1, RIGHT edge
+   WIO[0] at y=739 connected to 7 core rows (abs coordinates): [494, 496, 498, 500, 502, 504, 506]
+   WIO[1] at y=757 connected to 7 core rows (abs coordinates): [509, 511, 513, 515, 517, 519, 521]
+   WIO[2] at y=775 connected to 7 core rows (abs coordinates): [524, 526, 528, 530, 532, 534, 536]
+   WIO[3] at y=793 connected to 7 core rows (abs coordinates): [539, 541, 543, 545, 547, 549, 551]
+   WIO[4] at y=811 connected to 7 core rows (abs coordinates): [554, 556, 558, 560, 562, 564, 566]
+Core 0, EVT port group 17, domain 1, RIGHT edge
+   WIO[0] at y=829 connected to 7 core rows (abs coordinates): [569, 571, 573, 575, 577, 579, 581]
+   WIO[1] at y=847 connected to 7 core rows (abs coordinates): [584, 586, 588, 590, 592, 594, 596]
+   WIO[2] at y=865 connected to 7 core rows (abs coordinates): [599, 601, 603, 605, 607, 609, 611]
+   WIO[3] at y=883 connected to 7 core rows (abs coordinates): [614, 616, 618, 620, 622, 624, 626]
+   WIO[4] at y=901 connected to 7 core rows (abs coordinates): [629, 631, 633, 635, 637, 639, 641]
+Core 0, EVT port group 18, domain 1, RIGHT edge
+   WIO[0] at y=919 connected to 7 core rows (abs coordinates): [644, 646, 648, 650, 652, 654, 656]
+   WIO[1] at y=937 connected to 7 core rows (abs coordinates): [659, 661, 663, 665, 667, 669, 671]
+   WIO[2] at y=955 connected to 7 core rows (abs coordinates): [674, 676, 678, 680, 682, 684, 686]
+   WIO[3] at y=973 connected to 7 core rows (abs coordinates): [689, 691, 693, 695, 697, 699, 701]
+   WIO[4] at y=991 connected to 7 core rows (abs coordinates): [704, 706, 708, 710, 712, 714, 716]
+Core 0, EVT port group 19, domain 1, RIGHT edge
+   WIO[0] at y=1009 connected to 7 core rows (abs coordinates): [719, 721, 723, 725, 727, 729, 731]
+   WIO[1] at y=1027 connected to 7 core rows (abs coordinates): [734, 736, 738, 740, 742, 744, 746]
+   WIO[2] at y=1045 connected to 7 core rows (abs coordinates): [749, 751, 753, 755, 757, 759, 761]
+   WIO[3] at y=1063 connected to 7 core rows (abs coordinates): [764, 766, 768, 770, 772, 774, 776]
+   WIO[4] at y=1081 connected to 7 core rows (abs coordinates): [779, 781, 783, 785, 787, 789, 791]
+Core 0, EVT port group 20, domain 1, RIGHT edge
+   WIO[0] at y=1099 connected to 4 core rows (abs coordinates): [794, 796, 798, 800]
+
+
+======================================================================================================================================================
+Connectivity between shards and FPGA domains:
+======================================================================================================================================================
+Shard type: WGT (21 shards)
+   Shard 0 <-> Domain 3
+   Shard 1 <-> Domain 3
+   Shard 2 <-> Domain 3
+   Shard 3 <-> Domain 3
+   Shard 4 <-> Domain 3
+   Shard 5 <-> Domain 2
+   Shard 6 <-> Domain 2
+   Shard 7 <-> Domain 2
+   Shard 8 <-> Domain 2
+   Shard 9 <-> Domain 2
+   Shard 10 <-> Domain 2
+   Shard 11 <-> Domain 0
+   Shard 12 <-> Domain 0
+   Shard 13 <-> Domain 0
+   Shard 14 <-> Domain 0
+   Shard 15 <-> Domain 0
+   Shard 16 <-> Domain 1
+   Shard 17 <-> Domain 1
+   Shard 18 <-> Domain 1
+   Shard 19 <-> Domain 1
+   Shard 20 <-> Domain 1
+
+Shard type: ACT (21 shards)
+   Shard 0 <-> Domain 2
+   Shard 1 <-> Domain 2
+   Shard 2 <-> Domain 2
+   Shard 3 <-> Domain 2
+   Shard 4 <-> Domain 2
+   Shard 5 <-> Domain 3
+   Shard 6 <-> Domain 3
+   Shard 7 <-> Domain 3
+   Shard 8 <-> Domain 3
+   Shard 9 <-> Domain 3
+   Shard 10 <-> Domain 0
+   Shard 11 <-> Domain 0
+   Shard 12 <-> Domain 0
+   Shard 13 <-> Domain 0
+   Shard 14 <-> Domain 0
+   Shard 15 <-> Domain 1
+   Shard 16 <-> Domain 1
+   Shard 17 <-> Domain 1
+   Shard 18 <-> Domain 1
+   Shard 19 <-> Domain 1
+   Shard 20 <-> Domain 1
+
