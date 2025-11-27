@@ -1,7 +1,7 @@
 """
-Visualize Cerebras wafer I/O (WIO) reports produced under analyze/wio_report_*.txt.
+Summary visualizer for Cerebras wafer I/O (WIO) reports produced under analyze/wio_report_*.txt.
 
-Parses the textual report, summarizes WIO utilization, and renders a PNG/SVG
+Parses the textual summary report, aggregates WIO utilization, and renders a PNG/SVG
 showing per-flow counts and placement along the fabric edges.
 """
 

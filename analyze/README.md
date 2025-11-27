@@ -1,6 +1,6 @@
-# WIO Report Visualizer
+# WIO Summary Visualizer
 
-This utility parses the wafer I/O (WIO) reports in this directory and renders quick visual summaries of utilization and placement along the fabric edges.
+This utility parses the wafer I/O (WIO) summary reports in this directory and renders quick visual summaries of utilization and placement along the fabric edges.
 
 ## What it does
 
