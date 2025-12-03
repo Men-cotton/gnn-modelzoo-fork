@@ -311,6 +311,10 @@ def main():
     use_amp = bool(m.get("to_float16", False)) and device.type == "cuda"
     scaler = torch.amp.GradScaler("cuda", enabled=use_amp)
 
+    # ---- Config Options ----
+    compute_eval_metrics = m.get("compute_eval_metrics", True)
+    disable_log_softmax = m.get("disable_log_softmax", False)
+
     # ---- Loop ----
     loop = init["loop"]
     max_steps = int(loop["max_steps"])
@@ -346,12 +350,20 @@ def main():
                 logits = model(batch.x, batch.edge_index, batch_size=batch.batch_size)
                 logits = logits[: batch.batch_size]
                 y = batch.y[: batch.batch_size]
-                loss = F.cross_entropy(logits, y)
+                if not disable_log_softmax:
+                    logits = F.log_softmax(logits, dim=-1)
+                    loss = F.nll_loss(logits, y)
+                else:
+                    loss = F.cross_entropy(logits, y)
         else:
             with torch.amp.autocast("cuda", enabled=use_amp):
                 logits = model(data.x, data.edge_index)
                 y = data.y[train_nodes]
-                loss = F.cross_entropy(logits[train_nodes], y)
+                if not disable_log_softmax:
+                    logits = F.log_softmax(logits[train_nodes], dim=-1)
+                    loss = F.nll_loss(logits, y)
+                else:
+                    loss = F.cross_entropy(logits[train_nodes], y)
 
         scaler.scale(loss / grad_accum).backward()
 
@@ -371,7 +383,7 @@ def main():
         if step % steps_per_epoch == 0:
             epoch += 1
 
-        if step % eval_frequency == 0 or step == max_steps:
+        if compute_eval_metrics and (step % eval_frequency == 0 or step == max_steps):
             if use_neighbor_loader:
                 val_acc = evaluate(model, val_loader, device)
             else:
