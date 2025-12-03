@@ -67,6 +67,9 @@ main() {
         return 1
     fi
 
+    log_info "Removing 'outdated' package to prevent deprecation warnings..."
+    uv pip uninstall outdated || true
+
     log_step "Pre-downloading GNN Datasets"
     local download_dir="${PROJECT_ROOT}/${SHARED_MODEL_SUBDIR}"
     if [ ! -d "${download_dir}" ]; then
