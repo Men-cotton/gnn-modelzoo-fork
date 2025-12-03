@@ -116,8 +116,9 @@ def _check_dataset_exists(data_dir, dataset_name):
     elif lower.startswith("ogbn-"):
         # OGB checks for processed/geometric_data_processed.pt
         # The folder name is usually underscored, e.g. ogbn_arxiv
+        # And it is nested inside a folder named after the dataset (hyphenated)
         folder_name = dataset_name.replace("-", "_")
-        if not osp.exists(osp.join(data_dir, folder_name, "processed", "geometric_data_processed.pt")):
+        if not osp.exists(osp.join(data_dir, dataset_name, folder_name, "processed", "geometric_data_processed.pt")):
              raise RuntimeError(
                 f"Dataset '{dataset_name}' not found at {data_dir}. "
                 "Downloading is disabled on this node. Please prepare the data offline."
