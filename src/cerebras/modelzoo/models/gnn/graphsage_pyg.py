@@ -23,7 +23,7 @@ def set_seed(seed: int):
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
     torch.backends.cudnn.deterministic = True
-    torch.backends.cudnn.benchmark = False
+    torch.backends.cudnn.benchmark = True
 
 
 def load_cfg(path: str):
@@ -80,18 +80,14 @@ def _masks_to_split_idx(data):
     return _add_split_aliases(split_idx)
 
 
-def _has_neighbor_sampling_support():
+def _check_pyg_lib():
     try:
         import pyg_lib  # type: ignore  # noqa: F401
-
-        return True
     except ImportError:
-        try:
-            import torch_sparse  # type: ignore  # noqa: F401
-
-            return True
-        except ImportError:
-            return False
+        raise RuntimeError(
+            "This script requires 'pyg_lib' to be installed for efficient neighbor sampling. "
+            "Please install it via: pip install pyg_lib -f https://data.pyg.org/whl/torch-${TORCH_VERSION}.html"
+        )
 
 
 def _check_dataset_exists(data_dir, dataset_name):
@@ -215,6 +211,8 @@ def make_loaders(data, split_idx, cfg):
         drop_last=train_c["drop_last_batch"],
         num_workers=train_c["num_workers"],
         generator=_build_generator(train_c),
+        pin_memory=True,
+        persistent_workers=train_c["num_workers"] > 0,
     )
     val_loader = NeighborLoader(
         data,
@@ -225,6 +223,8 @@ def make_loaders(data, split_idx, cfg):
         drop_last=val_c["drop_last_batch"],
         num_workers=val_c["num_workers"],
         generator=_build_generator(val_c),
+        pin_memory=True,
+        persistent_workers=val_c["num_workers"] > 0,
     )
     return train_loader, val_loader
 
@@ -235,7 +235,7 @@ def evaluate(model, loader, device):
     total = 0
     correct = 0
     for batch in loader:
-        batch = batch.to(device)
+        batch = batch.to(device, non_blocking=True)
         # GraphSAGEはNeighborLoaderと併用時、batch_sizeを渡すと先頭seedノード分のみ返せる
         out = model(batch.x, batch.edge_index, batch_size=batch.batch_size)
         out = out[: batch.batch_size]
@@ -276,17 +276,9 @@ def main():
     dataset_profile = _resolve_dataset_profile(train_c)
     data, split_idx = _load_dataset(dataset_profile)
 
-    use_neighbor_loader = _has_neighbor_sampling_support()
-    if use_neighbor_loader:
-        loaders = make_loaders(data, split_idx, cfg)
-        train_loader, val_loader = loaders
-    else:
-        train_loader = None
-        val_loader = None
-        print(
-            "[loader] Neither 'pyg-lib' nor 'torch-sparse' is available; "
-            "falling back to full-batch training."
-        )
+    _check_pyg_lib()
+    loaders = make_loaders(data, split_idx, cfg)
+    train_loader, val_loader = loaders
 
     # ---- Model ----
     m = init["model"]
@@ -298,6 +290,9 @@ def main():
         dropout=m["graphsage_dropout"],
         aggr=m["graphsage_aggregator"],  # SAGEConvのaggrへフォワード
     ).to(device)
+
+    if hasattr(torch, "compile"):
+        model = torch.compile(model)
 
     # ---- Optimizer ----
     optconf = init["optimizer"]["AdamW"]
@@ -328,42 +323,26 @@ def main():
     step = 0
     epoch = 0
     running_loss = 0.0
-    if use_neighbor_loader:
-        train_iter = iter(train_loader)
-    else:
-        data = data.to(device)
-        train_nodes = _resolve_split(split_idx, train_c.get("split", "train")).to(device)
-        val_cfg = cfg["trainer"]["validate"]["val_dataloader"]
-        val_nodes = _resolve_split(split_idx, val_cfg.get("split", "val")).to(device)
+    train_iter = iter(train_loader)
 
     while step < max_steps:
-        if use_neighbor_loader:
-            try:
-                batch = next(train_iter)
-            except StopIteration:
-                epoch += 1
-                train_iter = iter(train_loader)
-                batch = next(train_iter)
+        try:
+            batch = next(train_iter)
+        except StopIteration:
+            epoch += 1
+            train_iter = iter(train_loader)
+            batch = next(train_iter)
 
-            batch = batch.to(device)
-            with torch.amp.autocast("cuda", enabled=use_amp):
-                logits = model(batch.x, batch.edge_index, batch_size=batch.batch_size)
-                logits = logits[: batch.batch_size]
-                y = batch.y[: batch.batch_size]
-                if not disable_log_softmax:
-                    logits = F.log_softmax(logits, dim=-1)
-                    loss = F.nll_loss(logits, y)
-                else:
-                    loss = F.cross_entropy(logits, y)
-        else:
-            with torch.amp.autocast("cuda", enabled=use_amp):
-                logits = model(data.x, data.edge_index)
-                y = data.y[train_nodes]
-                if not disable_log_softmax:
-                    logits = F.log_softmax(logits[train_nodes], dim=-1)
-                    loss = F.nll_loss(logits, y)
-                else:
-                    loss = F.cross_entropy(logits[train_nodes], y)
+        batch = batch.to(device, non_blocking=True)
+        with torch.amp.autocast("cuda", enabled=use_amp):
+            logits = model(batch.x, batch.edge_index, batch_size=batch.batch_size)
+            logits = logits[: batch.batch_size]
+            y = batch.y[: batch.batch_size]
+            if not disable_log_softmax:
+                logits = F.log_softmax(logits, dim=-1)
+                loss = F.nll_loss(logits, y)
+            else:
+                loss = F.cross_entropy(logits, y)
 
         scaler.scale(loss / grad_accum).backward()
 
@@ -384,10 +363,7 @@ def main():
             epoch += 1
 
         if compute_eval_metrics and (step % eval_frequency == 0 or step == max_steps):
-            if use_neighbor_loader:
-                val_acc = evaluate(model, val_loader, device)
-            else:
-                val_acc = evaluate_full_batch(model, data, val_nodes, device)
+            val_acc = evaluate(model, val_loader, device)
             print(f"[eval @ step {step}] val_acc={val_acc:.4f}")
 
     ckpt = os.path.join(model_dir, "last.pt")
