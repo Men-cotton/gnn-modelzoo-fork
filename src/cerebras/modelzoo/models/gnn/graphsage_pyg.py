@@ -6,6 +6,8 @@ from cerebras.modelzoo.models.gnn.pyg_gnn.cagnet_shim import destroy_cagnet_grou
 from cerebras.modelzoo.models.gnn.pyg_gnn.data import load_dataset, make_loaders, check_pyg_lib, _resolve_dataset_profile
 from cerebras.modelzoo.models.gnn.pyg_gnn.model import get_model
 from cerebras.modelzoo.models.gnn.pyg_gnn.train import train_model
+from cerebras.modelzoo.models.gnn.pyg_gnn.caching import GraphCache
+from torch_geometric.data import Data
 
 def main():
     ap = argparse.ArgumentParser()
@@ -13,6 +15,7 @@ def main():
     ap.add_argument("--cagnet-rows", type=int, default=1, help="CAGNET grid rows")
     ap.add_argument("--cagnet-cols", type=int, default=1, help="CAGNET grid cols")
     ap.add_argument("--cagnet-rep", type=int, default=1, help="CAGNET replication factor")
+    ap.add_argument("--cache-percent", type=float, default=None, help="Percentage of nodes to cache on GPU")
     args = ap.parse_args()
     ensure_pickle_friendly_load()
 
@@ -53,8 +56,19 @@ def main():
             "rank": rank,
             "world_size": world_size
         }
+        
+        # Initialize GraphCache
+        cache = GraphCache(data, device, percent=args.cache_percent)
+        
+        # Create loader_data without x to avoid duplicate fetching
+        loader_data = Data()
+        for k, v in data:
+            if k != "x":
+                loader_data[k] = v
+        loader_data.num_nodes = data.num_nodes
+        
         # make_loaders now supports rank/world_size
-        loaders = make_loaders(data, split_idx, cfg, rank=rank, world_size=world_size)
+        loaders = make_loaders(loader_data, split_idx, cfg, rank=rank, world_size=world_size)
 
         # ---- Model ----
         model = get_model(cfg, args, num_nodes=data.num_nodes).to(device)
@@ -69,7 +83,7 @@ def main():
             model = torch.compile(model)
 
         # ---- Train ----
-        train_model(cfg, model, loaders, data, split_idx, device, rank=rank, world_size=world_size)
+        train_model(cfg, model, loaders, data, split_idx, device, rank=rank, world_size=world_size, cache=cache)
         
     finally:
         destroy_cagnet_groups()

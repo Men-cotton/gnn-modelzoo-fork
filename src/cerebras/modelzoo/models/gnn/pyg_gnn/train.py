@@ -5,7 +5,7 @@ from torch.optim import AdamW
 import torch.distributed as dist
 from cerebras.modelzoo.models.gnn.pyg_gnn.eval import evaluate
 
-def train_model(cfg, model, loaders, data, split_idx, device, rank=0, world_size=1):
+def train_model(cfg, model, loaders, data, split_idx, device, rank=0, world_size=1, cache=None):
     init = cfg["trainer"]["init"]
     model_dir = init["model_dir"]
     
@@ -52,6 +52,8 @@ def train_model(cfg, model, loaders, data, split_idx, device, rank=0, world_size
             batch = next(train_iter)
 
         batch = batch.to(device, non_blocking=True)
+        if cache is not None:
+            batch.x = cache.fetch(batch.n_id)
         with torch.amp.autocast("cuda", enabled=use_amp):
             logits = model(batch.x, batch.edge_index, batch_size=batch.batch_size)
             logits = logits[: batch.batch_size]
@@ -89,7 +91,7 @@ def train_model(cfg, model, loaders, data, split_idx, device, rank=0, world_size
             epoch += 1
 
         if compute_eval_metrics and (step % eval_frequency == 0 or step == max_steps):
-            val_acc = evaluate(model, val_loader, device)
+            val_acc = evaluate(model, val_loader, device, cache=cache)
             print(f"[eval @ step {step}] val_acc={val_acc:.4f}")
             # Ensure model is back in train mode after eval
             model.train()

@@ -66,3 +66,14 @@ Without this kernel, the model will fallback to a slower PyTorch implementation 
 cd src/cerebras/modelzoo/models/gnn/pyg_gnn/ops
 uv run setup.py install
 ```
+
+### PaGraph Caching
+
+This model integrates **PaGraph** caching strategy to speed up training on single and multi-GPU setups.
+It automatically caches frequently accessed node features on the GPU to minimize PCIe bandwidth usage.
+
+- **Auto Mode**: By default (or with `--cache-percent` omitted), it calculates available GPU memory and caches as many hot nodes as possible (up to 100%).
+- **Manual Mode**: You can specify a fixed percentage using `--cache-percent`.
+
+**Arguments:**
+- `--cache-percent <P>`: Percentage of nodes to cache (0.0 to 1.0). Default: Auto-detect.

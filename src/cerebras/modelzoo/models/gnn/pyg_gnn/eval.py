@@ -6,12 +6,14 @@ from cerebras.modelzoo.models.gnn.pyg_gnn.data import load_dataset, make_loaders
 from cerebras.modelzoo.models.gnn.pyg_gnn.model import get_model
 
 @torch.no_grad()
-def evaluate(model, loader, device):
+def evaluate(model, loader, device, cache=None):
     model.eval()
     total = 0
     correct = 0
     for batch in loader:
         batch = batch.to(device, non_blocking=True)
+        if cache is not None:
+             batch.x = cache.fetch(batch.n_id)
         # GraphSAGE with NeighborLoader: pass batch_size to get only seed nodes
         out = model(batch.x, batch.edge_index, batch_size=batch.batch_size)
         out = out[: batch.batch_size]
