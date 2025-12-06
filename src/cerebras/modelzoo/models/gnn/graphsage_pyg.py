@@ -10,7 +10,6 @@ from cerebras.modelzoo.models.gnn.pyg_gnn.train import train_model
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--config", required=True, help="path to YAML")
-    ap.add_argument("--use-cagnet", action="store_true", help="Enable CAGNET distributed SpMM")
     ap.add_argument("--cagnet-rows", type=int, default=1, help="CAGNET grid rows")
     ap.add_argument("--cagnet-cols", type=int, default=1, help="CAGNET grid cols")
     ap.add_argument("--cagnet-rep", type=int, default=1, help="CAGNET replication factor")
@@ -58,7 +57,7 @@ def main():
         loaders = make_loaders(data, split_idx, cfg, rank=rank, world_size=world_size)
 
         # ---- Model ----
-        model = get_model(cfg, args).to(device)
+        model = get_model(cfg, args, num_nodes=data.num_nodes).to(device)
 
         if world_size > 1:
             from torch.nn.parallel import DistributedDataParallel as DDP
