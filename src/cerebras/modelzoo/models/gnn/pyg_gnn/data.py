@@ -202,7 +202,7 @@ def _resolve_split(split_idx, split_name):
     raise KeyError(f"Split '{split_name}' not available in dataset")
 
 
-def make_loaders(data, split_idx, cfg):
+def make_loaders(data, split_idx, cfg, rank=0, world_size=1):
     # 参照するブロック
     fit = cfg["trainer"]["fit"]
     train_c = fit["train_dataloader"]
@@ -211,9 +211,29 @@ def make_loaders(data, split_idx, cfg):
     train_profile = _resolve_dataset_profile(train_c)
     val_profile = _resolve_dataset_profile(val_c)
 
+    # Shard training indices for DDP
+    train_input_nodes = _resolve_split(split_idx, train_c.get("split", "train"))
+    
+    if world_size > 1:
+        num_nodes = train_input_nodes.size(0)
+        # Partition logic similar to OFFSET-GNN baseline
+        # Try to split as evenly as possible
+        base_size = num_nodes // world_size
+        extra = num_nodes % world_size
+        
+        start = rank * base_size + min(rank, extra)
+        length = base_size + (1 if rank < extra else 0)
+        
+        # Slice the tensor
+        train_input_nodes = train_input_nodes[start : start + length]
+        print(f"[ddp] Rank {rank}/{world_size}: Assigned {train_input_nodes.size(0)}/{num_nodes} training nodes (Indices {start} to {start + length})")
+    
+    if rank == 0 and world_size == 1:
+         print(f"[loader] Single-process: Using full training set ({train_input_nodes.size(0)} nodes)")
+
     train_loader = NeighborLoader(
         data,
-        input_nodes=_resolve_split(split_idx, train_c.get("split", "train")),
+        input_nodes=train_input_nodes,
         num_neighbors=_get_fanouts(train_c, train_profile),
         batch_size=train_c["batch_size"],
         shuffle=train_c["shuffle"],

@@ -1,7 +1,7 @@
 import argparse
 import os
 import torch
-from cerebras.modelzoo.models.gnn.pyg_gnn.utils import set_seed, load_cfg
+from cerebras.modelzoo.models.gnn.pyg_gnn.utils import set_seed, load_cfg, setup_ddp, cleanup_ddp
 from cerebras.modelzoo.models.gnn.pyg_gnn.data import load_dataset, make_loaders, check_pyg_lib, _resolve_dataset_profile
 from cerebras.modelzoo.models.gnn.pyg_gnn.model import get_model
 from cerebras.modelzoo.models.gnn.pyg_gnn.train import train_model
@@ -11,33 +11,63 @@ def main():
     ap.add_argument("--config", required=True, help="path to YAML")
     args = ap.parse_args()
 
-    cfg = load_cfg(args.config)
-    init = cfg["trainer"]["init"]
-    model_dir = init["model_dir"]
-    os.makedirs(model_dir, exist_ok=True)
+    # Initialize DDP
+    rank, world_size, device = setup_ddp()
 
-    seed = init["seed"]
-    set_seed(seed)
+    if rank == 0:
+        if world_size > 1:
+            print(f"[Info] Running in Multi-GPU DDP mode. World Size: {world_size}")
+            print(f"[Info] Master Rank: {rank}, Device: {device}")
+        else:
+            print(f"[Info] Running in Single-Process mode (CPU or Single GPU).")
+            print(f"[Info] Device: {device}")
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    try:
+        cfg = load_cfg(args.config)
+        init = cfg["trainer"]["init"]
+        model_dir = init["model_dir"]
+        
+        # Only rank 0 should probably create directories if they might conflict, 
+        # but os.makedirs(exist_ok=True) is relatively safe.
+        if rank == 0:
+            os.makedirs(model_dir, exist_ok=True)
 
-    # ---- Dataset ----
-    train_c = cfg["trainer"]["fit"]["train_dataloader"]
-    dataset_profile = _resolve_dataset_profile(train_c)
-    data, split_idx = load_dataset(dataset_profile)
+        seed = init["seed"]
+        set_seed(seed)
 
-    check_pyg_lib()
-    loaders = make_loaders(data, split_idx, cfg)
+        # ---- Dataset ----
+        train_c = cfg["trainer"]["fit"]["train_dataloader"]
+        dataset_profile = _resolve_dataset_profile(train_c)
+        data, split_idx = load_dataset(dataset_profile)
 
-    # ---- Model ----
-    model = get_model(cfg).to(device)
+        check_pyg_lib()
+        input_args = {
+            "data": data,
+            "split_idx": split_idx,
+            "cfg": cfg,
+            "rank": rank,
+            "world_size": world_size
+        }
+        # make_loaders now supports rank/world_size
+        loaders = make_loaders(data, split_idx, cfg, rank=rank, world_size=world_size)
 
-    if hasattr(torch, "compile"):
-        model = torch.compile(model)
+        # ---- Model ----
+        model = get_model(cfg).to(device)
 
-    # ---- Train ----
-    train_model(cfg, model, loaders, data, split_idx, device)
+        if world_size > 1:
+            from torch.nn.parallel import DistributedDataParallel as DDP
+            # DDP wrapper
+            model = DDP(model, device_ids=[rank])
+            print(f"[ddp] Rank {rank}: Wrapped model in DDP")
 
+        if hasattr(torch, "compile"):
+            model = torch.compile(model)
+
+        # ---- Train ----
+        train_model(cfg, model, loaders, data, split_idx, device, rank=rank, world_size=world_size)
+        
+    finally:
+        cleanup_ddp()
 
 if __name__ == "__main__":
     main()

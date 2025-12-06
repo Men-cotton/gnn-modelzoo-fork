@@ -2,9 +2,10 @@ import os
 import torch
 import torch.nn.functional as F
 from torch.optim import AdamW
+import torch.distributed as dist
 from cerebras.modelzoo.models.gnn.pyg_gnn.eval import evaluate
 
-def train_model(cfg, model, loaders, data, split_idx, device):
+def train_model(cfg, model, loaders, data, split_idx, device, rank=0, world_size=1):
     init = cfg["trainer"]["init"]
     model_dir = init["model_dir"]
     
@@ -73,7 +74,15 @@ def train_model(cfg, model, loaders, data, split_idx, device):
 
         if step % log_steps == 0:
             avg = running_loss / log_steps
-            print(f"[step {step:04d}] loss={avg:.4f}")
+            
+            # Sync loss for accurate logging
+            if world_size > 1:
+                loss_tensor = torch.tensor([avg], device=device)
+                dist.all_reduce(loss_tensor, op=dist.ReduceOp.SUM)
+                avg = loss_tensor.item() / world_size
+
+            if rank == 0:
+                print(f"[step {step:04d}] loss={avg:.4f}")
             running_loss = 0.0
 
         if step % steps_per_epoch == 0:
