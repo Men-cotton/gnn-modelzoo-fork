@@ -2,6 +2,7 @@ import argparse
 import os
 import torch
 from cerebras.modelzoo.models.gnn.pyg_gnn.utils import set_seed, load_cfg, setup_ddp, cleanup_ddp, ensure_pickle_friendly_load
+from cerebras.modelzoo.models.gnn.pyg_gnn.cagnet_shim import destroy_cagnet_groups, clear_cagnet_caches
 from cerebras.modelzoo.models.gnn.pyg_gnn.data import load_dataset, make_loaders, check_pyg_lib, _resolve_dataset_profile
 from cerebras.modelzoo.models.gnn.pyg_gnn.model import get_model
 from cerebras.modelzoo.models.gnn.pyg_gnn.train import train_model
@@ -9,6 +10,10 @@ from cerebras.modelzoo.models.gnn.pyg_gnn.train import train_model
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--config", required=True, help="path to YAML")
+    ap.add_argument("--use-cagnet", action="store_true", help="Enable CAGNET distributed SpMM")
+    ap.add_argument("--cagnet-rows", type=int, default=1, help="CAGNET grid rows")
+    ap.add_argument("--cagnet-cols", type=int, default=1, help="CAGNET grid cols")
+    ap.add_argument("--cagnet-rep", type=int, default=1, help="CAGNET replication factor")
     args = ap.parse_args()
     ensure_pickle_friendly_load()
 
@@ -53,7 +58,7 @@ def main():
         loaders = make_loaders(data, split_idx, cfg, rank=rank, world_size=world_size)
 
         # ---- Model ----
-        model = get_model(cfg).to(device)
+        model = get_model(cfg, args).to(device)
 
         if world_size > 1:
             from torch.nn.parallel import DistributedDataParallel as DDP
@@ -61,13 +66,15 @@ def main():
             model = DDP(model, device_ids=[rank])
             print(f"[ddp] Rank {rank}: Wrapped model in DDP")
 
-        if hasattr(torch, "compile"):
+        if hasattr(torch, "compile") and not os.getenv("NO_COMPILE"):
             model = torch.compile(model)
 
         # ---- Train ----
         train_model(cfg, model, loaders, data, split_idx, device, rank=rank, world_size=world_size)
         
     finally:
+        destroy_cagnet_groups()
+        clear_cagnet_caches()
         cleanup_ddp()
 
 if __name__ == "__main__":
