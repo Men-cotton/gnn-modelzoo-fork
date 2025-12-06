@@ -13,6 +13,23 @@ def set_seed(seed: int):
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = True
 
+    # optimize for performance (TF32)
+    torch.backends.cuda.matmul.allow_tf32 = True
+    torch.backends.cudnn.allow_tf32 = True
+    torch.set_float32_matmul_precision("high")
+
+def ensure_pickle_friendly_load():
+    """
+    Patches torch.load to default to weights_only=False.
+    This safely suppresses the FutureWarning from libraries like OGB that rely on implicit pickle loading.
+    """
+    original_load = torch.load
+    def patched_load(*args, **kwargs):
+        # Set default weights_only=False if not specified
+        kwargs.setdefault("weights_only", False)
+        return original_load(*args, **kwargs)
+    torch.load = patched_load
+
 def load_cfg(path: str):
     with open(path, "r") as f:
         return yaml.safe_load(f)

@@ -1,7 +1,7 @@
 import argparse
 import os
 import torch
-from cerebras.modelzoo.models.gnn.pyg_gnn.utils import set_seed, load_cfg, setup_ddp, cleanup_ddp
+from cerebras.modelzoo.models.gnn.pyg_gnn.utils import set_seed, load_cfg, setup_ddp, cleanup_ddp, ensure_pickle_friendly_load
 from cerebras.modelzoo.models.gnn.pyg_gnn.data import load_dataset, make_loaders, check_pyg_lib, _resolve_dataset_profile
 from cerebras.modelzoo.models.gnn.pyg_gnn.model import get_model
 from cerebras.modelzoo.models.gnn.pyg_gnn.train import train_model
@@ -10,6 +10,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--config", required=True, help="path to YAML")
     args = ap.parse_args()
+    ensure_pickle_friendly_load()
 
     # Initialize DDP
     rank, world_size, device = setup_ddp()
