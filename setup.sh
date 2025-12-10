@@ -67,6 +67,9 @@ main() {
         return 1
     fi
 
+    log_info "Installing pinned version of 'peft' to resolve dependency issues..."
+    uv pip install peft==0.17.1
+
     log_info "Removing 'outdated' package to prevent deprecation warnings..."
     uv pip uninstall outdated || true
 
