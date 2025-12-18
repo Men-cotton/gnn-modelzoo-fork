@@ -52,23 +52,35 @@ main() {
 
     local python_specifier="python${PYTHON_VERSION_TARGET}"
 
-    log_step "Creating Virtual Environment (Python ${PYTHON_VERSION_TARGET})"
-    if ! uv venv "${VENV_PATH}" -p "${python_specifier}"; then
-        log_error "'uv venv' failed. Ensure Python ${PYTHON_VERSION_TARGET} is discoverable."
-        log_error "Try: 'uv python list' or 'uv python install python@${PYTHON_VERSION_TARGET}'."
-        return 1
-    fi
-    log_info "Venv created/updated: '${VENV_PATH}'"
+    log_step "Initializing Project and Installing Packages"
 
-    log_step "Installing Packages"
-    log_info "Installing dependencies from req.txt..."
-    if ! uv pip install -r req.txt; then
-        log_error "Requirements install failed."
-        return 1
+    if [ ! -f "pyproject.toml" ]; then
+        log_info "pyproject.toml not found. Initializing..."
+        if ! uv init --python "${PYTHON_VERSION_TARGET}" --no-readme; then
+            log_error "uv init failed."
+            return 1
+        fi
+        # Restrict Python version to avoid solving for incompatible newer versions (e.g. 3.12)
+        sed -i 's/requires-python = ">=3.11"/requires-python = "==3.11.*"/' pyproject.toml
+        log_info "Updated pyproject.toml requires-python to ==3.11.*"
     fi
 
-    log_info "Installing pinned version of 'peft' to resolve dependency issues..."
-    uv pip install peft==0.17.1
+    log_info "Adding dependencies from req.txt..."
+    # Extract find-links if present, as uv add might strict-mode ignore it inside file but needs it for lookup
+    local find_links_arg=""
+    if grep -q "^--find-links" req.txt; then
+        local url
+        url=$(grep -m 1 "^--find-links" req.txt | awk '{print $2}')
+        find_links_arg="--find-links ${url}"
+        log_info "Detected --find-links: ${url}"
+    fi
+
+    if ! uv add -r req.txt ${find_links_arg}; then
+        log_error "Requirements install failed (uv add)."
+        return 1
+    fi
+
+
 
     log_info "Removing 'outdated' package to prevent deprecation warnings..."
     uv pip uninstall outdated || true
