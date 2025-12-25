@@ -39,26 +39,8 @@ The easiest way to prepare the environment is to run the `setup.sh` script from 
 This script will automatically perform the following steps:
 - Create a Python 3.8 virtual environment in `.venv/` (`uv venv`).
 - Install the project in editable mode (`uv pip install --editable .`).
-- Install all required dependencies from `requirements.txt`.
+- Install all required dependencies from `req.txt`.
 - Pre-download the necessary datasets by running `download.py`.
-
-#### Manual Setup
-
-If you prefer to set up the environment manually, follow these steps using `uv`:
-
-1.  **Install `uv`** if it is not already available.
-2.  **Create the virtual environment:**
-    ```bash
-    uv venv .venv -p python3.8
-    ```
-3.  **Install the project in editable mode:**
-    ```bash
-    uv pip install --editable .
-    ```
-4.  **Install dependencies:**
-    ```bash
-    uv pip install -r requirements.txt
-    ```
 
 ### Running the Models
 
@@ -75,20 +57,6 @@ The `download.py` helper prepares the PubMed and Reddit datasets with checksum v
 ```bash
 uv run download.py --root data/datasets
 ```
-
-#### Using the Helper Script
-
-A convenience script `run.sh` is provided for common training and evaluation tasks.
-```bash
-./run.sh
-```
-
-#### Running Directly with `uv`
-
-You can also execute the scripts directly using `uv`.
-
-- Launch training or evaluation with the configuration that matches your experiment (for example, `configs/params.yaml` for PubMed or `configs/params_graphsage_reddit.yaml` for Reddit).
-- Use `uv run download.py --root data/datasets` to refresh processed datasets when needed. (Note: `setup.sh` does this automatically.)
 
 ---
 
@@ -117,15 +85,9 @@ The following guidelines must be followed when contributing to the GNN models.
 
 #### Commit & Pull Request Guidelines
 
-- **Commits:** Use the [Conventional Commits](https://www.conventionalcommits.org/) specification with a `gnn` scope.
-  - *Example:* `feat(gnn): integrate reddit dataset pipeline`
-  - *Example:* `fix(gnn): handle isolated nodes in graph processing`
-- **Pull Requests:** Every PR must include:
-  - A clear summary of the changes.
-  - Confirmation that changes are confined to the `models/gnn/` directory.
-  - A link to any relevant issue(s).
-  - Snippets of the configuration used for testing.
-  - Relevant logs or metrics from the `model_dir_gnn/` output directory.
+- **Commits:** Use the [Conventional Commits](https://www.conventionalcommits.org/).
+  - *Example:* `feat: integrate reddit dataset pipeline`
+  - *Example:* `fix: handle isolated nodes in graph processing`
 
 #### Security & Data Hygiene
 
@@ -142,7 +104,6 @@ workflow in compile-only mode with debug flags enabled:
 mkdir -p model_dir_gnn/ir_debug
 export CSTORCH_DEBUG=1
 export LTC_IR_DEBUG=1
-export LTC_IR_DEBUG_ROOT_PATH="$(pwd)/model_dir_gnn/ir_debug"
 export LTC_SAVE_TENSORS_FMT=dot
 export LTC_SAVE_TENSORS_FILE="$(pwd)/model_dir_gnn/ir_debug/tensors.dot"
 
@@ -152,7 +113,6 @@ uv run cszoo fit src/cerebras/modelzoo/models/gnn/configs/params_graphsage_reddi
   --model_dir=$(pwd)/model_dir_gnn/reddit_graphsage_debug
 ```
 
-This creates `executors/000001` with `track.json` / `performance.json` plus IR
-debug artifacts (when the compile runs against a CSX backend). Delete the
-generated `executors/` directory and any contents of
-`model_dir_gnn/ir_debug/` after inspection to keep the workspace clean.
+This creates IR debug artifacts (when the compile runs against a CSX backend).
+Delete the content of `model_dir_gnn/ir_debug/` after inspection to keep the
+workspace clean.
