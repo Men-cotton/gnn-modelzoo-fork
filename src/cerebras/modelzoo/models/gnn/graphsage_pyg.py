@@ -16,6 +16,7 @@ def main():
     ap.add_argument("--cagnet-cols", type=int, default=1, help="CAGNET grid cols")
     ap.add_argument("--cagnet-rep", type=int, default=1, help="CAGNET replication factor")
     ap.add_argument("--cache-percent", type=float, default=None, help="Percentage of nodes to cache on GPU")
+    ap.add_argument("--force-cagnet", action="store_true", help="Force usage of CagnetSAGE even if topology is 1x1x1")
     args = ap.parse_args()
     ensure_pickle_friendly_load()
 
