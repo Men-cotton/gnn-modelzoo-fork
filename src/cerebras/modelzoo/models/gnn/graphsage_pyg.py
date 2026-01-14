@@ -15,7 +15,6 @@ def main():
     ap.add_argument("--cagnet-rows", type=int, default=1, help="CAGNET grid rows")
     ap.add_argument("--cagnet-cols", type=int, default=1, help="CAGNET grid cols")
     ap.add_argument("--cagnet-rep", type=int, default=1, help="CAGNET replication factor")
-    ap.add_argument("--cache-percent", type=float, default=None, help="Percentage of nodes to cache on GPU")
     ap.add_argument("--force-cagnet", action="store_true", help="Force usage of CagnetSAGE even if topology is 1x1x1")
     args = ap.parse_args()
     ensure_pickle_friendly_load()
@@ -59,7 +58,10 @@ def main():
         }
         
         # Initialize GraphCache
-        cache = GraphCache(data, device, percent=args.cache_percent)
+        # Get caching percent from config, default to 0.0 to disable auto-caching
+        train_dataloader_cfg = cfg.get("trainer", {}).get("fit", {}).get("train_dataloader", {})
+        caching_percent = train_dataloader_cfg.get("caching_percent", 0.0)
+        cache = GraphCache(data, device, percent=caching_percent)
         
         # Create loader_data without x to avoid duplicate fetching
         loader_data = Data()

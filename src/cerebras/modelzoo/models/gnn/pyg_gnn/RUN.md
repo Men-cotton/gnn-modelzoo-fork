@@ -72,8 +72,7 @@ uv run setup.py install
 This model integrates **PaGraph** caching strategy to speed up training on single and multi-GPU setups.
 It automatically caches frequently accessed node features on the GPU to minimize PCIe bandwidth usage.
 
-- **Auto Mode**: By default (or with `--cache-percent` omitted), it calculates available GPU memory and caches as many hot nodes as possible (up to 100%).
-- **Manual Mode**: You can specify a fixed percentage using `--cache-percent`.
+The caching behavior is controlled by the `caching_percent` parameter in the `train_dataloader` section of the YAML configuration file.
 
-**Arguments:**
-- `--cache-percent <P>`: Percentage of nodes to cache (0.0 to 1.0). Default: Auto-detect.
+- **Disabled (Default)**: If `caching_percent` is omitted or set to `0.0`, caching is disabled (no auto-detection).
+- **Manual Mode**: Specify a fixed percentage (e.g., `0.1` for 10%) in the config to cache that portion of nodes.
