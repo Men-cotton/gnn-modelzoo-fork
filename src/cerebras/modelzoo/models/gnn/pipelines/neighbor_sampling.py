@@ -1,15 +1,17 @@
 from __future__ import annotations
 
 import math
-from typing import Dict, List, Sequence, Tuple
+from typing import Dict, List, Optional, Sequence, Tuple
 
 import numpy as np
 import torch
 from torch import Tensor
 from torch.utils.data import DataLoader, Dataset
+from torch_geometric.data import Data
 
 import cerebras.pytorch as cstorch
 
+from .caching import GraphCache
 from .common import BaseGraphDataSource
 
 
@@ -28,6 +30,7 @@ class GraphSAGENeighborSamplerDataset(Dataset):
         shuffle: bool,
         pad_id: int,
         seed: int,
+        graph_cache: Optional[GraphCache] = None,
     ):
         if batch_size <= 0:
             raise ValueError("batch_size must be > 0 for GraphSAGE neighbor sampling.")
@@ -43,6 +46,7 @@ class GraphSAGENeighborSamplerDataset(Dataset):
         self.pad_id = pad_id
         self.seed = seed
         self.num_nodes = features.size(0)
+        self.graph_cache = graph_cache
 
         self._neighbor_table = self._build_neighbor_table(edge_index, self.num_nodes)
         self._target_nodes = (
@@ -204,8 +208,12 @@ class GraphSAGENeighborSamplerDataset(Dataset):
             node_tensor = torch.from_numpy(nodes)
             mask_tensor = torch.from_numpy(mask.astype(bool)).bool()
 
-            feats = self.features[node_tensor]
-            mask_float = mask_tensor.view(-1, 1).to(dtype=feats.dtype)
+            if self.graph_cache is not None:
+                feats = self.graph_cache.fetch(node_tensor)
+            else:
+                feats = self.features[node_tensor]
+            
+            mask_float = mask_tensor.view(-1, 1).to(device=feats.device, dtype=feats.dtype)
             feats = feats * mask_float
             features.append(feats)
         return features
@@ -229,6 +237,7 @@ class NeighborSamplingDataProcessor(BaseGraphDataSource):
         sampler_seed: int,
         num_workers: int,
         pad_id: int,
+        caching_percent: Optional[float] = None,
     ):
         super().__init__(
             dataset_name=dataset_name,
@@ -244,6 +253,8 @@ class NeighborSamplingDataProcessor(BaseGraphDataSource):
         self.sampler_seed = sampler_seed
         self.num_workers = num_workers
         self.pad_id = pad_id
+        self.caching_percent = caching_percent
+        self.graph_cache = None
 
     def create_dataloader(self) -> DataLoader:
         features, edge_index, labels, split_masks = self.prepare_graph_components()
@@ -251,6 +262,24 @@ class NeighborSamplingDataProcessor(BaseGraphDataSource):
         if split_key not in split_masks:
             raise ValueError(f"Split '{split_key}' not available in dataset masks.")
         split_mask = split_masks[split_key]
+
+        # Initialize GraphCache if enabled
+        if self.caching_percent is not None and self.graph_cache is None:
+            # Determine target caching device
+            if cstorch.use_cs():
+                cache_device = torch.device("cpu")
+            else:
+                # Try to get device from cstorch backend, fallback to auto-detect
+                cache_device = getattr(cstorch.backend(), "device", None)
+                
+                # Ensure compatibility if backend returns a custom device object (e.g. CPUDevice)
+                if cache_device is not None and not isinstance(cache_device, (torch.device, str, int)):
+                    cache_device = str(cache_device)
+                
+                cache_device = cache_device or torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            # Construct a minimal Data object for initialization
+            data = Data(x=features, edge_index=edge_index, num_nodes=features.size(0))
+            self.graph_cache = GraphCache(data, cache_device, percent=self.caching_percent)
 
         dataset = GraphSAGENeighborSamplerDataset(
             features=features,
@@ -262,6 +291,7 @@ class NeighborSamplingDataProcessor(BaseGraphDataSource):
             shuffle=self.shuffle and split_key == "train",
             pad_id=self.pad_id,
             seed=self.sampler_seed,
+            graph_cache=self.graph_cache,
         )
 
         def _build_torch_dataloader() -> DataLoader:

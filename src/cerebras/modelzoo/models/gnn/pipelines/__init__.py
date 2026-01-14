@@ -9,6 +9,7 @@ from .neighbor_sampling import (
     GraphSAGENeighborSamplerDataset,
     NeighborSamplingDataProcessor,
 )
+from .caching import GraphCache
 
 __all__ = [
     "normalize_adj_gcn",
@@ -18,4 +19,5 @@ __all__ = [
     "FullGraphDataProcessor",
     "GraphSAGENeighborSamplerDataset",
     "NeighborSamplingDataProcessor",
+    "GraphCache",
 ]

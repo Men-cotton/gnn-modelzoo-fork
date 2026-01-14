@@ -48,6 +48,7 @@ class GNNDataProcessorConfig(DataConfig):
 
     sampling_mode: Literal["full_graph", "neighbor"] = "full_graph"
     fanouts: Optional[List[int]] = None
+    caching_percent: Optional[float] = None  # Percentage of nodes to cache on GPU (0.0 to 1.0)
     sampler_seed: int = 0
 
     batch_size: int = Field(1)
@@ -177,6 +178,7 @@ class GNNDataProcessor:
                 sampler_seed=self.config.sampler_seed,
                 num_workers=self.config.num_workers,
                 pad_id=self.config.pad_node_id,
+                caching_percent=self.config.caching_percent,
             )
         else:
             self._processor = FullGraphDataProcessor(
