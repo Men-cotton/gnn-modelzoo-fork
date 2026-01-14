@@ -15,6 +15,14 @@ from typing_extensions import Annotated
 from .architectures import GCN, GraphSAGE
 from .batches import GraphSAGEBatch
 from .pipelines.common import EdgeIndexAdjacency
+from .pipelines.compute_time import ComputeTimeCallback
+from cerebras.modelzoo.trainer.callbacks import register_global_callback
+
+# Register compute time callback globally once (module-level)
+# This prevents accumulation if model is instantiated multiple times.
+# The callback itself handles state reset on fit start and checking model type.
+_COMPUTE_TIME_CB = ComputeTimeCallback()
+register_global_callback(_COMPUTE_TIME_CB)
 
 logger = logging.getLogger(__name__)
 

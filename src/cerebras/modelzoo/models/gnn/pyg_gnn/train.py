@@ -1,4 +1,5 @@
 import os
+import time
 import torch
 import torch.nn.functional as F
 from torch.optim import AdamW
@@ -37,6 +38,9 @@ def train_model(cfg, model, loaders, data, split_idx, device, rank=0, world_size
 
     train_loader, val_loader = loaders
 
+    total_wall_start = time.perf_counter()
+    total_compute_time = 0.0
+
     model.train()
     step = 0
     epoch = 0
@@ -54,6 +58,11 @@ def train_model(cfg, model, loaders, data, split_idx, device, rank=0, world_size
         batch = batch.to(device, non_blocking=True)
         if cache is not None:
             batch.x = cache.fetch(batch.n_id)
+
+        if device.type == "cuda":
+            torch.cuda.synchronize()
+        comp_start = time.perf_counter()
+
         with torch.amp.autocast("cuda", enabled=use_amp):
             logits = model(batch.x, batch.edge_index, batch_size=batch.batch_size)
             logits = logits[: batch.batch_size]
@@ -71,6 +80,10 @@ def train_model(cfg, model, loaders, data, split_idx, device, rank=0, world_size
             scaler.update()
             optimizer.zero_grad(set_to_none=True)
 
+        if device.type == "cuda":
+            torch.cuda.synchronize()
+        total_compute_time += (time.perf_counter() - comp_start)
+
         running_loss += loss.item()
         step += 1
 
@@ -84,7 +97,8 @@ def train_model(cfg, model, loaders, data, split_idx, device, rank=0, world_size
                 avg = loss_tensor.item() / world_size
 
             if rank == 0:
-                print(f"[step {step:04d}] loss={avg:.4f}")
+                current_wall = time.perf_counter() - total_wall_start
+                print(f"[step {step:04d}] loss={avg:.4f} wall={current_wall:.2f}s compute={total_compute_time:.2f}s")
             running_loss = 0.0
 
         if step % steps_per_epoch == 0:
@@ -92,7 +106,8 @@ def train_model(cfg, model, loaders, data, split_idx, device, rank=0, world_size
 
         if compute_eval_metrics and (step % eval_frequency == 0 or step == max_steps):
             val_acc = evaluate(model, val_loader, device, cache=cache)
-            print(f"[eval @ step {step}] val_acc={val_acc:.4f}")
+            current_wall = time.perf_counter() - total_wall_start
+            print(f"[eval @ step {step}] val_acc={val_acc:.4f} wall={current_wall:.2f}s compute={total_compute_time:.2f}s")
             # Ensure model is back in train mode after eval
             model.train()
 
