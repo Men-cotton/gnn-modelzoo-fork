@@ -1,6 +1,7 @@
 import argparse
 import os
 import torch
+import torch.distributed as dist
 from cerebras.modelzoo.models.gnn.pyg_gnn.utils import set_seed, load_cfg
 from cerebras.modelzoo.models.gnn.pyg_gnn.data import load_dataset, make_loaders, check_pyg_lib, _resolve_dataset_profile
 from cerebras.modelzoo.models.gnn.pyg_gnn.model import get_model
@@ -21,6 +22,11 @@ def evaluate(model, loader, device, cache=None):
         y = batch.y[: batch.batch_size].view(-1)
         correct += (pred == y).sum().item()
         total += y.numel()
+    if dist.is_available() and dist.is_initialized():
+        counts = torch.tensor([correct, total], device=device, dtype=torch.long)
+        dist.all_reduce(counts, op=dist.ReduceOp.SUM)
+        correct = int(counts[0].item())
+        total = int(counts[1].item())
     return correct / max(total, 1)
 
 @torch.no_grad()

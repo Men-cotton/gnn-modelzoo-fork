@@ -76,3 +76,24 @@ The caching behavior is controlled by the `caching_percent` parameter in the `tr
 
 - **Disabled (Default)**: If `caching_percent` is omitted or set to `0.0`, caching is disabled (no auto-detection).
 - **Manual Mode**: Specify a fixed percentage (e.g., `0.1` for 10%) in the config to cache that portion of nodes.
+
+## Partition Generation
+
+To support distributed training with graph partitioning, generate partitions offline using the standalone script.
+The script requires the dataset to already exist under `data_dir` and will error if it is missing.
+
+### Usage
+
+```bash
+uv run src/cerebras/modelzoo/models/gnn/partition.py \
+    --config src/cerebras/modelzoo/models/gnn/configs/params_graphsage_ogbn_arxiv.yaml \
+    --num-partitions 4
+```
+
+### Arguments
+- `--config`: Training YAML used to resolve `dataset_profiles` and `data_dir`.
+- `--num-partitions <N>`: Number of partitions to generate.
+
+## Partitioned Training
+
+After generating partitions, run training with `--use-partitions`. The loader expects partitions under `data_dir` from `dataset_profiles`.

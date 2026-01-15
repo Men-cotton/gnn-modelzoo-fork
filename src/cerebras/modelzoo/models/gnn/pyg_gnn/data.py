@@ -1,4 +1,5 @@
 import os
+import sys
 import torch
 from torch_geometric.loader import NeighborLoader
 from ogb.nodeproppred import PygNodePropPredDataset
@@ -7,6 +8,24 @@ from torch_geometric.data import Data
 from torch_geometric.data.data import DataTensorAttr, DataEdgeAttr, BaseData
 from torch_geometric.datasets import Reddit, Planetoid
 import os.path as osp
+
+try:
+    from torch_geometric.distributed import (
+        LocalFeatureStore,
+        LocalGraphStore,
+    )
+    from torch_geometric.distributed.dist_context import DistContext
+    try:
+        from torch_geometric.distributed import DistNeighborLoader
+    except ImportError:
+        from torch_geometric.loader import DistNeighborLoader
+    HAS_DIST = True
+except ImportError:
+    HAS_DIST = False
+    LocalFeatureStore = object
+    LocalGraphStore = object
+    DistContext = None
+    DistNeighborLoader = None
 
 _SAFE_GLOBALS = [Data, DataTensorAttr, DataEdgeAttr, BaseData, Data]
 add_safe_globals(_SAFE_GLOBALS)
@@ -68,6 +87,59 @@ def check_pyg_lib():
             "This script requires 'pyg_lib' to be installed for efficient neighbor sampling. "
             "Please install it via: pip install pyg_lib -f https://data.pyg.org/whl/torch-${TORCH_VERSION}.html"
         )
+
+
+def load_dist_partition(partition_dir, partition_idx):
+    if not HAS_DIST:
+        raise RuntimeError("torch_geometric.distributed is required for partition loading")
+    
+    print(f"[loader] Loading partition {partition_idx} from {partition_dir}")
+    feat_store = LocalFeatureStore.from_partition(partition_dir, partition_idx)
+    graph_store = LocalGraphStore.from_partition(partition_dir, partition_idx)
+    
+    # Infer dataset name and root from partition_dir
+    # partition_dir is .../{num_parts}-parts/{dataset_name}-partitions
+    part_path = osp.normpath(partition_dir)
+    parts_root = osp.dirname(part_path) # .../{num_parts}-parts
+    dataset_partitions_name = osp.basename(part_path) # {dataset_name}-partitions
+    dataset_name = dataset_partitions_name.replace("-partitions", "")
+
+    # Load node map to filter indices by ownership
+    # node_map.pt is inside the partition_dir (e.g. .../ogbn-arxiv-partitions/node_map.pt)
+    node_map_path = osp.join(partition_dir, "node_map.pt")
+    if osp.exists(node_map_path):
+        print(f"[loader] Loading node map from {node_map_path}")
+        node_map = torch.load(node_map_path)
+    else:
+        print(f"[warn] node_map.pt not found at {node_map_path}. Indices might not be filtered by ownership.", file=sys.stderr)
+        node_map = None
+
+    # Load split indices from side-car directories
+    # Structure: .../{num_parts}-parts/{dataset_name}-{split}-partitions/partition{idx}.pt
+    split_idx = {}
+    for split in ["train", "val", "test", "valid"]:
+        # Handle 'valid' vs 'val' naming in filesystem
+        fs_split = "val" if split == "valid" else split
+        
+        split_dir = osp.join(parts_root, f"{dataset_name}-{fs_split}-partitions")
+        split_file = osp.join(split_dir, f"partition{partition_idx}.pt")
+        
+        if osp.exists(split_file):
+            print(f"[loader] Loading {split} indices from {split_file}")
+            idx = torch.load(split_file)
+
+            # Filter by ownership if node_map is available
+            if node_map is not None:
+                mask = (node_map[idx] == partition_idx)
+                original_size = idx.numel()
+                idx = idx[mask]
+                filtered_size = idx.numel()
+                if original_size != filtered_size:
+                    print(f"[loader] Filtered {split} indices by ownership: {original_size} -> {filtered_size}")
+
+            split_idx[split] = idx
+    
+    return (feat_store, graph_store), _add_split_aliases(split_idx)
 
 
 def check_dataset_exists(data_dir, dataset_name):
@@ -211,10 +283,17 @@ def make_loaders(data, split_idx, cfg, rank=0, world_size=1):
     train_profile = _resolve_dataset_profile(train_c)
     val_profile = _resolve_dataset_profile(val_c)
 
+    is_dist = (
+        isinstance(data, tuple)
+        and len(data) == 2
+        and HAS_DIST
+        and isinstance(data[0], LocalFeatureStore)
+    )
+
     # Shard training indices for DDP
     train_input_nodes = _resolve_split(split_idx, train_c.get("split", "train"))
     
-    if world_size > 1:
+    if world_size > 1 and not is_dist:
         num_nodes = train_input_nodes.size(0)
         # Partition logic similar to OFFSET-GNN baseline
         # Try to split as evenly as possible
@@ -228,8 +307,61 @@ def make_loaders(data, split_idx, cfg, rank=0, world_size=1):
         train_input_nodes = train_input_nodes[start : start + length]
         print(f"[ddp] Rank {rank}/{world_size}: Assigned {train_input_nodes.size(0)}/{num_nodes} training nodes (Indices {start} to {start + length})")
     
-    if rank == 0 and world_size == 1:
-         print(f"[loader] Single-process: Using full training set ({train_input_nodes.size(0)} nodes)")
+    if is_dist:
+        # Distributed mode with partitions
+        print(f"[loader] Using DistNeighborLoader with partitions")
+        feature_store, graph_store = data
+        
+        # DistNeighborLoader requires distributed context info
+        master_addr = os.environ.get("MASTER_ADDR", "localhost")
+        current_ctx = DistContext(
+            rank=rank,
+            global_rank=rank,
+            world_size=world_size,
+            global_world_size=world_size,
+            group_name="worker",
+        )
+        
+        train_loader = DistNeighborLoader(
+            data=(feature_store, graph_store),
+            master_addr=master_addr,
+            master_port=22345,
+            current_ctx=current_ctx,
+            input_nodes=train_input_nodes,
+            num_neighbors=_get_fanouts(train_c, train_profile),
+            batch_size=train_c["batch_size"],
+            shuffle=train_c["shuffle"],
+            drop_last=train_c["drop_last_batch"],
+            num_workers=train_c["num_workers"],
+            persistent_workers=train_c["num_workers"] > 0,
+        )
+        
+        try:
+            val_nodes = _resolve_split(split_idx, val_c.get("split", "val"))
+        except KeyError:
+            val_nodes = None
+
+        # DistNeighborLoader requires input_nodes to be provided
+        if val_nodes is None:
+             raise RuntimeError(
+                 "Validation nodes not found in loaded partition data. "
+                 "Cannot proceed with validation. Please ensure validation split exists."
+             )
+        
+        val_loader = DistNeighborLoader(
+            data=(feature_store, graph_store),
+            master_addr=master_addr,
+            master_port=22345,
+            current_ctx=current_ctx,
+            input_nodes=val_nodes,
+            num_neighbors=_get_fanouts(val_c, val_profile),
+            batch_size=val_c["batch_size"],
+            shuffle=False,
+            drop_last=val_c["drop_last_batch"],
+            num_workers=val_c["num_workers"],
+            persistent_workers=val_c["num_workers"] > 0,
+        )
+        return train_loader, val_loader
 
     train_loader = NeighborLoader(
         data,
