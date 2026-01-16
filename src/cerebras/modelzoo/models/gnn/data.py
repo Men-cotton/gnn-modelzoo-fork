@@ -57,7 +57,7 @@ class GNNDataProcessorConfig(DataConfig):
     shuffle: bool = False
 
     split: Optional[Literal["train", "val", "test"]] = None
-    adj_normalization: Optional[str] = "gcn"
+    adj_normalization: Optional[str] = None # Defaults to None (raw adjacency) unless specified (e.g. "gcn")
 
     # Fake data support (full-graph only, retained for parity with legacy config)
     use_fake_data: bool = False

@@ -54,6 +54,7 @@ trainer:
       shuffle: False
       num_workers: 0
       split: train
+      adj_normalization: "gcn"
 
     val_dataloader: &val_dataloader_params
       data_processor: GNNDataProcessor
@@ -65,6 +66,7 @@ trainer:
       shuffle: False
       num_workers: 0
       split: val
+      adj_normalization: "gcn"
 
   validate:
     val_dataloader: *val_dataloader_params
