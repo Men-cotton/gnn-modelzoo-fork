@@ -1,6 +1,8 @@
 import argparse
 import re
 import matplotlib.pyplot as plt
+import os
+import glob
 
 def parse_logs(log_file):
     steps = []
@@ -80,38 +82,78 @@ def parse_logs(log_file):
 
 def main():
     parser = argparse.ArgumentParser(description="Visualize Time-to-Accuracy from training logs")
-    parser.add_argument("log_file", help="Path to the log file")
+    parser.add_argument("log_dir", help="Path to the directory containing log files")
     parser.add_argument("--output", default="time_to_accuracy.png", help="Output image filename")
     args = parser.parse_args()
 
-    steps, wall_times, compute_times, accuracies = parse_logs(args.log_file)
+    if not os.path.isdir(args.log_dir):
+        print(f"Error: {args.log_dir} is not a directory.")
+        return
 
-    if not steps:
-        print("No evaluation metrics found in the log file.")
+    log_files = sorted(glob.glob(os.path.join(args.log_dir, "*.log")))
+    if not log_files:
+        print(f"No .log files found in {args.log_dir}")
+        return
+
+    print(f"Found {len(log_files)} log files:")
+    for f in log_files:
+        print(f" - {os.path.basename(f)}")
+
+    # Store data for plotting
+    all_data = []
+    
+    for log_file in log_files:
+        steps, wall_times, compute_times, accuracies = parse_logs(log_file)
+        if steps:
+            all_data.append({
+                "name": os.path.basename(log_file),
+                "steps": steps,
+                "wall_times": wall_times,
+                "compute_times": compute_times,
+                "accuracies": accuracies
+            })
+        else:
+            print(f"Warning: No metrics found in {os.path.basename(log_file)}")
+
+    if not all_data:
+        print("No plotable data found.")
         return
 
     fig, axes = plt.subplots(1, 3, figsize=(18, 5))
     
-    # 1. Accuracy vs Wall Time
-    axes[0].plot(wall_times, accuracies, marker='o')
+    # colors = plt.cm.tab10.colors  # Use a colormap
+    
+    for i, data in enumerate(all_data):
+        label = data["name"]
+        
+        # 1. Accuracy vs Wall Time
+        # axes[0].plot(data["wall_times"], data["accuracies"], marker='o', label=label)
+        axes[0].plot(data["wall_times"], data["accuracies"], marker='.', label=label)
+
+        # 2. Accuracy vs Compute Time
+        axes[1].plot(data["compute_times"], data["accuracies"], marker='.', label=label)
+
+        # 3. Accuracy vs Steps
+        axes[2].plot(data["steps"], data["accuracies"], marker='.', label=label)
+
+    # Configure axes
     axes[0].set_xlabel("Wall Time (s)")
     axes[0].set_ylabel("Validation Accuracy")
     axes[0].set_title("Accuracy vs Wall Time")
     axes[0].grid(True)
+    axes[0].legend()
 
-    # 2. Accuracy vs Compute Time
-    axes[1].plot(compute_times, accuracies, marker='o', color='orange')
     axes[1].set_xlabel("Compute Time (s)")
     axes[1].set_ylabel("Validation Accuracy")
     axes[1].set_title("Accuracy vs Compute Time")
     axes[1].grid(True)
+    axes[1].legend()
 
-    # 3. Accuracy vs Steps
-    axes[2].plot(steps, accuracies, marker='o', color='green')
     axes[2].set_xlabel("Steps")
     axes[2].set_ylabel("Validation Accuracy")
     axes[2].set_title("Accuracy vs Steps")
     axes[2].grid(True)
+    axes[2].legend()
 
     plt.tight_layout()
     plt.savefig(args.output)
