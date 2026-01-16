@@ -2,6 +2,7 @@ import os
 import sys
 import torch
 from torch_geometric.loader import NeighborLoader
+from torch_geometric.utils import to_undirected
 from ogb.nodeproppred import PygNodePropPredDataset
 from torch.serialization import add_safe_globals
 from torch_geometric.data import Data
@@ -234,6 +235,10 @@ def load_dataset(profile):
         # So we need to pass root=data_dir/dataset_name
         dataset = NoDownloadPygNodePropPredDataset(name=dataset_name, root=os.path.join(data_dir, dataset_name))
         data = dataset[0]
+        # CSZoo reference uses undirected graph
+        if data.edge_index is not None:
+             data.edge_index = to_undirected(data.edge_index, num_nodes=data.num_nodes)
+        
         data.y = data.y.view(-1)
         split_idx = dataset.get_idx_split()
         split_idx = {
