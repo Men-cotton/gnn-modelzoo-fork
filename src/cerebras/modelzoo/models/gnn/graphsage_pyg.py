@@ -18,6 +18,7 @@ def main():
     ap.add_argument("--cagnet-rep", type=int, default=1, help="CAGNET replication factor")
     ap.add_argument("--force-cagnet", action="store_true", help="Force usage of CagnetSAGE even if topology is 1x1x1")
     ap.add_argument("--use-partitions", action="store_true", help="Load offline partitions for training")
+    ap.add_argument("--deterministic", action="store_true", help="Enable strict determinism (slower, but reproducible)")
 
     args = ap.parse_args()
     ensure_pickle_friendly_load()
@@ -44,7 +45,7 @@ def main():
             os.makedirs(model_dir, exist_ok=True)
 
         seed = init["seed"]
-        set_seed(seed)
+        set_seed(seed, deterministic=args.deterministic)
 
         # ---- Dataset ----
         train_c = cfg["trainer"]["fit"]["train_dataloader"]
