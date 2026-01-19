@@ -4,6 +4,7 @@ import torch
 import torch.nn.functional as F
 from torch.optim import AdamW
 import torch.distributed as dist
+from cerebras.pytorch.utils.tracker import RateTracker
 from cerebras.modelzoo.models.gnn.pyg_gnn.eval import evaluate
 
 def train_model(cfg, model, loaders, data, split_idx, device, rank=0, world_size=1, cache=None):
@@ -46,6 +47,7 @@ def train_model(cfg, model, loaders, data, split_idx, device, rank=0, world_size
     epoch = 0
     running_loss = 0.0
     train_iter = iter(train_loader)
+    rate_tracker = RateTracker()
 
     while step < max_steps:
         try:
@@ -85,7 +87,11 @@ def train_model(cfg, model, loaders, data, split_idx, device, rank=0, world_size
         total_compute_time += (time.perf_counter() - comp_start)
 
         running_loss += loss.item()
+        rate_tracker.add(batch.batch_size)
         step += 1
+
+        if step == 10:
+             rate_tracker.reset()
 
         if step % log_steps == 0:
             avg = running_loss / log_steps
@@ -98,7 +104,7 @@ def train_model(cfg, model, loaders, data, split_idx, device, rank=0, world_size
 
             if rank == 0:
                 current_wall = time.perf_counter() - total_wall_start
-                print(f"[step {step:04d}] loss={avg:.4f} wall={current_wall:.2f}s compute={total_compute_time:.2f}s")
+                print(f"[step {step:04d}] loss={avg:.4f} wall={current_wall:.2f}s compute={total_compute_time:.2f}s Rate={rate_tracker.rate():.2f} samples/sec GlobalRate={rate_tracker.global_rate():.2f} samples/sec")
             running_loss = 0.0
 
         if step % steps_per_epoch == 0:
