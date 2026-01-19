@@ -14,6 +14,11 @@ class ComputeTimeCallback(Callback):
     def on_train_batch_start(self, trainer, model, batch, batch_idx):
         if not self._is_gnn_model(model):
             return
+
+        if trainer.is_first_iteration:
+            self.start_time = None
+            return
+
         if torch.cuda.is_available():
             torch.cuda.synchronize()
         self.start_time = time.perf_counter()
@@ -21,15 +26,18 @@ class ComputeTimeCallback(Callback):
     def on_train_batch_end(self, trainer, model, outputs, batch, batch_idx):
         if not self._is_gnn_model(model):
             return
+
+        if self.start_time is None:
+            return
+
         if torch.cuda.is_available():
             torch.cuda.synchronize()
         
-        if self.start_time is not None:
-            duration = time.perf_counter() - self.start_time
-            self.total_compute_time += duration
-            
-            # Log to standard metrics (e.g. TensorBoard)
-            trainer.log_metrics(compute_time=self.total_compute_time)
+        duration = time.perf_counter() - self.start_time
+        self.total_compute_time += duration
+
+        # Log to standard metrics (e.g. TensorBoard)
+        trainer.log_metrics(compute_time=self.total_compute_time)
 
     def on_validate_end(self, trainer, model, loop):
         """Log compute time at the end of validation."""
