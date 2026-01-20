@@ -96,6 +96,7 @@ class RateProfiler(Profiler):
     def __init__(self):
         """Sets up the rate tracker."""
         self.rate_tracker = cstorch.utils.tracker.RateTracker()
+        self._step_start_time = None
 
     @cached_property
     def rate(self) -> float:
@@ -139,10 +140,13 @@ class RateProfiler(Profiler):
         """Reset the rate tracker if on first iteration."""
         # We reset the tracker's start time inside a step closure here so that
         # the time is reset after compile and execute setup is done.
-        # TODO: add an offset of 1 so that the time isn't ~0 when the first
-        #       rate/global_rate is computed
         if trainer.is_first_iteration:
             self.rate_tracker.reset()
+            if self._step_start_time is not None:
+                offset = time.perf_counter() - self._step_start_time
+                if offset > 0:
+                    self.rate_tracker.reset_time(offset=offset)
+            self._step_start_time = None
             self.clear_cache()
 
     @cstorch.step_closure
@@ -168,6 +172,8 @@ class RateProfiler(Profiler):
         setattr(self, loop.on_batch_end_hook, self.on_validate_batch_end)
 
     def on_before_forward(self, trainer, model, batch, args, kwargs):
+        if trainer.is_first_iteration:
+            self._step_start_time = time.perf_counter()
         self.conditional_reset(trainer)
         # Update the rate tracker with the batch size inside a step closure
         self.update(infer_batch_size(batch))
