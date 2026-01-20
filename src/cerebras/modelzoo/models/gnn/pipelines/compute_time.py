@@ -38,6 +38,7 @@ class ComputeTimeCallback(Callback):
 
         # Log to standard metrics (e.g. TensorBoard)
         trainer.log_metrics(compute_time=self.total_compute_time)
+        trainer.logger.info(f"ComputeTime Step={trainer.global_step} compute_time={self.total_compute_time:.4f}s")
 
     def on_validate_end(self, trainer, model, loop):
         """Log compute time at the end of validation."""
