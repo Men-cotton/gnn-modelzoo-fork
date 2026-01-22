@@ -86,7 +86,8 @@ class GNNModel(nn.Module):
             self.config = config
 
         self.model = self.build_model(self.config)
-        self.loss_fn = nn.NLLLoss(ignore_index=-100)
+        self.nll_loss_fn = nn.NLLLoss(ignore_index=-100)
+        self.ce_loss_fn = nn.CrossEntropyLoss(ignore_index=-100)
         self.accuracy_metric = (
             AccuracyMetric(name="eval/masked_accuracy")
             if self.config.compute_eval_metrics
@@ -183,17 +184,17 @@ class GNNModel(nn.Module):
                 labels = labels.squeeze(0)
             labels = labels.to(torch.long)
 
-        if not self.config.disable_log_softmax:
-            log_probs = F.log_softmax(logits, dim=1)
-        else:
-            log_probs = logits
-
         labels_long = labels.to(torch.long)
         ignore_filled = torch.full_like(
-            labels_long, self.loss_fn.ignore_index
+            labels_long, self.nll_loss_fn.ignore_index
         )
         labels_with_ignore = torch.where(mask, labels_long, ignore_filled)
-        loss = self.loss_fn(log_probs, labels_with_ignore)
+        if not self.config.disable_log_softmax:
+            log_probs = F.log_softmax(logits, dim=1)
+            loss = self.nll_loss_fn(log_probs, labels_with_ignore)
+        else:
+            log_probs = logits
+            loss = self.ce_loss_fn(logits, labels_with_ignore)
 
         if (
             not self.training
