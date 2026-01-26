@@ -68,6 +68,20 @@ def _resolve_data_dir(data_dir):
     return os.path.abspath(resolve_path(data_dir))
 
 
+def _normalize_ogb_split_idx(split_idx):
+    if not split_idx:
+        return split_idx
+    sample = next(iter(split_idx.values()))
+    if isinstance(sample, dict):
+        if "paper" not in sample:
+            raise KeyError(
+                "OGB MAG split indices missing 'paper' entry. "
+                f"Available keys: {', '.join(sorted(sample.keys()))}"
+            )
+        return {k: v["paper"] for k, v in split_idx.items()}
+    return split_idx
+
+
 def _masks_to_split_idx(data):
     split_idx = {}
     for key, attr in [("train", "train_mask"), ("val", "val_mask"), ("test", "test_mask")]:
@@ -195,12 +209,68 @@ def load_dataset(profile):
         # So we need to pass root=data_dir/dataset_name
         dataset = NoDownloadPygNodePropPredDataset(name=dataset_name, root=os.path.join(data_dir, dataset_name))
         data = dataset[0]
-        # CSZoo reference uses undirected graph
-        if data.edge_index is not None:
-             data.edge_index = to_undirected(data.edge_index, num_nodes=data.num_nodes)
-        
-        data.y = data.y.view(-1)
-        split_idx = dataset.get_idx_split()
+        split_idx = _normalize_ogb_split_idx(dataset.get_idx_split())
+
+        if lower == "ogbn-mag":
+            if not hasattr(data, "x_dict") or not hasattr(data, "edge_index_dict"):
+                raise RuntimeError(
+                    "ogbn-mag expected hetero dict fields (x_dict/edge_index_dict). "
+                    "Please ensure the dataset was processed with ogb's hetero pipeline."
+                )
+
+            if "paper" not in data.x_dict:
+                raise RuntimeError(
+                    "ogbn-mag expects a 'paper' node type in x_dict."
+                )
+
+            edge_index = None
+            for edge_type, edge_idx in data.edge_index_dict.items():
+                if (
+                    isinstance(edge_type, (tuple, list))
+                    and len(edge_type) == 3
+                    and edge_type[0] == "paper"
+                    and edge_type[2] == "paper"
+                ):
+                    edge_index = edge_idx
+                    break
+
+            if edge_index is None:
+                raise RuntimeError(
+                    "ogbn-mag requires a paper-to-paper edge type. "
+                    f"Available edge types: {list(data.edge_index_dict.keys())}"
+                )
+
+            paper_x = data.x_dict["paper"]
+            if hasattr(data, "y_dict") and "paper" in data.y_dict:
+                paper_y = data.y_dict["paper"]
+            else:
+                paper_y = getattr(data, "y", None)
+            if paper_y is None:
+                raise RuntimeError(
+                    "ogbn-mag labels not found. Expected y_dict['paper']."
+                )
+
+            num_nodes = None
+            if hasattr(data, "num_nodes_dict"):
+                num_nodes = data.num_nodes_dict.get("paper")
+            if num_nodes is None:
+                num_nodes = paper_x.size(0)
+
+            edge_index = to_undirected(edge_index, num_nodes=num_nodes)
+            data = Data(
+                x=paper_x,
+                edge_index=edge_index,
+                y=paper_y.view(-1),
+            )
+            data.num_nodes = num_nodes
+        else:
+            # CSZoo reference uses undirected graph
+            if data.edge_index is not None:
+                data.edge_index = to_undirected(
+                    data.edge_index, num_nodes=data.num_nodes
+                )
+            data.y = data.y.view(-1)
+
         split_idx = {
             k: v if torch.is_tensor(v) else torch.as_tensor(v, dtype=torch.long)
             for k, v in split_idx.items()
