@@ -61,10 +61,10 @@ class GraphCache:
         
         # Store Mapping: Global ID -> Cache Index
         # Initialize with -1
-        self.node_to_cache_idx = torch.full((self.num_nodes,), -1, dtype=torch.long, device=self.device)
+        self.node_to_cache_idx = torch.full((self.num_nodes,), -1, dtype=torch.int32, device=self.device)
         
         # Assign indices 0 to num_cache-1
-        cache_range = torch.arange(num_cache, device=self.device)
+        cache_range = torch.arange(num_cache, dtype=torch.int32, device=self.device)
         cache_idx_gpu = cache_idx.to(self.device)
         
         self.node_to_cache_idx[cache_idx_gpu] = cache_range
