@@ -18,6 +18,7 @@ This module contains utility functions for configuring a Trainer object from a p
 
 import fnmatch
 import functools
+import os
 from collections import Counter
 from collections.abc import Iterable
 from copy import deepcopy
@@ -33,6 +34,7 @@ from torch.utils._pytree import TreeSpec, tree_flatten, tree_unflatten
 import cerebras.pytorch as cstorch
 from cerebras.appliance.utils.classes import retrieve_all_subclasses
 from cerebras.modelzoo.config import BaseConfig
+from cerebras.modelzoo.config.types import resolve_path
 from cerebras.modelzoo.trainer.validate import validate_trainer_params
 from cerebras.pytorch.backend import get_backend_args
 
@@ -770,6 +772,20 @@ def convert_legacy_params_to_trainer_params(
         return params
 
     params = deepcopy(params)
+    if "runconfig" in params:
+        runconfig = params["runconfig"]
+        for key in ("python_paths", "mount_dirs"):
+            if key not in runconfig:
+                continue
+            value = runconfig[key]
+            if value is None:
+                continue
+            if isinstance(value, str):
+                runconfig[key] = resolve_path(os.fspath(value))
+            elif isinstance(value, (list, tuple)):
+                runconfig[key] = [
+                    resolve_path(os.fspath(item)) for item in value
+                ]
 
     if extra_legacy_mapping_fn is not None:
         extra_legacy_mapping_fn(TRAINER_PARAMS_TO_LEGACY)

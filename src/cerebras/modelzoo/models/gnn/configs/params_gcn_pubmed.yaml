@@ -47,7 +47,7 @@ trainer:
     train_dataloader:
       data_processor: GNNDataProcessor # Must match GNNDataProcessorConfig.data_processor
       dataset_name: PubMed # Example: "PubMed", "Cora", "ogbn-arxiv"
-      data_dir: ./data/datasets/ # Root path for various datasets
+      data_dir: "$MODELZOO_ROOT/models/gnn/data/datasets" # Root path for various datasets
       sampling_mode: full_graph
       batch_size: 1
       drop_last_batch: True
@@ -59,7 +59,7 @@ trainer:
     val_dataloader: &val_dataloader_params
       data_processor: GNNDataProcessor
       dataset_name: PubMed
-      data_dir: ./data/datasets/
+      data_dir: "$MODELZOO_ROOT/models/gnn/data/datasets"
       sampling_mode: full_graph
       batch_size: 1
       drop_last_batch: True
@@ -77,4 +77,4 @@ trainer:
 
 runconfig:
   python_paths:
-    - src
+    - "$MODELZOO_ROOT/../.."

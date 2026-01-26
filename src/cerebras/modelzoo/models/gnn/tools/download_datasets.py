@@ -10,6 +10,7 @@ import zipfile
 from functools import partial
 from pathlib import Path
 from typing import Callable, Dict, Iterable, Optional
+from cerebras.modelzoo.config.types import resolve_path
 
 try:
     from ogb.nodeproppred import PygNodePropPredDataset
@@ -18,25 +19,8 @@ except ImportError:  # pragma: no cover - Optional dependency
 
 from torch_geometric.datasets import Planetoid, Reddit
 
-DEFAULT_ROOT = Path("./data/datasets")
-REDDIT_URL = "https://data.dgl.ai/dataset/reddit.zip"
-REDDIT_ZIP_NAME = "reddit.zip"
-REDDIT_SHA256 = "9a16353c28f8ddd07148fc5ac9b57b818d7911ea0fbe9052d66d49fc32b372bf"
+DEFAULT_ROOT = "$MODELZOO_ROOT/models/gnn/data/datasets"
 CHUNK_SIZE = 16 * 1024 * 1024  # 16 MiB
-
-_DATASET_ALIASES: Dict[str, str] = {
-    "pubmed": "pubmed",
-    "ogbn-arxiv": "ogbn-arxiv",
-    "ogbn_arxiv": "ogbn-arxiv",
-    "ogbn-mag": "ogbn-mag",
-    "ogbn_mag": "ogbn-mag",
-    "ogbn-products": "ogbn-products",
-    "ogbn_products": "ogbn-products",
-    "ogbn-papers100m": "ogbn-papers100m",
-    "ogbn_papers100m": "ogbn-papers100m",
-    "mag240m": "mag240m",
-    "reddit": "reddit",
-}
 
 ALL_DATASETS = [
     "pubmed",
@@ -49,9 +33,12 @@ ALL_DATASETS = [
 ]
 
 
-def _normalize_dataset_key(name: str) -> str:
-    key = name.strip().lower().replace(" ", "-").replace("_", "-")
-    return _DATASET_ALIASES.get(key, key)
+def _resolve_root(root: Optional[object]) -> Path:
+    if root is None:
+        root = DEFAULT_ROOT
+    resolved = resolve_path(os.fspath(root))
+    resolved = os.path.abspath(os.path.expanduser(resolved))
+    return Path(resolved)
 
 
 def _request_download(dataset_name: str) -> bool:
@@ -212,11 +199,14 @@ def download_reddit(root_dir: Path) -> None:
     if not _request_download(dataset_name):
         return
 
+    REDDIT_URL = "https://data.dgl.ai/dataset/reddit.zip"
+    REDDIT_ZIP_NAME = "reddit.zip"
     raw_dir = dataset_dir / "raw"
     archive_path = raw_dir / REDDIT_ZIP_NAME
     print(f"[reddit] Preparing download directory: {raw_dir}")
     raw_dir.mkdir(parents=True, exist_ok=True)
 
+    REDDIT_SHA256 = "9a16353c28f8ddd07148fc5ac9b57b818d7911ea0fbe9052d66d49fc32b372bf"
     try:
         _download_with_resume(REDDIT_URL, archive_path, expected_sha256=REDDIT_SHA256)
     except Exception as exc:  # pragma: no cover - defensive
@@ -302,7 +292,7 @@ def _parse_args(argv: Optional[Iterable[str]] = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Download GNN datasets.")
     parser.add_argument(
         "--root",
-        type=Path,
+        type=str,
         default=DEFAULT_ROOT,
         help=f"Destination directory (default: {DEFAULT_ROOT})",
     )
@@ -310,6 +300,7 @@ def _parse_args(argv: Optional[Iterable[str]] = None) -> argparse.Namespace:
         "--datasets",
         nargs="+",
         default=None,
+        choices=ALL_DATASETS,
         help=(
             "Datasets to fetch. Choices include "
             "'pubmed', 'reddit', 'ogbn-arxiv', 'ogbn-mag', "
@@ -321,7 +312,7 @@ def _parse_args(argv: Optional[Iterable[str]] = None) -> argparse.Namespace:
 
 def main(argv: Optional[Iterable[str]] = None) -> None:
     args = _parse_args(argv)
-    root = args.root
+    root = _resolve_root(args.root)
     handlers = _build_handler_registry()
 
     print(f"[main] Using dataset root: {root.resolve()}")
@@ -330,8 +321,8 @@ def main(argv: Optional[Iterable[str]] = None) -> None:
     dataset_names = args.datasets or ALL_DATASETS
 
     for raw_name in dataset_names:
-        dataset_key = _normalize_dataset_key(raw_name)
-        handler = handlers.get(dataset_key)
+        dataset_key = raw_name
+        handler = handlers.get(raw_name)
         if handler is None:
             print(f"[main] Skipping unknown dataset '{raw_name}'.")
             continue

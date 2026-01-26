@@ -36,6 +36,7 @@ from torch.utils._pytree import TreeSpec, tree_flatten, tree_unflatten
 from typing_extensions import Annotated
 
 from cerebras.modelzoo.config import BaseConfig, DataConfig, create_config_class
+from cerebras.modelzoo.config.types import AliasedPath
 from cerebras.modelzoo.registry import registry
 
 DEFAULT_CALLBACKS = {
@@ -495,7 +496,7 @@ def construct_trainer_config(model_name: str):
 
         device: Optional[str] = None
         backend: dict = {}
-        model_dir: str = "./model_dir"
+        model_dir: AliasedPath = "./model_dir"
         optimizer: Optional[optim_annotation] = None
         schedulers: Optional[scheduler_annotation] = None
         precision: Optional[create_config_class(MixedPrecision)] = None
@@ -511,7 +512,7 @@ def construct_trainer_config(model_name: str):
     class TrainerFitConfig(BaseConfig):
         train_dataloader: dataprocessor_annotation = ...
         val_dataloader: Optional[List[dataprocessor_annotation]] = None
-        ckpt_path: Union[str, None, type(Ellipsis)] = Field(
+        ckpt_path: Union[AliasedPath, None, type(Ellipsis)] = Field(
             default_factory=lambda: ...
         )
 
@@ -536,7 +537,7 @@ def construct_trainer_config(model_name: str):
 
     class TrainerValidateConfig(BaseConfig):
         val_dataloader: dataprocessor_annotation = ...
-        ckpt_path: Union[str, None, type(Ellipsis)] = Field(
+        ckpt_path: Union[AliasedPath, None, type(Ellipsis)] = Field(
             default_factory=lambda: ...
         )
 
@@ -549,7 +550,7 @@ def construct_trainer_config(model_name: str):
 
     class TrainerValidateAllConfig(BaseConfig):
         val_dataloaders: Optional[List[dataprocessor_annotation]] = None
-        ckpt_paths: Union[str, List[str], None, type(Ellipsis)] = Field(
+        ckpt_paths: Union[AliasedPath, List[AliasedPath], None, type(Ellipsis)] = Field(
             default_factory=lambda: ...
         )
 

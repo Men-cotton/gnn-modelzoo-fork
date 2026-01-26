@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import os
 from typing import Any, Dict, List, Literal, Optional, Union
 
 import cerebras.pytorch as cstorch
@@ -10,6 +11,7 @@ from pydantic import Field, field_validator, model_validator
 from torch.utils.data import DataLoader
 
 from cerebras.modelzoo.config import DataConfig
+from cerebras.modelzoo.config.types import AliasedPath
 from cerebras.modelzoo.common.pytorch_utils import SampleGenerator
 
 from .batches import GraphSAGEBatch
@@ -22,29 +24,12 @@ from .pipelines import (
 
 logger = logging.getLogger(__name__)
 
-_DATASET_NAME_ALIASES: Dict[str, str] = {
-    "pubmed": "PubMed",
-    "cora": "Cora",
-    "citeseer": "CiteSeer",
-    "reddit": "Reddit",
-    "ogbn-arxiv": "ogbn-arxiv",
-    "ogbn_arxiv": "ogbn-arxiv",
-    "ogbn-mag": "ogbn-mag",
-    "ogbn_mag": "ogbn-mag",
-    "ogbn-products": "ogbn-products",
-    "ogbn_products": "ogbn-products",
-    "ogbn-papers100m": "ogbn-papers100M",
-    "ogbn_papers100m": "ogbn-papers100M",
-    "mag240m": "MAG240M",
-}
-
-
 class GNNDataProcessorConfig(DataConfig):
     data_processor: Literal["GNNDataProcessor"]
     dataset_name: Optional[str] = None
     dataset: Optional[str] = None
     dataset_profiles: Optional[Dict[str, Dict[str, Any]]] = None
-    data_dir: str = "./data"
+    data_dir: AliasedPath = "./data"
 
     sampling_mode: Literal["full_graph", "neighbor"] = "full_graph"
     fanouts: Optional[List[int]] = None
@@ -67,10 +52,6 @@ class GNNDataProcessorConfig(DataConfig):
     fake_num_nodes: int = 200
     pad_node_id: int = 0
 
-    @staticmethod
-    def _resolve_dataset_name(dataset_key: str) -> str:
-        return _DATASET_NAME_ALIASES.get(dataset_key.lower(), dataset_key)
-
     @model_validator(mode="before")
     @classmethod
     def _apply_dataset_profile(cls, values):
@@ -80,7 +61,8 @@ class GNNDataProcessorConfig(DataConfig):
         dataset_key = values.get("dataset")
         profiles = values.get("dataset_profiles") or {}
         if dataset_key:
-            normalized_key = str(dataset_key).lower()
+            dataset_key = str(dataset_key)
+            normalized_key = dataset_key.lower()
             profile = None
             if isinstance(profiles, dict):
                 profile = profiles.get(normalized_key) or profiles.get(dataset_key)
@@ -89,7 +71,7 @@ class GNNDataProcessorConfig(DataConfig):
                 merged.update(values)
                 values = merged
             if not values.get("dataset_name"):
-                values["dataset_name"] = cls._resolve_dataset_name(normalized_key)
+                values["dataset_name"] = dataset_key
             values["dataset"] = normalized_key
         return values
 
@@ -101,6 +83,13 @@ class GNNDataProcessorConfig(DataConfig):
                 "either directly or via a dataset profile."
             )
         return self
+
+    @field_validator("data_dir", mode="after")
+    @classmethod
+    def _normalize_data_dir(cls, value):
+        if value is None:
+            return value
+        return os.path.abspath(value)
 
     @field_validator("batch_size")
     @classmethod

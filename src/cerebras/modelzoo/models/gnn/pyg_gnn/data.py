@@ -9,6 +9,7 @@ from torch_geometric.data import Data
 from torch_geometric.data.data import DataTensorAttr, DataEdgeAttr, BaseData
 from torch_geometric.datasets import Reddit, Planetoid
 import os.path as osp
+from cerebras.modelzoo.config.types import resolve_path
 
 try:
     from torch_geometric.distributed import (
@@ -55,14 +56,6 @@ def _build_generator(loader_cfg):
     return gen
 
 
-def _add_split_aliases(split_idx):
-    if "val" in split_idx and "valid" not in split_idx:
-        split_idx["valid"] = split_idx["val"]
-    if "valid" in split_idx and "val" not in split_idx:
-        split_idx["val"] = split_idx["valid"]
-    return split_idx
-
-
 def _mask_to_index(mask):
     if mask is None:
         return None
@@ -71,13 +64,17 @@ def _mask_to_index(mask):
     return mask.bool().nonzero(as_tuple=False).view(-1)
 
 
+def _resolve_data_dir(data_dir):
+    return os.path.abspath(resolve_path(data_dir))
+
+
 def _masks_to_split_idx(data):
     split_idx = {}
     for key, attr in [("train", "train_mask"), ("val", "val_mask"), ("test", "test_mask")]:
         mask = getattr(data, attr, None)
         if mask is not None:
             split_idx[key] = _mask_to_index(mask)
-    return _add_split_aliases(split_idx)
+    return split_idx
 
 
 def check_pyg_lib():
@@ -140,7 +137,7 @@ def load_dist_partition(partition_dir, partition_idx):
 
             split_idx[split] = idx
     
-    return (feat_store, graph_store), _add_split_aliases(split_idx)
+    return (feat_store, graph_store), split_idx
 
 
 def check_dataset_exists(data_dir, dataset_name):
@@ -186,44 +183,7 @@ class NoDownloadPygNodePropPredDataset(PygNodePropPredDataset):
 
 def load_dataset(profile):
     dataset_name = profile["dataset_name"]
-    data_dir = profile["data_dir"]
-    
-    # Resolve data_dir relative to this script if it is relative
-    # Note: In original script it was relative to __file__. 
-    # Here we should probably keep it relative to CWD or pass absolute path.
-    # The original logic:
-    # if not os.path.isabs(data_dir):
-    #     base_dir = os.path.dirname(os.path.abspath(__file__))
-    #     data_dir = os.path.normpath(os.path.join(base_dir, data_dir))
-    # Since we are moving file deeper, relative path might break if it relies on script location.
-    # However, usually data_dir in config is relative to where you run it or absolute.
-    # Let's assume the user runs from root or provides absolute path, OR we need to be careful.
-    # The original script was in `src/cerebras/modelzoo/models/gnn/`.
-    # New script is in `src/cerebras/modelzoo/models/gnn/pyg_gnn/`.
-    # If I use `__file__` here, it will be one level deeper.
-    # I should probably adjust the base_dir logic if I keep it.
-    # But wait, the original script used `__file__` of `graphsage_pyg.py`.
-    # If I move this to `data.py`, `__file__` is `.../pyg_gnn/data.py`.
-    # So `os.path.dirname` is `.../pyg_gnn`.
-    # Original was `.../gnn`.
-    # So I should go one level up if I want to maintain exact behavior relative to the python file location?
-    # Actually, `graphsage_pyg.py` will still be in `.../gnn`.
-    # If I run `graphsage_pyg.py`, and it calls `load_dataset`, and `load_dataset` uses `__file__` of `data.py`, it will be `.../pyg_gnn`.
-    # If the config says `data_dir: ./data`, original meant `.../gnn/data`.
-    # New `data.py` would mean `.../pyg_gnn/data`.
-    # This is a change.
-    # I should probably fix this.
-    # Let's check where `data` folder is.
-    # `ls -R` showed `data` in `src/cerebras/modelzoo/models/gnn/data`.
-    # So we want `.../gnn/data`.
-    # So if `data.py` is in `.../gnn/pyg_gnn/data.py`, `dirname` is `.../gnn/pyg_gnn`.
-    # `dirname(dirname(__file__))` is `.../gnn`.
-    
-    if not os.path.isabs(data_dir):
-        # Adjusting to match original relative path behavior (relative to .../gnn/)
-        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        data_dir = os.path.normpath(os.path.join(base_dir, data_dir))
-        print(f"[loader] Resolved data_dir to: {data_dir}")
+    data_dir = _resolve_data_dir(profile["data_dir"])
 
     check_dataset_exists(data_dir, dataset_name)
 
@@ -245,7 +205,6 @@ def load_dataset(profile):
             k: v if torch.is_tensor(v) else torch.as_tensor(v, dtype=torch.long)
             for k, v in split_idx.items()
         }
-        split_idx = _add_split_aliases(split_idx)
         return data, split_idx
 
     if lower == "reddit":
@@ -268,15 +227,12 @@ def load_dataset(profile):
 
 def _resolve_split(split_idx, split_name):
     key = split_name.lower()
-    candidates = [key]
-    if key == "val":
-        candidates.append("valid")
-    elif key == "valid":
-        candidates.append("val")
-    for cand in candidates:
-        if cand in split_idx:
-            return split_idx[cand]
-    raise KeyError(f"Split '{split_name}' not available in dataset")
+    if key in split_idx:
+        return split_idx[key]
+    raise KeyError(
+        f"Split '{split_name}' not available in dataset. "
+        f"Available splits: {', '.join(sorted(split_idx.keys()))}"
+    )
 
 
 def make_loaders(data, split_idx, cfg, rank=0, world_size=1):

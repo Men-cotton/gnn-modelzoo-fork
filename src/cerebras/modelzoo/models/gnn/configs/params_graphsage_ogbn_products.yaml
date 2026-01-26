@@ -38,7 +38,7 @@ trainer:
       dataset_profiles: &ogbn_products_dataset
         ogbn_products:
           dataset_name: ogbn-products
-          data_dir: ./data/datasets/
+          data_dir: "$MODELZOO_ROOT/models/gnn/data/datasets"
           sampling_mode: neighbor
           fanouts: [20, 15, 10]
           pad_node_id: 0
@@ -60,7 +60,7 @@ trainer:
       shuffle: False
       num_workers: 0
       sampler_seed: 42
-      split: val
+      split: valid
 
   validate:
     val_dataloader: *ogbn_products_eval_loader
@@ -71,4 +71,4 @@ trainer:
 
 runconfig:
   python_paths:
-    - src
+    - "$MODELZOO_ROOT/../.."

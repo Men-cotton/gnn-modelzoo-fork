@@ -37,7 +37,7 @@ trainer:
     train_dataloader:
       data_processor: GNNDataProcessor
       dataset_name: PubMed
-      data_dir: ./data/datasets/
+      data_dir: "$MODELZOO_ROOT/models/gnn/data/datasets"
       sampling_mode: neighbor
       fanouts: [25, 10]
       batch_size: 16
@@ -51,7 +51,7 @@ trainer:
     val_dataloader: &val_neighbor_params
       data_processor: GNNDataProcessor
       dataset_name: PubMed
-      data_dir: ./data/datasets/
+      data_dir: "$MODELZOO_ROOT/models/gnn/data/datasets"
       sampling_mode: neighbor
       fanouts: [25, 10]
       batch_size: 64
@@ -70,4 +70,4 @@ trainer:
 
 runconfig:
   python_paths:
-    - src
+    - "$MODELZOO_ROOT/../.."
