@@ -338,6 +338,7 @@ def make_loaders(data, split_idx, cfg, rank=0, world_size=1):
             shuffle=train_c["shuffle"],
             drop_last=train_c["drop_last_batch"],
             num_workers=train_c["num_workers"],
+            pin_memory=True,
             persistent_workers=train_c["num_workers"] > 0,
         )
         
@@ -364,6 +365,7 @@ def make_loaders(data, split_idx, cfg, rank=0, world_size=1):
             shuffle=False,
             drop_last=val_c["drop_last_batch"],
             num_workers=val_c["num_workers"],
+            pin_memory=True,
             persistent_workers=val_c["num_workers"] > 0,
         )
         return train_loader, val_loader
