@@ -7,7 +7,7 @@ import cerebras.pytorch as cstorch
 import torch
 import torch.nn as nn
 
-from ..pipelines.common import EdgeIndexAdjacency
+from ..data_processing.pipelines.common import EdgeIndexAdjacency
 
 try:
     from torch.cuda.amp import autocast as cuda_autocast

@@ -85,7 +85,7 @@ The script requires the dataset to already exist under `data_dir` and will error
 ### Usage
 
 ```bash
-uv run src/cerebras/modelzoo/models/gnn/partition.py \
+uv run src/cerebras/modelzoo/models/gnn/tools/partition_dataset.py \
     --config src/cerebras/modelzoo/models/gnn/configs/params_graphsage_ogbn_arxiv.yaml \
     --num-partitions 4
 ```

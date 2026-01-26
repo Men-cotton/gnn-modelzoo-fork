@@ -64,14 +64,6 @@ uv run download.py --root data/datasets
 
 The following guidelines must be followed when contributing to the GNN models.
 
-#### Project Structure & Scope
-
-- The upstream ModelZoo, located under `src/cerebras/modelzoo/...`, is read-only and must not be modified.
-- All changes must be confined to the `src/cerebras/modelzoo/models/gnn` directory.
-  - **Key Files:** `data.py`, `model.py`, `run.py`, `download.py`
-  - **Configuration:** `configs/params_graphsage_reddit.yaml`
-  - **Artifacts (Not for commit):** The `model_dir_gnn/` directory is used for logs and checkpoints. Do not commit its contents.
-
 #### Coding Style & Naming Conventions
 
 - **Style:** Adhere to PEP 8 with 4-space indents.

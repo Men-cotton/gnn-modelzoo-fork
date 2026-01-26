@@ -53,7 +53,7 @@ def main():
         
         if args.use_partitions:
             from cerebras.modelzoo.models.gnn.pyg_gnn.data import load_dist_partition
-            from cerebras.modelzoo.models.gnn.partition import get_partition_path
+            from cerebras.modelzoo.models.gnn.tools.partition_dataset import get_partition_path
 
             dataset_name = dataset_profile.get("dataset_name", train_c.get("dataset"))
             data_dir = dataset_profile.get("data_dir")

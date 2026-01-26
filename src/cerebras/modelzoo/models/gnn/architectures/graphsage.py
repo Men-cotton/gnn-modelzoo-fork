@@ -3,7 +3,7 @@ from __future__ import annotations
 import torch
 import torch.nn as nn
 
-from ..batches import GraphSAGEBatch
+from ..data_processing.batches import GraphSAGEBatch
 
 
 class GraphSAGELayer(nn.Module):

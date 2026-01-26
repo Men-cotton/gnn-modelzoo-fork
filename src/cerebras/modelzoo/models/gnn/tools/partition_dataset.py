@@ -29,6 +29,9 @@ from cerebras.modelzoo.models.gnn.pyg_gnn.utils import (
 )
 from cerebras.modelzoo.models.gnn.pyg_gnn.data import _resolve_dataset_profile
 
+GNN_ROOT = Path(__file__).resolve().parents[1]
+
+
 def partition_dataset(
     dataset_name: str,
     root_dir: str,
@@ -38,8 +41,7 @@ def partition_dataset(
     dataset_dir: str = None,
 ):
     if not osp.isabs(root_dir):
-        path = osp.dirname(osp.realpath(__file__))
-        root_dir = osp.join(path, root_dir)
+        root_dir = str((GNN_ROOT / root_dir).resolve())
 
     # Prefer explicitly supplied dataset_dir (actual data location). Otherwise try common layouts.
     if dataset_dir is None:
@@ -330,8 +332,7 @@ def prepare_partition(
     """
     dataset_name = _canonicalize_ogb_name(dataset.replace("_", "-"))
     if not osp.isabs(root_dir):
-        base_dir = Path(__file__).resolve().parent
-        root_dir = str((base_dir / root_dir).resolve())
+        root_dir = str((GNN_ROOT / root_dir).resolve())
     output_root = Path(root_dir).resolve()
 
     # Ensure dataset exists offline
@@ -364,8 +365,7 @@ def get_partition_path(
     """Return the expected partition directory path."""
     root_path = Path(root_dir)
     if not root_path.is_absolute():
-        base_dir = Path(__file__).resolve().parent
-        root_path = base_dir / root_path
+        root_path = GNN_ROOT / root_path
     output_root = root_path.resolve()
     # Ensure dataset_name is canonical if not already
     dataset_name = _canonicalize_ogb_name(dataset_name.replace("_", "-"))
@@ -405,8 +405,7 @@ def _resolve_config_dataset(config_path: str, dataset_override: Optional[str]):
         print("[warn] data_dir is missing from dataset_profiles; cannot prepare partitions.", file=sys.stderr)
         raise SystemExit(1)
     if not osp.isabs(data_dir):
-        base_dir = Path(__file__).resolve().parent
-        data_dir = str((base_dir / data_dir).resolve())
+        data_dir = str((GNN_ROOT / data_dir).resolve())
     return dataset_name, data_dir
 
 

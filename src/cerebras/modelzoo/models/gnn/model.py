@@ -13,9 +13,9 @@ from cerebras.pytorch.metrics import AccuracyMetric
 from typing_extensions import Annotated
 
 from .architectures import GCN, GraphSAGE
-from .batches import GraphSAGEBatch
-from .pipelines.common import EdgeIndexAdjacency
-from .pipelines.compute_time import ComputeTimeCallback
+from .data_processing.batches import GraphSAGEBatch
+from .data_processing.pipelines.common import EdgeIndexAdjacency
+from .data_processing.pipelines.compute_time import ComputeTimeCallback
 from cerebras.modelzoo.trainer.callbacks import register_global_callback
 
 # Register compute time callback globally once (module-level)

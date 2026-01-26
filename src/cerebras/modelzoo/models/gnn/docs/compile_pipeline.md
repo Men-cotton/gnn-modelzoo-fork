@@ -18,8 +18,8 @@ that influence compilation.
   and precision settings (`src/cerebras/modelzoo/trainer/utils.py#L246`).
 - For the GNN recipes, the configured dataloaders come from
   `GNNDataProcessor`, which dispatches to either the full-graph or neighbor
-  sampling pipelines (`src/cerebras/modelzoo/models/gnn/data.py#L112`,
-  `src/cerebras/modelzoo/models/gnn/pipelines/`).
+  sampling pipelines (`src/cerebras/modelzoo/models/gnn/data_processing/processor.py#L112`,
+  `src/cerebras/modelzoo/models/gnn/data_processing/pipelines/`).
 
 ## Backend Bring-Up and Compilation
 
@@ -71,11 +71,11 @@ that influence compilation.
 
 - `GNNDataProcessorConfig` validates dataset settings, resolves dataset aliases,
   and chooses either the full-graph or neighbor-sampling pipeline
-  (`src/cerebras/modelzoo/models/gnn/data.py#L33`).
+  (`src/cerebras/modelzoo/models/gnn/data_processing/processor.py#L33`).
 - The neighbor sampler produces GraphSAGE-style mini-batches, while the
   full-graph processor packages a single sparse graph snapshot with masks for
-  split selection (`src/cerebras/modelzoo/models/gnn/pipelines/full_graph.py`,
-  `src/cerebras/modelzoo/models/gnn/pipelines/neighbor_sampling.py`).
+  split selection (`src/cerebras/modelzoo/models/gnn/data_processing/pipelines/full_graph.py`,
+  `src/cerebras/modelzoo/models/gnn/data_processing/pipelines/neighbor_sampling.py`).
 - The resulting dataloaders are consumed by `Trainer.fit`/`Trainer.validate`,
   so the compile pipeline operates identically to other ModelZoo models—only
   the data producers differ.
