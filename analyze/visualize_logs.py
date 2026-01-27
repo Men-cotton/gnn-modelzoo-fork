@@ -13,7 +13,7 @@ from typing import List, Optional, Dict, Tuple
 
 @dataclass
 class TrainingLogData:
-    """ログから抽出された学習データを保持するクラス"""
+    """Class to hold training data extracted from logs"""
     name: str
     
     # Validation / Evaluation Metrics
@@ -29,6 +29,24 @@ class TrainingLogData:
     local_throughputs: List[float] = field(default_factory=list)
     global_throughputs: List[float] = field(default_factory=list)
 
+    # Detailed Phase Metrics (Averages from Summary)
+    avg_load: float = 0.0
+    avg_fwd: float = 0.0
+    avg_bwd: float = 0.0
+    avg_opt: float = 0.0
+    
+    # Per-step breakdown
+    step_loads: List[float] = field(default_factory=list)
+    # Granular H2D (if available)
+    step_preps: List[float] = field(default_factory=list)
+    step_h2d_struc: List[float] = field(default_factory=list) 
+    step_h2d_fetch: List[float] = field(default_factory=list)
+    step_h2ds: List[float] = field(default_factory=list) # Aggregate if granular not available
+    
+    step_fwds: List[float] = field(default_factory=list)
+    step_bwds: List[float] = field(default_factory=list)
+    step_opts: List[float] = field(default_factory=list)
+
     def has_eval_data(self) -> bool:
         return len(self.eval_steps) > 0
 
@@ -40,10 +58,18 @@ class TrainingLogData:
 # -----------------------------------------------------------------------------
 
 class LogPatterns:
-    """ログ解析に使用する正規表現パターン定義"""
-    # PyG Native
-    PYG_EVAL = re.compile(r"\[eval @ step (\d+)\] val_acc=([\d\.]+) wall=([\d\.]+)s compute=([\d\.]+)s")
-    PYG_TRAIN = re.compile(r"\[step (\d+)\] .* wall=([\d\.]+)s compute=([\d\.]+)s Rate=([\d\.]+) samples/sec GlobalRate=([\d\.]+) samples/sec")
+    """Regex patterns for parsing logs"""
+    # PyG Native (Multi-Line New Format)
+    # Line 1: [Step=0080] Wall=11.4164s | Loss=1.8993
+    PYG_MULTI_STEP = re.compile(r"\[Step=(\d+)\] Wall=([\d\.]+)s \| Loss=([\d\.]+)")
+    # Line 2: [Profile] Avg ms/step | Load: 23.309 (Prep: 10.757, Struc: 0.568, Fetch: 11.984) | Fwd: 5.622 | Bwd: 5.306 | Opt: 0.152 | GPU_Tot: 23.631
+    PYG_MULTI_PROFILE = re.compile(r"\[Profile\] Avg ms/step \| Load: ([\d\.]+) \(Prep: ([\d\.]+), Struc: ([\d\.]+), Fetch: ([\d\.]+)\) \| Fwd: ([\d\.]+) \| Bwd: ([\d\.]+) \| Opt: ([\d\.]+) \| GPU_Tot: ([\d\.]+)")
+    # Line 3: [Throughput] Samples: 32843.58 samples/s (32843.54) | Edges: ...
+    PYG_MULTI_THROUGHPUT = re.compile(r"\[Throughput\] Samples: ([\d\.]+) samples/s \(([\d\.]+)\)")
+
+    # PyG Eval (New Format)
+    # [Eval] Step=2000, Wall=77.8175s, Val_Acc=0.7004
+    PYG_EVAL = re.compile(r"\[Eval\] Step=(\d+), Wall=([\d\.]+)s, Val_Acc=([\d\.]+)")
 
     # ModelZoo (WSE)
     TIMESTAMP = re.compile(r"^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3})")
@@ -55,13 +81,16 @@ class LogPatterns:
 
 
 class LogParser:
-    """ログファイルを解析し、TrainingLogDataを生成するクラス"""
+    """Parses log files into TrainingLogData"""
     
     def __init__(self, filepath: str):
         self.filepath = filepath
         self.filename = os.path.basename(filepath)
         self.data = TrainingLogData(name=self.filename)
         
+        # Multi-line Parsing State
+        self._current_step_data = {}
+
         # ModelZoo Parsing State
         self._mz_start_time: Optional[datetime] = None
         self._mz_current_wall: float = 0.0
@@ -84,21 +113,61 @@ class LogParser:
         match = LogPatterns.PYG_EVAL.search(line)
         if match:
             self.data.eval_steps.append(int(match.group(1)))
-            self.data.accuracies.append(float(match.group(2)))
-            self.data.eval_wall_times.append(float(match.group(3)))
-            self.data.eval_compute_times.append(float(match.group(4)))
+            self.data.eval_wall_times.append(float(match.group(2)))
+            self.data.accuracies.append(float(match.group(3)))
+            self.data.eval_compute_times.append(0.0) 
             return True
 
-        # 2. PyG Training
-        match = LogPatterns.PYG_TRAIN.search(line)
+        # 2. PyG Multi-Line Step (Line 1)
+        match = LogPatterns.PYG_MULTI_STEP.search(line)
         if match:
-            self.data.train_steps.append(int(match.group(1)))
-            self.data.train_wall_times.append(float(match.group(2)))
-            self.data.train_compute_times.append(float(match.group(3)))
-            self.data.local_throughputs.append(float(match.group(4)))
-            self.data.global_throughputs.append(float(match.group(5)))
+            self._current_step_data = {
+                "step": int(match.group(1)),
+                "wall": float(match.group(2))
+            }
             return True
-            
+
+        # 3. PyG Multi-Line Profile (Line 2)
+        match = LogPatterns.PYG_MULTI_PROFILE.search(line)
+        if match:
+            if self._current_step_data:
+                # ms to sec
+                self._current_step_data["load"] = float(match.group(1)) / 1000.0
+                self._current_step_data["prep"] = float(match.group(2)) / 1000.0
+                self._current_step_data["struc"] = float(match.group(3)) / 1000.0
+                self._current_step_data["fetch"] = float(match.group(4)) / 1000.0
+                self._current_step_data["fwd"] = float(match.group(5)) / 1000.0
+                self._current_step_data["bwd"] = float(match.group(6)) / 1000.0
+                self._current_step_data["opt"] = float(match.group(7)) / 1000.0
+                self._current_step_data["gpu_tot"] = float(match.group(8)) / 1000.0
+            return True
+
+        # 4. PyG Multi-Line Throughput (Line 3) - Trigger flush
+        match = LogPatterns.PYG_MULTI_THROUGHPUT.search(line)
+        if match:
+            if self._current_step_data and "step" in self._current_step_data:
+                # Flush
+                d = self._current_step_data
+                self.data.train_steps.append(d["step"])
+                self.data.train_wall_times.append(d["wall"])
+                self.data.step_loads.append(d.get("load", 0.0))
+                self.data.step_preps.append(d.get("prep", 0.0))
+                self.data.step_h2d_struc.append(d.get("struc", 0.0))
+                self.data.step_h2d_fetch.append(d.get("fetch", 0.0))
+                self.data.step_fwds.append(d.get("fwd", 0.0))
+                self.data.step_bwds.append(d.get("bwd", 0.0))
+                self.data.step_opts.append(d.get("opt", 0.0))
+                
+                # Assume compute time is roughly sum of GPU components for now, or 0.0 if unknown
+                # The log has GPU_Tot, we could use that as compute time approximation or just use 0.0
+                self.data.train_compute_times.append(d.get("gpu_tot", 0.0))
+                
+                self.data.global_throughputs.append(float(match.group(1)))
+                self.data.local_throughputs.append(float(match.group(2)))
+                
+                self._current_step_data = {}
+            return True
+
         return False
 
     def _parse_modelzoo_line(self, line: str):
@@ -151,11 +220,9 @@ class LogParser:
             self._mz_step_to_compute[int(ct_match.group(1))] = float(ct_match.group(2))
 
     def _finalize_modelzoo_data(self):
-        """ModelZooの一時データを統合・ソートしてメインデータ構造に格納"""
         if not self._mz_throughput_buffer:
             return
 
-        # Sort buffer by step
         self._mz_throughput_buffer.sort(key=lambda x: x["step"])
 
         for entry in self._mz_throughput_buffer:
@@ -176,11 +243,10 @@ def plot_metric_set(all_data: List[TrainingLogData],
                     metric_type: str, 
                     output_file: str):
     """
-    3つのサブプロット（Wall Time, Compute Time, Steps）を作成する汎用関数。
+    Creates 3 subplots (Wall Time, Compute Time, Steps).
     metric_type: 'accuracy', 'local_throughput', 'global_throughput'
     """
     
-    # 設定の定義
     if metric_type == "accuracy":
         y_label = "Validation Accuracy"
         title_base = "Accuracy"
@@ -197,7 +263,6 @@ def plot_metric_set(all_data: List[TrainingLogData],
     else:
         raise ValueError(f"Unknown metric type: {metric_type}")
 
-    # データがあるか確認
     valid_data = [d for d in all_data if check_fn(d)]
     if not valid_data:
         return
@@ -213,8 +278,7 @@ def plot_metric_set(all_data: List[TrainingLogData],
             x_vals = getattr(data, x_attr)
             y_vals = getattr(data, y_attr)
             
-            # Compute Timeプロット(index 1)の場合、0を除外してプロットする
-            if i == 1:
+            if i == 1: # Compute Time
                 filtered = [(x, y) for x, y in zip(x_vals, y_vals) if x > 0]
                 if filtered:
                     x_vals, y_vals = zip(*filtered)
@@ -233,6 +297,118 @@ def plot_metric_set(all_data: List[TrainingLogData],
     plt.tight_layout()
     plt.savefig(output_file)
     print(f"Plot saved to {output_file}")
+    plt.close(fig)
+
+def plot_throughput_breakdown(all_data: List[TrainingLogData], output_file: str):
+    """
+    Creates a stacked bar chart showing the breakdown of time per step:
+    GPU Components: H2D_Struc, H2D_Fetch, Fwd, Bwd, Opt
+    Gap: Wall - GPU_Total (Labelled as CPU Overhead / Idle)
+    """
+    if not all_data:
+        return
+
+    names = []
+    
+    # GPU Components
+    strucs = []
+    fetchs = []
+    fwds = []
+    bwds = []
+    opts = []
+    
+    # Gap
+    cpu_overhead_idles = []
+
+    has_data = False
+
+    for data in all_data:
+        # Determine average metrics for this run
+        if len(data.step_fwds) > 0:
+            # We have at least basic component data
+            f = sum(data.step_fwds) / len(data.step_fwds)
+            b = sum(data.step_bwds) / len(data.step_bwds)
+            o = sum(data.step_opts) / len(data.step_opts)
+            
+            # H2D Breakdown
+            if len(data.step_h2d_struc) > 0 and len(data.step_h2d_fetch) > 0:
+                s = sum(data.step_h2d_struc) / len(data.step_h2d_struc)
+                fe = sum(data.step_h2d_fetch) / len(data.step_h2d_fetch)
+            elif len(data.step_h2ds) > 0:
+                # Fallback to aggregated H2D
+                s = sum(data.step_h2ds) / len(data.step_h2ds)
+                fe = 0.0 # Assign all to structure/generic
+            elif len(data.step_loads) > 0:
+                # Legacy fallback
+                # Assuming Load = H2D roughly for old logs if no other info
+                s = sum(data.step_loads) / len(data.step_loads)
+                fe = 0.0
+            else:
+                s, fe = 0.0, 0.0
+
+            # Calculate Wall Time per Step
+            if len(data.train_wall_times) > 1:
+                duration = data.train_wall_times[-1] - data.train_wall_times[0]
+                steps = data.train_steps[-1] - data.train_steps[0]
+                w = duration / steps if steps > 0 else 0.0
+            else:
+                w = 0.0
+                
+        else:
+            continue
+
+        # Calculate Gap
+        gpu_total = s + fe + f + b + o
+        if w > 0:
+            gap = max(0.0, w - gpu_total)
+        else:
+            gap = 0.0
+
+        names.append(data.name)
+        strucs.append(s)
+        fetchs.append(fe)
+        fwds.append(f)
+        bwds.append(b)
+        opts.append(o)
+        cpu_overhead_idles.append(gap)
+        has_data = True
+
+    if not has_data:
+        print("No breakdown data found for stacked bar chart.")
+        return
+
+    # Plot
+    fig, ax = plt.subplots(figsize=(10, 6))
+    
+    indices = range(len(names))
+    width = 0.6
+
+    # Stack: Struc -> Fetch -> Fwd -> Bwd -> Opt -> CPU Overhead
+    p1 = ax.bar(indices, strucs, width, label='H2D (Struc)')
+    p2 = ax.bar(indices, fetchs, width, bottom=strucs, label='H2D (Fetch)')
+    
+    bottom_fwd = [s + fe for s, fe in zip(strucs, fetchs)]
+    p3 = ax.bar(indices, fwds, width, bottom=bottom_fwd, label='Forward')
+    
+    bottom_bwd = [s + fe + f for s, fe, f in zip(strucs, fetchs, fwds)]
+    p4 = ax.bar(indices, bwds, width, bottom=bottom_bwd, label='Backward')
+    
+    bottom_opt = [s + fe + f + b for s, fe, f, b in zip(strucs, fetchs, fwds, bwds)]
+    p5 = ax.bar(indices, opts, width, bottom=bottom_opt, label='Optimizer')
+    
+    bottom_gap = [s + fe + f + b + o for s, fe, f, b, o in zip(strucs, fetchs, fwds, bwds, opts)]
+    p6 = ax.bar(indices, cpu_overhead_idles, width, bottom=bottom_gap, label='CPU Overhead / Idle', hatch='//')
+
+    ax.set_ylabel('Time per Step (s)')
+    ax.set_title('Training Step Time Breakdown')
+    ax.set_xticks(indices)
+    ax.set_xticklabels(names, rotation=45, ha='right')
+    ax.legend(loc='upper right')
+    ax.grid(axis='y', linestyle='--', alpha=0.7)
+
+    plt.tight_layout()
+    plt.savefig(output_file)
+    print(f"Breakdown plot saved to {output_file}")
     plt.close(fig)
 
 # -----------------------------------------------------------------------------
@@ -280,6 +456,7 @@ def main():
     plot_metric_set(all_data, "accuracy", f"{base_name}_accuracy{ext}")
     plot_metric_set(all_data, "local_throughput", f"{base_name}_throughput_local{ext}")
     plot_metric_set(all_data, "global_throughput", f"{base_name}_throughput_global{ext}")
+    plot_throughput_breakdown(all_data, f"{base_name}_breakdown{ext}")
 
 if __name__ == "__main__":
     main()
