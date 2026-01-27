@@ -10,7 +10,6 @@ import zipfile
 from functools import partial
 from pathlib import Path
 from typing import Callable, Dict, Iterable, Optional
-from cerebras.modelzoo.config.types import resolve_path
 
 try:
     from ogb.nodeproppred import PygNodePropPredDataset
@@ -19,7 +18,7 @@ except ImportError:  # pragma: no cover - Optional dependency
 
 from torch_geometric.datasets import Planetoid, Reddit
 
-DEFAULT_ROOT = "$MODELZOO_ROOT/models/gnn/data/datasets"
+DEFAULT_ROOT = Path(__file__).resolve().parent.parent / "data" / "datasets"
 CHUNK_SIZE = 16 * 1024 * 1024  # 16 MiB
 
 ALL_DATASETS = [
@@ -36,7 +35,7 @@ ALL_DATASETS = [
 def _resolve_root(root: Optional[object]) -> Path:
     if root is None:
         root = DEFAULT_ROOT
-    resolved = resolve_path(os.fspath(root))
+    resolved = os.fspath(root)
     resolved = os.path.abspath(os.path.expanduser(resolved))
     return Path(resolved)
 
