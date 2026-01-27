@@ -15,7 +15,7 @@ VENV_PATH="${PROJECT_ROOT}/${VENV_DIR_NAME}"
 SETUP_MARKER_FILE="${VENV_PATH}/.setup_successful"
 PYTHON_VERSION_TARGET="3.11"
 
-DOWNLOAD_SCRIPT_NAME="download.py"
+DOWNLOAD_SCRIPT_PATH="src/cerebras/modelzoo/models/gnn/tools/download_datasets.py"
 
 log_step() {
     echo -e "\n$(_log_timestamp) --- $* ---"
@@ -86,28 +86,16 @@ main() {
     uv pip uninstall outdated || true
 
     log_step "Pre-downloading GNN Datasets"
-    local download_dir="${PROJECT_ROOT}/${SHARED_MODEL_SUBDIR}"
-    if [ ! -d "${download_dir}" ]; then
-        log_error "Download script directory not found: ${download_dir}"
+    local download_script_full_path="${PROJECT_ROOT}/${DOWNLOAD_SCRIPT_PATH}"
+    if [ ! -f "${download_script_full_path}" ]; then
+        log_error "Download script not found: ${download_script_full_path}"
         return 1
     fi
 
-    log_info "Attempting dataset download in '${download_dir}'..."
-    ( # Subshell for dataset download
-        cd "${download_dir}"
-        if [ ! -f "${DOWNLOAD_SCRIPT_NAME}" ]; then
-            log_error "Download script not found: $(pwd)/${DOWNLOAD_SCRIPT_NAME}"
-            exit 1
-        fi
-        log_info "Running dataset download script: ${DOWNLOAD_SCRIPT_NAME}"
-        uv run "${DOWNLOAD_SCRIPT_NAME}"
-        log_info "Dataset download script finished."
-    )
-    local download_status=$?
-
-    if [ "${download_status}" -ne 0 ]; then
-        log_error "Dataset download process failed (status: ${download_status})."
-        return "${download_status}"
+    log_info "Running dataset download script: ${DOWNLOAD_SCRIPT_PATH}"
+    if ! uv run "${download_script_full_path}"; then
+        log_error "Dataset download process failed."
+        return 1
     fi
     log_info "Dataset download process completed."
 
