@@ -35,14 +35,14 @@ trainer:
   fit:
     train_dataloader:
       data_processor: GNNDataProcessor
-      dataset_profiles: &ogbn_papers100m_dataset
-        ogbn_papers100m:
+      dataset_profiles: &ogbn_papers100M_dataset
+        ogbn_papers100M:
           dataset_name: ogbn-papers100M
           data_dir: "$MODELZOO_ROOT/models/gnn/data/datasets"
           sampling_mode: neighbor
           fanouts: [15, 10, 5]
           pad_node_id: 0
-      dataset: ogbn_papers100m
+      dataset: ogbn_papers100M
       batch_size: 1024
       drop_last_batch: False
       shuffle: True
@@ -51,10 +51,10 @@ trainer:
       caching_percent: 0.0 # Disabled by default for large datasets
       split: train
 
-    val_dataloader: &ogbn_papers100m_eval_loader
+    val_dataloader: &ogbn_papers100M_eval_loader
       data_processor: GNNDataProcessor
-      dataset_profiles: *ogbn_papers100m_dataset
-      dataset: ogbn_papers100m
+      dataset_profiles: *ogbn_papers100M_dataset
+      dataset: ogbn_papers100M
       batch_size: 2048
       drop_last_batch: False
       shuffle: False
@@ -63,11 +63,11 @@ trainer:
       split: valid
 
   validate:
-    val_dataloader: *ogbn_papers100m_eval_loader
+    val_dataloader: *ogbn_papers100M_eval_loader
 
   validate_all:
     val_dataloaders:
-      - *ogbn_papers100m_eval_loader
+      - *ogbn_papers100M_eval_loader
 
 runconfig:
   python_paths:

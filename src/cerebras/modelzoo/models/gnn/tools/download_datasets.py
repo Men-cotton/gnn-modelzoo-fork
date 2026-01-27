@@ -27,7 +27,7 @@ ALL_DATASETS = [
     "ogbn-arxiv",
     "ogbn-mag",
     "ogbn-products",
-    "ogbn-papers100m",
+    "ogbn-papers100M",
     "mag240m",
 ]
 
@@ -247,7 +247,7 @@ def download_ogb_dataset(dataset_name: str, root_dir: Path) -> None:
         dataset = PygNodePropPredDataset(name=dataset_name, root=str(dataset_dir))
     except Exception as exc:  # pragma: no cover - defensive
         raise RuntimeError(
-            f"Failed to download OGB dataset '{dataset_name}'."
+            f"Failed to download OGB dataset '{dataset_name}': {exc}"
         ) from exc
 
     split_idx = dataset.get_idx_split()
@@ -282,7 +282,7 @@ def _build_handler_registry() -> Dict[str, Callable[[Path], None]]:
         "ogbn-arxiv": partial(download_ogb_dataset, "ogbn-arxiv"),
         "ogbn-mag": partial(download_ogb_dataset, "ogbn-mag"),
         "ogbn-products": partial(download_ogb_dataset, "ogbn-products"),
-        "ogbn-papers100m": partial(download_ogb_dataset, "ogbn-papers100m"),
+        "ogbn-papers100M": partial(download_ogb_dataset, "ogbn-papers100M"),
         "mag240m": download_mag240m_placeholder,
     }
 
@@ -303,7 +303,7 @@ def _parse_args(argv: Optional[Iterable[str]] = None) -> argparse.Namespace:
         help=(
             "Datasets to fetch. Choices include "
             "'pubmed', 'reddit', 'ogbn-arxiv', 'ogbn-mag', "
-            "'ogbn-products', 'ogbn-papers100m', 'mag240m'."
+            "'ogbn-products', 'ogbn-papers100M', 'mag240m'."
         ),
     )
     return parser.parse_args(argv)
