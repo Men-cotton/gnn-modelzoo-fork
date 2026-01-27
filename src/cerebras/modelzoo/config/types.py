@@ -20,6 +20,9 @@ from typing_extensions import Annotated
 
 
 def resolve_path(path, pattern=r"\$MODELZOO_ROOT"):
+    if not isinstance(path, str):
+        return path
+
     import cerebras.modelzoo as mz
 
     repl = os.path.dirname(mz.__file__)
