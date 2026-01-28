@@ -41,7 +41,7 @@ class GNNDataProcessorConfig(DataConfig):
     num_workers: int = 0
     shuffle: bool = False
 
-    split: Optional[Literal["train", "val", "test"]] = None
+    split: Optional[Literal["train", "val", "valid", "test"]] = None
     adj_normalization: Optional[str] = None # Defaults to None (raw adjacency) unless specified (e.g. "gcn")
 
     # Fake data support (full-graph only, retained for parity with legacy config)
@@ -105,6 +105,13 @@ class GNNDataProcessorConfig(DataConfig):
                 cls.__name__,
                 value,
             )
+        return value
+
+    @field_validator("split", mode="after")
+    @classmethod
+    def _normalize_split(cls, value):
+        if value is None:
+            return value
         return value
 
 

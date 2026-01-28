@@ -401,9 +401,18 @@ class BaseGraphDataSource:
         )
         mask_attr_name = f"{self.current_split}_mask"
         if not hasattr(graph, mask_attr_name):
-            raise ValueError(
-                f"Split mask '{mask_attr_name}' not found for {self.dataset_name}."
-            )
+            has_val_mask = hasattr(graph, "val_mask")
+            has_valid_mask = hasattr(graph, "valid_mask")
+            fallback_attr = None
+            if self.current_split == "val" and has_valid_mask and not has_val_mask:
+                fallback_attr = "valid_mask"
+            elif self.current_split == "valid" and has_val_mask and not has_valid_mask:
+                fallback_attr = "val_mask"
+            if fallback_attr is None:
+                raise ValueError(
+                    f"Split mask '{mask_attr_name}' not found for {self.dataset_name}."
+                )
+            mask_attr_name = fallback_attr
         mask = getattr(graph, mask_attr_name).bool()
 
         logger.info(
@@ -448,13 +457,29 @@ class BaseGraphDataSource:
         edge_index = to_undirected(edge_index, num_nodes=graph.num_nodes)
 
         split_masks: Dict[str, Tensor] = {}
-        for split in ("train", "val", "test"):
+        for split in ("train", "test"):
             attr = f"{split}_mask"
             if not hasattr(graph, attr):
                 raise ValueError(
                     f"Expected mask '{attr}' on dataset '{self.dataset_name}'."
                 )
             split_masks[split] = getattr(graph, attr).bool()
+
+        # Accept either val_mask or valid_mask from the dataset and alias only when one exists.
+        has_val_mask = hasattr(graph, "val_mask")
+        has_valid_mask = hasattr(graph, "valid_mask")
+        if not has_val_mask and not has_valid_mask:
+            raise ValueError(
+                f"Expected mask 'val_mask' or 'valid_mask' on dataset '{self.dataset_name}'."
+            )
+        if has_val_mask:
+            split_masks["val"] = graph.val_mask.bool()
+        if has_valid_mask:
+            split_masks["valid"] = graph.valid_mask.bool()
+        if has_val_mask and not has_valid_mask:
+            split_masks["valid"] = split_masks["val"]
+        if has_valid_mask and not has_val_mask:
+            split_masks["val"] = split_masks["valid"]
         return features, edge_index, labels, split_masks
 
 
