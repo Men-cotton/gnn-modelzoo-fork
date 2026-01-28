@@ -3,15 +3,15 @@
 
 set -euo pipefail
 
-PROJECT_ROOT="${HOME}/gnn-modelzoo"
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=./common.sh
 source "${PROJECT_ROOT}/common.sh"
 
 SCRIPT_NAME="$(basename "$0")"
 
-PYTHON_SCRIPT_NAME="run.py"
+PYTHON_SCRIPT_NAME="cszoo"
 # Arguments for PYTHON_SCRIPT_NAME
-PYTHON_SCRIPT_ARGS=("GPU" "-p" "configs/params.yaml" "-m" "train_and_eval")
+PYTHON_SCRIPT_ARGS=("fit" "configs/params_graphsage_ogbn_arxiv.yaml" "--target_device" "CSX")
 
 main() {
     log_info "Starting GNN ModelZoo batch run"
