@@ -2,6 +2,7 @@ import time
 import torch
 from typing import Dict, Any
 from cerebras.modelzoo.trainer.callbacks import Callback
+import cerebras.pytorch as cstorch
 from cerebras.pytorch.utils.tracker import RateTracker
 from cerebras.pytorch.utils.data.utils import infer_batch_size
 
@@ -159,12 +160,12 @@ class ComputeTimeCallback(Callback):
         self.t_batch_end = time.perf_counter()
 
     def _print_log(self, trainer, step, outputs):
-        # Safety for loss retrieval
-        loss_val = 0.0
+        # Avoid materializing tensor values outside step closures on CS.
+        loss_obj = None
         if isinstance(outputs, dict) and "loss" in outputs:
-            loss_val = outputs["loss"].item() if torch.is_tensor(outputs["loss"]) else outputs["loss"]
+            loss_obj = outputs["loss"]
         elif torch.is_tensor(outputs):
-            loss_val = outputs.item()
+            loss_obj = outputs
 
         # Averages
         if self.window_steps == 0:
@@ -185,13 +186,62 @@ class ComputeTimeCallback(Callback):
              print(f"[Warn] Residual became negative: {avg_residual:.3f} ms/step")
 
         wall_time = time.perf_counter() - self.total_wall_start
+
+        # Capture rates now so they match this logging window.
+        global_rate = self.rate_tracker.global_rate()
+        local_rate = self.rate_tracker.rate()
         
+        self._print_log_step_closure(
+            trainer,
+            step,
+            loss_obj,
+            wall_time,
+            avg_load,
+            avg_fwd,
+            avg_bwd,
+            avg_opt,
+            avg_residual,
+            avg_wall,
+            global_rate,
+            local_rate,
+        )
+
+    @cstorch.step_closure
+    def _print_log_step_closure(
+        self,
+        trainer,
+        step,
+        loss_obj,
+        wall_time,
+        avg_load,
+        avg_fwd,
+        avg_bwd,
+        avg_opt,
+        avg_residual,
+        avg_wall,
+        global_rate,
+        local_rate,
+    ):
+        # Materialize loss only inside a step closure for CS compatibility.
+        loss_val = 0.0
+        if torch.is_tensor(loss_obj):
+            loss_val = loss_obj.item()
+        elif loss_obj is not None:
+            try:
+                loss_val = float(loss_obj)
+            except (TypeError, ValueError):
+                loss_val = 0.0
+
         print(f"[Step={step:04d}] Wall={wall_time:.4f}s | Loss={loss_val:.4f}")
         # Updated Profile Log
-        print(f"[Profile] Avg ms/step | "
-              f"Load: {avg_load:.3f} | "
-              f"Host_Submit(Fwd: {avg_fwd:.3f}, Bwd: {avg_bwd:.3f}, Opt: {avg_opt:.3f}) | "
-              f"Residual(Dev): {avg_residual:.3f} | "
-              f"Iter_Wall: {avg_wall:.3f}")
-        
-        print(f"[Throughput] Samples: {self.rate_tracker.global_rate():.2f} samples/s ({self.rate_tracker.rate():.2f})")
+        print(
+            f"[Profile] Avg ms/step | "
+            f"Load: {avg_load:.3f} | "
+            f"Host_Submit(Fwd: {avg_fwd:.3f}, Bwd: {avg_bwd:.3f}, Opt: {avg_opt:.3f}) | "
+            f"Residual(Dev): {avg_residual:.3f} | "
+            f"Iter_Wall: {avg_wall:.3f}"
+        )
+
+        print(
+            f"[Throughput] Samples: {global_rate:.2f} samples/s ({local_rate:.2f})"
+        )
