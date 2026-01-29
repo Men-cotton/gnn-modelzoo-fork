@@ -1,0 +1,17 @@
+#!/bin/bash
+#PBS -A AC2
+#PBS -q gpu
+#PBS -M mencotton0410@gmail.com
+#PBS -m e
+
+set -euo pipefail
+
+cd "$PBS_O_WORKDIR" || exit 1
+
+CONFIG_PATH="src/cerebras/modelzoo/models/gnn/configs/params_graphsage_ogbn_arxiv.yaml"
+if [ ! -f "$CONFIG_PATH" ]; then
+    echo "[ERROR] config not found: $CONFIG_PATH" >&2
+    exit 2
+fi
+
+./run_pyg.sh --config "$CONFIG_PATH"

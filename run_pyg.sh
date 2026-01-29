@@ -21,9 +21,48 @@ fi
 SCRIPT_NAME="$(basename "$0")"
 
 PYTHON_SCRIPT_NAME="src/cerebras/modelzoo/models/gnn/graphsage_pyg.py"
-CONFIG_PATH="src/cerebras/modelzoo/models/gnn/configs/params_graphsage_ogbn_arxiv.yaml"
-# Arguments for PYTHON_SCRIPT_NAME
-PYTHON_SCRIPT_ARGS=("--config" "${CONFIG_PATH}")
+CONFIG_PATH=""
+# Arguments for PYTHON_SCRIPT_NAME (populated after arg parsing)
+PYTHON_SCRIPT_ARGS=()
+
+usage() {
+    cat <<EOF
+Usage: ${SCRIPT_NAME} --config <path>
+EOF
+}
+
+parse_args() {
+    while [[ "$#" -gt 0 ]]; do
+        case "$1" in
+            --config)
+                if [[ -z "${2:-}" || "${2:0:2}" == "--" ]]; then
+                    log_error "Missing value for --config"
+                    usage
+                    return 2
+                fi
+                CONFIG_PATH="$2"
+                shift 2
+                ;;
+            -h|--help)
+                usage
+                return 0
+                ;;
+            *)
+                log_error "Unknown argument: $1"
+                usage
+                return 2
+                ;;
+        esac
+    done
+
+    if [[ -z "${CONFIG_PATH}" ]]; then
+        log_error "Missing required --config <path>"
+        usage
+        return 2
+    fi
+
+    PYTHON_SCRIPT_ARGS=("--config" "${CONFIG_PATH}")
+}
 
 main() {
     log_info "Starting PyG GraphSAGE run"
@@ -31,6 +70,15 @@ main() {
     if ! command -v uv &> /dev/null; then
         log_error "'uv' command not found. Please install uv: https://github.com/astral-sh/uv"
         return 1
+    fi
+
+    parse_args "$@"
+    local parse_status=$?
+    if [[ "${parse_status}" -eq 0 && -z "${CONFIG_PATH}" ]]; then
+        return 0
+    fi
+    if [[ "${parse_status}" -ne 0 ]]; then
+        return "${parse_status}"
     fi
 
     log_info "Checking for conflicting environment modules"
