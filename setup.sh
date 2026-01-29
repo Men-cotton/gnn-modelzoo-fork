@@ -14,11 +14,31 @@ VENV_DIR_NAME=".venv"
 VENV_PATH="${PROJECT_ROOT}/${VENV_DIR_NAME}"
 SETUP_MARKER_FILE="${VENV_PATH}/.setup_successful"
 PYTHON_VERSION_TARGET="3.11"
+TORCH_CPU_SPEC_DEFAULT="torch==2.4.0"
+TORCH_CPU_INDEX_URL_DEFAULT="https://download.pytorch.org/whl/cpu"
+TORCH_CUDA_SPEC_DEFAULT="torch==2.4.0+cu121"
+TORCH_CUDA_INDEX_URL_DEFAULT="https://download.pytorch.org/whl/cu121"
 
 DOWNLOAD_SCRIPT_PATH="src/cerebras/modelzoo/models/gnn/tools/download_datasets.py"
 
 log_step() {
     echo -e "\n$(_log_timestamp) --- $* ---"
+}
+
+detect_cuda_toolkit_root() {
+    local root=""
+    if [[ -n "${CUDA_TOOLKIT_ROOT_DIR:-}" ]]; then
+        root="${CUDA_TOOLKIT_ROOT_DIR}"
+    elif [[ -n "${CUDA_HOME:-}" ]]; then
+        root="${CUDA_HOME}"
+    elif command -v nvcc &> /dev/null; then
+        root="$(dirname "$(dirname "$(command -v nvcc)")")"
+    fi
+    if [[ -n "${root}" ]] && [[ -x "${root}/bin/nvcc" ]]; then
+        echo "${root}"
+        return 0
+    fi
+    echo ""
 }
 
 main() {
@@ -50,8 +70,6 @@ main() {
     unset PYTHONPATH
     rm -f "${SETUP_MARKER_FILE}"
 
-    local python_specifier="python${PYTHON_VERSION_TARGET}"
-
     log_step "Initializing Project and Installing Packages"
 
     if [ ! -f "pyproject.toml" ]; then
@@ -71,8 +89,81 @@ main() {
         return 1
     fi
 
+    local VENV_PYTHON="${VENV_PATH}/bin/python"
+    local python_include=""
+    local python_prefix=""
+    python_include="$("${VENV_PYTHON}" - <<'PY'
+import sysconfig
+print(sysconfig.get_path("include") or "")
+PY
+)"
+    python_prefix="$("${VENV_PYTHON}" - <<'PY'
+import sysconfig
+print(sysconfig.get_config_var("prefix") or "")
+PY
+)"
+    if [[ -n "${python_include}" ]]; then
+        export CMAKE_ARGS="${CMAKE_ARGS:-} -DPython3_EXECUTABLE=${VENV_PYTHON} -DPython3_INCLUDE_DIR=${python_include}"
+        if [[ -n "${python_prefix}" ]]; then
+            export CMAKE_ARGS="${CMAKE_ARGS} -DPython3_ROOT_DIR=${python_prefix}"
+        fi
+    fi
+
+    log_step "Installing build tools (required for source builds)"
+    if ! uv pip install --python "${VENV_PYTHON}" "setuptools>=65" "wheel>=0.41"; then
+        log_error "Build tools install failed."
+        return 1
+    fi
+
+    log_step "Installing PyTorch (auto-select CPU/GPU based on CUDA toolkit)"
+    if [[ "${SKIP_TORCH_INSTALL:-0}" != "1" ]]; then
+        local cuda_root=""
+        local cuda_detected="0"
+        local torch_spec="${TORCH_CPU_SPEC_DEFAULT}"
+        local torch_index_url="${TORCH_CPU_INDEX_URL_DEFAULT}"
+        cuda_root="$(detect_cuda_toolkit_root)"
+        if [[ -n "${cuda_root}" ]]; then
+            cuda_detected="1"
+            torch_spec="${TORCH_CUDA_SPEC_DEFAULT}"
+            torch_index_url="${TORCH_CUDA_INDEX_URL_DEFAULT}"
+            log_info "CUDA toolkit detected; using CUDA torch."
+            export CUDA_HOME="${cuda_root}"
+            export CMAKE_ARGS="${CMAKE_ARGS:-} -DCUDA_TOOLKIT_ROOT_DIR=${cuda_root}"
+        else
+            log_info "CUDA toolkit not found; using CPU torch."
+        fi
+        local torch_install_args=("${torch_spec}")
+        if [[ -n "${torch_index_url}" ]]; then
+            torch_install_args+=(--index-url "${torch_index_url}")
+        fi
+        if [[ -n "${TORCH_EXTRA_INDEX_URL:-}" ]]; then
+            torch_install_args+=(--extra-index-url "${TORCH_EXTRA_INDEX_URL}")
+        fi
+        log_info "Installing torch with: ${torch_spec}"
+        if ! uv pip install --python "${VENV_PYTHON}" "${torch_install_args[@]}"; then
+            log_error "PyTorch install failed."
+            return 1
+        fi
+
+        if [[ "${cuda_detected}" = "1" ]]; then
+            log_step "Installing pyg-lib (CUDA detected)"
+            local pyg_find_links_arg=""
+            if grep -q "^--find-links" req.txt; then
+                local url
+                url=$(grep -m 1 "^--find-links" req.txt | awk '{print $2}')
+                pyg_find_links_arg="--find-links ${url}"
+            fi
+            if ! uv pip install --python "${VENV_PYTHON}" "pyg-lib==0.4.0" ${pyg_find_links_arg}; then
+                log_error "pyg-lib install failed."
+                return 1
+            fi
+        fi
+    else
+        log_info "Skipping torch install (SKIP_TORCH_INSTALL=1)."
+    fi
+
     log_info "Adding dependencies from req.txt..."
-    # Extract find-links if present, as uv add might strict-mode ignore it inside file but needs it for lookup
+    # Extract find-links if present; keep explicit for uv pip install.
     local find_links_arg=""
     if grep -q "^--find-links" req.txt; then
         local url
@@ -81,20 +172,20 @@ main() {
         log_info "Detected --find-links: ${url}"
     fi
 
-    if ! uv add --python "${VENV_PATH}/bin/python" -r req.txt ${find_links_arg}; then
-        log_error "Requirements install failed (uv add)."
+    if ! uv pip install --python "${VENV_PYTHON}" --no-build-isolation -r req.txt ${find_links_arg}; then
+        log_error "Requirements install failed (uv pip install)."
         return 1
     fi
 
     log_info "Installing project in editable mode..."
-    if ! uv pip install --python "${VENV_PATH}/bin/python" -e .; then
+    if ! uv pip install --python "${VENV_PYTHON}" -e . --no-deps; then
         log_error "Editable install failed."
         return 1
     fi
 
 
     log_info "Removing 'outdated' package to prevent deprecation warnings..."
-    uv pip uninstall --python "${VENV_PATH}/bin/python" outdated || true
+    uv pip uninstall --python "${VENV_PYTHON}" outdated || true
 
     log_step "Pre-downloading GNN Datasets"
     local download_script_full_path="${PROJECT_ROOT}/${DOWNLOAD_SCRIPT_PATH}"
@@ -104,7 +195,7 @@ main() {
     fi
 
     log_info "Running dataset download script: ${DOWNLOAD_SCRIPT_PATH}"
-    if ! uv run --python "${VENV_PATH}/bin/python" "${download_script_full_path}"; then
+    if ! uv run --python "${VENV_PYTHON}" "${download_script_full_path}"; then
         log_error "Dataset download process failed."
         return 1
     fi
