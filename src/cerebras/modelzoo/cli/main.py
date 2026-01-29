@@ -36,12 +36,6 @@ class ModelZooCLI:
         from cerebras.modelzoo.cli.data_preprocess_cli import DataPreprocessCLI
         from cerebras.modelzoo.cli.model_info_cli import ModelInfoCLI
         from cerebras.modelzoo.cli.utils import EPILOG, add_run_args
-        from cerebras.modelzoo.common.run_bigcode_eval_harness import (
-            add_bigcode_args,
-        )
-        from cerebras.modelzoo.common.run_eleuther_eval_harness import (
-            add_eeh_args,
-        )
 
         parser = argparse.ArgumentParser(
             description=(
@@ -118,44 +112,6 @@ class ModelZooCLI:
         seen_args = add_run_args(validate_all_parser)
         validate_all_parser.set_defaults(
             func=ModelZooCLI.run_trainer, mode="eval_all", seen_args=seen_args
-        )
-
-        ###########
-        # lm_eval #
-        ###########
-        lm_eval_parser = subparsers.add_parser(
-            "lm_eval",
-            help="Invokes script for running Eleuther Eval Harness.",
-            epilog=(
-                "For more information on Eleuther Eval Harness, see: "
-                "https://docs.cerebras.net/en/latest/wsc/Model-zoo/core_workflows/downstream_eeh.html"
-            ),
-            formatter_class=argparse.RawTextHelpFormatter,
-        )
-        add_eeh_args(lm_eval_parser)
-        seen_args = add_run_args(lm_eval_parser, devices=["CSX"])
-        lm_eval_parser.set_defaults(
-            func=ModelZooCLI.run_lm_eval_harness,
-            seen_args=seen_args,
-        )
-
-        ################
-        # bigcode_eval #
-        ################
-        bigcode_eval_parser = subparsers.add_parser(
-            "bigcode_eval",
-            help="Invokes script for running BigCode Eval Harness.",
-            epilog=(
-                "For more information on BigCode Eval Harness, see: "
-                "https://docs.cerebras.net/en/latest/wsc/Model-zoo/core_workflows/downstream_bceh.html"
-            ),
-            formatter_class=argparse.RawTextHelpFormatter,
-        )
-        add_bigcode_args(bigcode_eval_parser)
-        seen_args = add_run_args(bigcode_eval_parser, devices=["CSX"])
-        bigcode_eval_parser.set_defaults(
-            func=ModelZooCLI.run_bigcode_eval_harness,
-            seen_args=seen_args,
         )
 
         ##############
@@ -245,54 +201,6 @@ class ModelZooCLI:
             RestartableTrainer(params).run_trainer(args.mode)
         else:
             run_trainer(args.mode, params)
-
-    @staticmethod
-    def run_lm_eval_harness(args):
-        from cerebras.modelzoo.cli.utils import _args_to_params
-        from cerebras.modelzoo.common.run_eleuther_eval_harness import (
-            eeh_parser,
-            run_lm_eval,
-        )
-        from cerebras.modelzoo.trainer.utils import EEH_TRAINER_PARAMS_TO_LEGACY
-
-        extra_legacy_mapping_fn = (
-            lambda trainer_to_legacy_mapping: trainer_to_legacy_mapping["init"][
-                "callbacks"
-            ].append(EEH_TRAINER_PARAMS_TO_LEGACY)
-        )
-
-        params = _args_to_params(
-            args,
-            validate=False,
-            extra_legacy_mapping_fn=extra_legacy_mapping_fn,
-        )
-
-        run_lm_eval(params, eeh_parser())
-
-    @staticmethod
-    def run_bigcode_eval_harness(args):
-        from cerebras.modelzoo.cli.utils import _args_to_params
-        from cerebras.modelzoo.common.run_bigcode_eval_harness import (
-            bigcode_parser,
-            run_bigcode_eval,
-        )
-        from cerebras.modelzoo.trainer.utils import (
-            BCEH_TRAINER_PARAMS_TO_LEGACY,
-        )
-
-        extra_legacy_mapping_fn = (
-            lambda trainer_to_legacy_mapping: trainer_to_legacy_mapping["init"][
-                "callbacks"
-            ].append(BCEH_TRAINER_PARAMS_TO_LEGACY)
-        )
-
-        params = _args_to_params(
-            args,
-            validate=False,
-            extra_legacy_mapping_fn=extra_legacy_mapping_fn,
-        )
-
-        run_bigcode_eval(params, bigcode_parser())
 
 
 def main():

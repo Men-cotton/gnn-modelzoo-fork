@@ -33,7 +33,6 @@ from typing import Any, Callable, Dict, List, Literal, Optional, Union
 
 import numpy as np
 import yaml
-from PIL import Image
 from pydantic import model_validator
 from rich.console import Console
 from rich.layout import Layout
@@ -2003,10 +2002,7 @@ def save_image_locally(example, idx, image_key, image_dir):
                 if img_data is None:
                     image_paths.append(None)
                     continue
-                if isinstance(img_data, Image.Image):
-                    img_data.save(image_path)
-                    image_paths.append(f"{idx}_{i}.png")
-                elif isinstance(img_data, str):
+                if isinstance(img_data, str):
                     image_paths.append(img_data)
                 else:
                     raise ValueError(
@@ -2019,10 +2015,7 @@ def save_image_locally(example, idx, image_key, image_dir):
             example[image_key] = None
         else:
             image_path = os.path.join(image_dir, f"{idx}.png")
-            if isinstance(image_data, Image.Image):
-                image_data.save(image_path)
-                example[image_key] = f"{idx}.png"
-            elif isinstance(image_data, str):
+            if isinstance(image_data, str):
                 example[image_key] = image_data
             else:
                 raise ValueError(
