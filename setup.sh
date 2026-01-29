@@ -86,6 +86,11 @@ main() {
         return 1
     fi
 
+    log_info "Installing project in editable mode..."
+    if ! uv pip install --python "${VENV_PATH}/bin/python" -e .; then
+        log_error "Editable install failed."
+        return 1
+    fi
 
 
     log_info "Removing 'outdated' package to prevent deprecation warnings..."
