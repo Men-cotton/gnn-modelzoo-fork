@@ -51,6 +51,7 @@ def train_model(
     use_amp = bool(model_cfg.get("to_float16", False))
     scaler = torch.amp.GradScaler("cuda", enabled=use_amp)
     disable_log_softmax = model_cfg.get("disable_log_softmax", False)
+    compute_eval_metrics = bool(model_cfg.get("compute_eval_metrics", True))
 
     # --- Profiling Setup ---
     # Pre-allocate CUDA events to avoid allocation overhead during the loop
@@ -214,7 +215,7 @@ def train_model(
             running_loss_tensor = torch.zeros(1, device=device)
 
         # --- Evaluation ---
-        if step % eval_frequency == 0:
+        if compute_eval_metrics and step % eval_frequency == 0:
             # Note: evaluate is likely synchronous
             val_acc = evaluate(model, val_loader, device, cache=cache)
             model.train()
