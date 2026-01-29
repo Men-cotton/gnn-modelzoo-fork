@@ -40,6 +40,9 @@ class GNNDataProcessorConfig(DataConfig):
     drop_last: bool = Field(True, validation_alias="drop_last_batch")
     num_workers: int = 0
     shuffle: bool = False
+    prefetch_factor: Optional[int] = 10
+    persistent_workers: bool = True
+    pin_memory: bool = True
 
     split: Optional[Literal["train", "val", "valid", "test"]] = None
     adj_normalization: Optional[str] = None # Defaults to None (raw adjacency) unless specified (e.g. "gcn")
