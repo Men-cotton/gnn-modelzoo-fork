@@ -90,6 +90,8 @@ class LogParser:
         
         # Multi-line Parsing State
         self._current_step_data = {}
+        self._current_compute_time = 0.0
+        self._last_step = 0
 
         # ModelZoo Parsing State
         self._mz_start_time: Optional[datetime] = None
@@ -148,7 +150,18 @@ class LogParser:
             if self._current_step_data and "step" in self._current_step_data:
                 # Flush
                 d = self._current_step_data
-                self.data.train_steps.append(d["step"])
+                current_step = d["step"]
+                
+                # "gpu_tot" is avg time per step for the interval
+                # If step jumps from 100 to 200, we have 100 steps
+                delta_steps = current_step - self._last_step
+                if delta_steps > 0:
+                    avg_gpu_time = d.get("gpu_tot", 0.0)
+                    self._current_compute_time += avg_gpu_time * delta_steps
+                
+                self._last_step = current_step
+
+                self.data.train_steps.append(current_step)
                 self.data.train_wall_times.append(d["wall"])
                 self.data.step_loads.append(d.get("load", 0.0))
                 self.data.step_preps.append(d.get("prep", 0.0))
@@ -158,9 +171,7 @@ class LogParser:
                 self.data.step_bwds.append(d.get("bwd", 0.0))
                 self.data.step_opts.append(d.get("opt", 0.0))
                 
-                # Assume compute time is roughly sum of GPU components for now, or 0.0 if unknown
-                # The log has GPU_Tot, we could use that as compute time approximation or just use 0.0
-                self.data.train_compute_times.append(d.get("gpu_tot", 0.0))
+                self.data.train_compute_times.append(self._current_compute_time)
                 
                 self.data.global_throughputs.append(float(match.group(1)))
                 self.data.local_throughputs.append(float(match.group(2)))
