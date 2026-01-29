@@ -25,6 +25,11 @@ trainer:
         learning_rate: 0.003
         weight_decay: 0.0005
 
+    precision:
+      enabled: True
+      fp16_type: "float16"
+      loss_scaling_factor: "dynamic"
+
     loop:
       max_steps: 1500
       steps_per_epoch: 60
