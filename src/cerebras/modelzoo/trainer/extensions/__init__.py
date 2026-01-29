@@ -14,17 +14,11 @@
 
 """This module contains integrations of external tools to the Trainer."""
 
-from . import bigcode, eleuther, huggingface, wandb
-from .bigcode import BigCodeCLIArgs, BigCodeEvalHarness
-from .eleuther import EleutherCLIArgs, EleutherEvalHarness
+from . import huggingface, wandb
 from .huggingface import HFCacheDir
 from .wandb import WandbLogger
 
 __all__ = [
-    "BigCodeCLIArgs",
-    "BigCodeEvalHarness",
-    "EleutherEvalHarness",
-    "EleutherCLIArgs",
     "HFCacheDir",
     "WandbLogger",
 ]
