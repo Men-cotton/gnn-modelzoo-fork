@@ -338,6 +338,49 @@ def make_loaders(data, split_idx, cfg, rank=0, world_size=1):
         train_input_nodes = train_input_nodes[start : start + length]
         print(f"[ddp] Rank {rank}/{world_size}: Assigned {train_input_nodes.size(0)}/{num_nodes} training nodes (Indices {start} to {start + length})")
     
+    # Common dataloader kwargs
+    def _get_loader_kwargs(loader_cfg, loader_cls):
+        num_workers = loader_cfg.get("num_workers", 0)
+        if num_workers <= 0:
+            raise ValueError(
+                f"num_workers must be > 0 for HPC performance. Got {num_workers}."
+            )
+
+        kwargs = {
+            "batch_size": loader_cfg["batch_size"],
+            "num_workers": num_workers,
+            "persistent_workers": loader_cfg.get("persistent_workers", True),
+            "pin_memory": loader_cfg.get("pin_memory", True),
+        }
+
+        # Validate persistent_workers support
+        # NeighborLoader inherits from torch.utils.data.DataLoader or compatible
+        # We can check signature or just rely on PyG/Torch usually supporting it if > 0 workers
+        # However, user requested strict check.
+        # torch.utils.data.DataLoader has supported persistent_workers for a long time (since 1.7+).
+        # We assume standard environment. But to be safe/strict as requested:
+        import inspect
+        sig = inspect.signature(loader_cls.__init__)
+        
+        if "persistent_workers" not in sig.parameters and "kwargs" not in sig.parameters:
+             raise RuntimeError(f"persistent_workers not supported by {loader_cls.__name__}")
+        
+        if "pin_memory" not in sig.parameters and "kwargs" not in sig.parameters:
+             raise RuntimeError(f"pin_memory not supported by {loader_cls.__name__}")
+
+        # prefetch_factor validation
+        prefetch_factor = loader_cfg.get("prefetch_factor", 10)
+        if "prefetch_factor" in sig.parameters or "kwargs" in sig.parameters:
+             kwargs["prefetch_factor"] = prefetch_factor
+        else:
+             raise RuntimeError(f"prefetch_factor not supported by {loader_cls.__name__}")
+             
+        # Check if installed PyG version's loader actually accepts these.
+        # PyG NeighborLoader passes kwargs to torch DataLoader. 
+        # So we really need to check if torch DataLoader supports them, which it does in modern versions.
+        
+        return kwargs
+
     if is_dist:
         # Distributed mode with partitions
         print(f"[loader] Using DistNeighborLoader with partitions")
@@ -353,6 +396,9 @@ def make_loaders(data, split_idx, cfg, rank=0, world_size=1):
             group_name="worker",
         )
         
+        # We use DistNeighborLoader
+        loader_kwargs = _get_loader_kwargs(train_c, DistNeighborLoader)
+
         train_loader = DistNeighborLoader(
             data=(feature_store, graph_store),
             master_addr=master_addr,
@@ -360,12 +406,9 @@ def make_loaders(data, split_idx, cfg, rank=0, world_size=1):
             current_ctx=current_ctx,
             input_nodes=train_input_nodes,
             num_neighbors=_get_fanouts(train_c, train_profile),
-            batch_size=train_c["batch_size"],
             shuffle=train_c["shuffle"],
             drop_last=train_c["drop_last_batch"],
-            num_workers=train_c["num_workers"],
-            pin_memory=True,
-            persistent_workers=train_c["num_workers"] > 0,
+            **loader_kwargs,
         )
         
         try:
@@ -380,6 +423,7 @@ def make_loaders(data, split_idx, cfg, rank=0, world_size=1):
                  "Cannot proceed with validation. Please ensure validation split exists."
              )
         
+        val_loader_kwargs = _get_loader_kwargs(val_c, DistNeighborLoader)
         val_loader = DistNeighborLoader(
             data=(feature_store, graph_store),
             master_addr=master_addr,
@@ -387,37 +431,31 @@ def make_loaders(data, split_idx, cfg, rank=0, world_size=1):
             current_ctx=current_ctx,
             input_nodes=val_nodes,
             num_neighbors=_get_fanouts(val_c, val_profile),
-            batch_size=val_c["batch_size"],
             shuffle=False,
             drop_last=val_c["drop_last_batch"],
-            num_workers=val_c["num_workers"],
-            pin_memory=True,
-            persistent_workers=val_c["num_workers"] > 0,
+            **val_loader_kwargs,
         )
         return train_loader, val_loader
 
+    train_kwargs = _get_loader_kwargs(train_c, NeighborLoader)
     train_loader = NeighborLoader(
         data,
         input_nodes=train_input_nodes,
         num_neighbors=_get_fanouts(train_c, train_profile),
-        batch_size=train_c["batch_size"],
         shuffle=train_c["shuffle"],
         drop_last=train_c["drop_last_batch"],
-        num_workers=train_c["num_workers"],
         generator=_build_generator(train_c),
-        pin_memory=True,
-        persistent_workers=train_c["num_workers"] > 0,
+        **train_kwargs,
     )
+
+    val_kwargs = _get_loader_kwargs(val_c, NeighborLoader)
     val_loader = NeighborLoader(
         data,
         input_nodes=_resolve_split(split_idx, val_c.get("split", "val")),
         num_neighbors=_get_fanouts(val_c, val_profile),
-        batch_size=val_c["batch_size"],
         shuffle=val_c["shuffle"],
         drop_last=val_c["drop_last_batch"],
-        num_workers=val_c["num_workers"],
         generator=_build_generator(val_c),
-        pin_memory=True,
-        persistent_workers=val_c["num_workers"] > 0,
+        **val_kwargs,
     )
     return train_loader, val_loader

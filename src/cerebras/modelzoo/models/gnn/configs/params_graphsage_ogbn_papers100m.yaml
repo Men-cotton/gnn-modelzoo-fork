@@ -9,13 +9,13 @@ trainer:
       n_feat: 128
       n_class: 172
 
-      to_float16: False
-      compute_eval_metrics: True
+      to_float16: True
+      compute_eval_metrics: False
       disable_log_softmax: False
       core_architecture: GraphSAGE
-      graphsage_hidden_dim: 256
+      graphsage_hidden_dim: 1024
       graphsage_num_layers: 3
-      graphsage_dropout: 0.4
+      graphsage_dropout: 0.5
       graphsage_aggregator: mean
 
     optimizer:
@@ -26,11 +26,11 @@ trainer:
 
     loop:
       max_steps: 3000
-      steps_per_epoch: 1000
-      eval_frequency: 1000
+      steps_per_epoch: 120
+      eval_frequency: 120
 
     logging:
-      log_steps: 25
+      log_steps: 120
 
   fit:
     train_dataloader:
@@ -43,22 +43,28 @@ trainer:
           fanouts: [15, 10, 5]
           pad_node_id: 0
       dataset: ogbn_papers100M
-      batch_size: 1024
+      batch_size: 4096
       drop_last_batch: False
       shuffle: True
-      num_workers: 0
+      num_workers: 40
+      prefetch_factor: 2
+      persistent_workers: True
+      pin_memory: True
       sampler_seed: 42
-      caching_percent: 0.0 # Disabled by default for large datasets
+      caching_percent: null # Auto-detect based on memory
       split: train
 
     val_dataloader: &ogbn_papers100M_eval_loader
       data_processor: GNNDataProcessor
       dataset_profiles: *ogbn_papers100M_dataset
       dataset: ogbn_papers100M
-      batch_size: 2048
+      batch_size: 4096
       drop_last_batch: False
       shuffle: False
-      num_workers: 0
+      num_workers: 40
+      prefetch_factor: 2
+      persistent_workers: True
+      pin_memory: True
       sampler_seed: 42
       split: valid
 

@@ -12,11 +12,11 @@ trainer:
       n_hid: 64 # Hidden dimension for GCN
 
       # GNNModel wrapper parameters (from GNNModelConfig)
-      compute_eval_metrics: True
+      compute_eval_metrics: False
       disable_log_softmax: False
       core_architecture: GCN
-      graphsage_hidden_dim: 128
-      graphsage_num_layers: 2
+      graphsage_hidden_dim: 1024
+      graphsage_num_layers: 3
       graphsage_dropout: 0.5
       graphsage_aggregator: mean
 
@@ -52,7 +52,7 @@ trainer:
       batch_size: 1
       drop_last_batch: True
       shuffle: False
-      num_workers: 0
+      num_workers: 40
       split: train
       adj_normalization: "gcn"
 
@@ -64,7 +64,7 @@ trainer:
       batch_size: 1
       drop_last_batch: True
       shuffle: False
-      num_workers: 0
+      num_workers: 40
       split: val
       adj_normalization: "gcn"
 

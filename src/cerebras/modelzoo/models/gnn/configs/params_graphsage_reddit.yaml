@@ -10,13 +10,13 @@ trainer:
       n_class: 41
 
       # Wrapper parameters
-      to_float16: False
-      compute_eval_metrics: True
+      to_float16: True
+      compute_eval_metrics: False
       disable_log_softmax: False
       core_architecture: GraphSAGE
-      graphsage_hidden_dim: 256
-      graphsage_num_layers: 2
-      graphsage_dropout: 0.3
+      graphsage_hidden_dim: 1024
+      graphsage_num_layers: 3
+      graphsage_dropout: 0.5
       graphsage_aggregator: mean
 
     optimizer:
@@ -27,11 +27,11 @@ trainer:
 
     loop:
       max_steps: 1500
-      steps_per_epoch: 300
-      eval_frequency: 300
+      steps_per_epoch: 60
+      eval_frequency: 60
 
     logging:
-      log_steps: 10
+      log_steps: 60
 
   fit:
     train_dataloader:
@@ -39,13 +39,16 @@ trainer:
       dataset_name: Reddit
       data_dir: "$MODELZOO_ROOT/models/gnn/data/datasets"
       sampling_mode: neighbor
-      fanouts: [20, 10]
-      batch_size: 512
+      fanouts: [15, 10, 5]
+      batch_size: 4096
       drop_last_batch: False
       shuffle: True
-      num_workers: 0
+      num_workers: 40
+      prefetch_factor: 2
+      persistent_workers: True
+      pin_memory: True
       sampler_seed: 42
-      caching_percent: 0.1
+      caching_percent: null
       split: train
 
     val_dataloader: &val_neighbor_params
@@ -53,11 +56,14 @@ trainer:
       dataset_name: Reddit
       data_dir: "$MODELZOO_ROOT/models/gnn/data/datasets"
       sampling_mode: neighbor
-      fanouts: [20, 10]
-      batch_size: 1024
+      fanouts: [15, 10, 5]
+      batch_size: 4096
       drop_last_batch: False
       shuffle: False
-      num_workers: 0
+      num_workers: 40
+      prefetch_factor: 2
+      persistent_workers: True
+      pin_memory: True
       sampler_seed: 42
       split: val
 

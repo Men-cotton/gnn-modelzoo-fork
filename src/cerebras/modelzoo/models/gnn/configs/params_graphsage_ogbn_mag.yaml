@@ -9,12 +9,12 @@ trainer:
       n_feat: 128
       n_class: 349
 
-      to_float16: False
-      compute_eval_metrics: True
+      to_float16: True
+      compute_eval_metrics: False
       disable_log_softmax: False
       core_architecture: GraphSAGE
-      graphsage_hidden_dim: 256
-      graphsage_num_layers: 2
+      graphsage_hidden_dim: 1024
+      graphsage_num_layers: 3
       graphsage_dropout: 0.5
       graphsage_aggregator: mean
 
@@ -26,11 +26,11 @@ trainer:
 
     loop:
       max_steps: 2500
-      steps_per_epoch: 600
-      eval_frequency: 600
+      steps_per_epoch: 100
+      eval_frequency: 100
 
     logging:
-      log_steps: 25
+      log_steps: 100
 
   fit:
     train_dataloader:
@@ -40,25 +40,31 @@ trainer:
           dataset_name: ogbn-mag
           data_dir: "$MODELZOO_ROOT/models/gnn/data/datasets"
           sampling_mode: neighbor
-          fanouts: [20, 10]
+          fanouts: [15, 10, 5]
           pad_node_id: 0
       dataset: ogbn_mag
-      batch_size: 1024
+      batch_size: 4096
       drop_last_batch: False
       shuffle: True
-      num_workers: 0
+      num_workers: 40
+      prefetch_factor: 2
+      persistent_workers: True
+      pin_memory: True
       sampler_seed: 42
-      caching_percent: 0.1
+      caching_percent: null
       split: train
 
     val_dataloader: &ogbn_mag_eval_loader
       data_processor: GNNDataProcessor
       dataset_profiles: *ogbn_mag_dataset
       dataset: ogbn_mag
-      batch_size: 2048
+      batch_size: 4096
       drop_last_batch: False
       shuffle: False
-      num_workers: 0
+      num_workers: 40
+      prefetch_factor: 2
+      persistent_workers: True
+      pin_memory: True
       sampler_seed: 42
       split: valid
 
