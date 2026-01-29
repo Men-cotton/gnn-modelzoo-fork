@@ -3,13 +3,12 @@
 
 set -euo pipefail
 
-PROJECT_ROOT="${HOME}/gnn-modelzoo-v2.6"
-# shellcheck source=./common.sh
-# Assuming common.sh exists and is compatible, otherwise we might need to adjust or remove this source.
-# Based on run_modelzoo.sh, it seems to set up logging and env.
-# However, PROJECT_ROOT in run_modelzoo.sh was set to "${HOME}/gnn-modelzoo". 
-# The current workspace is "${HOME}/gnn-modelzoo-v2.6".
-# I will use the current workspace path.
+# Resolve PROJECT_ROOT based on this script's location (robust to differing CWD).
+if command -v readlink &> /dev/null; then
+    SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]:-$0}" 2>/dev/null || true)"
+fi
+SCRIPT_PATH="${SCRIPT_PATH:-${BASH_SOURCE[0]:-$0}}"
+PROJECT_ROOT="$(cd "$(dirname "${SCRIPT_PATH}")" && pwd -P)"
 
 if [ -f "${PROJECT_ROOT}/common.sh" ]; then
     source "${PROJECT_ROOT}/common.sh"
