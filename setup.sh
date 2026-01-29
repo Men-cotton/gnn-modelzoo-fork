@@ -7,7 +7,7 @@ set -euo pipefail
 # shellcheck source=./common.sh
 source "$(dirname "$0")/common.sh"
 
-PROJECT_ROOT="$(pwd)"
+PROJECT_ROOT="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd -P)"
 SCRIPT_NAME="$(basename "$0")"
 
 VENV_DIR_NAME=".venv"
@@ -65,6 +65,12 @@ main() {
         log_info "Updated pyproject.toml requires-python to ==3.11.*"
     fi
 
+    log_step "Creating virtual environment..."
+    if ! uv venv --python "${PYTHON_VERSION_TARGET}" "${VENV_PATH}"; then
+        log_error "Failed to create virtual environment."
+        return 1
+    fi
+
     log_info "Adding dependencies from req.txt..."
     # Extract find-links if present, as uv add might strict-mode ignore it inside file but needs it for lookup
     local find_links_arg=""
@@ -75,7 +81,7 @@ main() {
         log_info "Detected --find-links: ${url}"
     fi
 
-    if ! uv add -r req.txt ${find_links_arg}; then
+    if ! uv add --python "${VENV_PATH}/bin/python" -r req.txt ${find_links_arg}; then
         log_error "Requirements install failed (uv add)."
         return 1
     fi
@@ -83,7 +89,7 @@ main() {
 
 
     log_info "Removing 'outdated' package to prevent deprecation warnings..."
-    uv pip uninstall outdated || true
+    uv pip uninstall --python "${VENV_PATH}/bin/python" outdated || true
 
     log_step "Pre-downloading GNN Datasets"
     local download_script_full_path="${PROJECT_ROOT}/${DOWNLOAD_SCRIPT_PATH}"
@@ -93,7 +99,7 @@ main() {
     fi
 
     log_info "Running dataset download script: ${DOWNLOAD_SCRIPT_PATH}"
-    if ! uv run "${download_script_full_path}"; then
+    if ! uv run --python "${VENV_PATH}/bin/python" "${download_script_full_path}"; then
         log_error "Dataset download process failed."
         return 1
     fi

@@ -33,6 +33,23 @@ main() {
         return 1
     fi
 
+    log_info "Checking for conflicting environment modules"
+    local target_module="intelpython/2022.3.1" # Specific module to check
+    if command -v module &> /dev/null; then
+        if module list 2>&1 | grep -qw "$target_module"; then
+            log_info "Module '${target_module}' is loaded. Attempting to unload..."
+            if module unload "$target_module"; then
+                log_info "'${target_module}' unloaded successfully."
+            else
+                log_error "Failed to unload '${target_module}'. Continuing..." # Non-fatal
+            fi
+        else
+            log_info "Module '${target_module}' not loaded."
+        fi
+    else
+        log_info "'module' command not found. Skipping module check for '${target_module}'."
+    fi
+
     # We run from PROJECT_ROOT
     local model_run_dir="${PROJECT_ROOT}"
     
@@ -41,7 +58,7 @@ main() {
         cd "${model_run_dir}"
         local full_command=("${PYTHON_SCRIPT_NAME}" "${PYTHON_SCRIPT_ARGS[@]}")
         log_info "Executing: uv run ${full_command[*]}"
-        uv run -- "${full_command[@]}"
+        uv run --python "${PROJECT_ROOT}/.venv/bin/python" -- "${full_command[@]}"
         log_info "Model execution finished."
     )
     local execution_status=$?
