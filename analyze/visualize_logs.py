@@ -459,8 +459,8 @@ def main():
         print("No plotable data found.")
         return
 
-    # Synchronize Wall Times for Eval Logs
-    sync_eval_wall_times(all_data)
+    # Synchronize Wall Times and Compute Times for Eval Logs
+    sync_eval_metrics(all_data)
 
     # Generate filenames
     base_name, ext = os.path.splitext(args.output)
@@ -472,10 +472,10 @@ def main():
     plot_metric_set(all_data, "global_throughput", f"{base_name}_throughput_global{ext}")
     plot_throughput_breakdown(all_data, f"{base_name}_breakdown{ext}")
 
-def sync_eval_wall_times(all_data: List[TrainingLogData]):
+def sync_eval_metrics(all_data: List[TrainingLogData]):
     """
-    Replaces wall times in _eval logs with those from corresponding minimal logs.
-    If no minimal log is found, clears eval_wall_times to exclude from Wall Time plot.
+    Replaces wall times and compute times in _eval logs with those from corresponding minimal logs.
+    If no minimal log is found, clears eval_wall_times/eval_compute_times to exclude from plots.
     """
     # Create a lookup for minimal logs
     minimal_logs = {}
@@ -496,53 +496,37 @@ def sync_eval_wall_times(all_data: List[TrainingLogData]):
             target = minimal_logs[minimal_name]
             print(f"Aligning {d.name} with {target.name}...")
             
-            # Map Step -> Wall Time from target
-            step_map = {s: w for s, w in zip(target.train_steps, target.train_wall_times)}
+            # Map Step -> Wall Time & Compute Time from target
+            step_to_wall = {s: w for s, w in zip(target.train_steps, target.train_wall_times)}
+            step_to_compute = {s: c for s, c in zip(target.train_steps, target.train_compute_times)}
             
             new_wall_times = []
-            valid_indices = []
+            new_compute_times = []
             
-            for i, step in enumerate(d.eval_steps):
-                if step in step_map:
-                    new_wall_times.append(step_map[step])
-                    valid_indices.append(i)
+            for step, old_wall in zip(d.eval_steps, d.eval_wall_times):
+                # Wall Time
+                if step in step_to_wall:
+                    new_wall_times.append(step_to_wall[step])
                 else:
-                    # If step mismatch, maybe interpolate? 
-                    # For now, just keep original? No, user wants minimal log time.
-                    # accessible. If exact step missing, we can't map accurately.
-                    pass 
+                    new_wall_times.append(old_wall) # Fallback
 
-            # Update if we found matches
-            if len(new_wall_times) == len(d.eval_steps):
-                 d.eval_wall_times = new_wall_times
-                 print(f"  -> Successfully replaced {len(new_wall_times)} timestamps.")
-            else:
-                 # Partial match?
-                 # Case 1: Eval steps are subset of Train steps (Expected ideal)
-                 # Case 2: Eval steps differ. 
-                 # We will strict replace only if we can match. 
-                 
-                 # Actually, let's just replace assuming steps match index-wise? 
-                 # Unsafe. Better to match by Step ID.
-                 
-                 # Refined approach:
-                 final_walls = []
-                 for step, old_wall in zip(d.eval_steps, d.eval_wall_times):
-                     if step in step_map:
-                         final_walls.append(step_map[step])
-                     else:
-                         # Fallback or keep? The request implies minimal log is the source of truth.
-                         # usage "accuracy vs wall time ... refer to corresponding log".
-                         # If step not in minimal log, we don't have a minimal wall time.
-                         final_walls.append(old_wall) # Fallback to original?
-                 
-                 d.eval_wall_times = final_walls
-                 print(f"  -> Replaced timestamps where possible.")
+                # Compute Time
+                # Original eval_compute_times might be empty or 0s. 
+                # We prioritize the mapped value.
+                if step in step_to_compute:
+                    new_compute_times.append(step_to_compute[step])
+                else:
+                    new_compute_times.append(0.0) # No compute time known for this step
+            
+            d.eval_wall_times = new_wall_times
+            d.eval_compute_times = new_compute_times
+            print(f"  -> Replaced timestamps/compute times where possible.")
 
         else:
             # Standalone Eval Log
-            print(f"Dropping Wall Time plot for {d.name} (no minimal log found).")
-            d.eval_wall_times = [] # Clear to exclude from Wall Time plot
+            print(f"Dropping Wall/Compute Time plot for {d.name} (no minimal log found).")
+            d.eval_wall_times = [] 
+            d.eval_compute_times = []
 
 if __name__ == "__main__":
     main()
