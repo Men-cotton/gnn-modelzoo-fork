@@ -270,7 +270,7 @@ def plot_metric_set(all_data: List[TrainingLogData],
         title_base = "Local Rate" if is_local else "Global Rate"
         x_attrs = ("train_wall_times", "train_compute_times", "train_steps")
         y_attr = "local_throughputs" if is_local else "global_throughputs"
-        check_fn = lambda d: d.has_train_data()
+        check_fn = lambda d: d.has_train_data() and "_eval" not in d.name
     else:
         raise ValueError(f"Unknown metric type: {metric_type}")
 
@@ -334,6 +334,10 @@ def plot_throughput_breakdown(all_data: List[TrainingLogData], output_file: str)
     has_data = False
 
     for data in all_data:
+        # Skip Eval Logs for Breakdown
+        if "_eval" in data.name:
+            continue
+
         # Determine average metrics for this run
         if len(data.step_fwds) > 0:
             # We have at least basic component data
