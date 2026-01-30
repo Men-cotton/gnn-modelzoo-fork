@@ -466,9 +466,6 @@ def main():
     # Synchronize Wall Times and Compute Times for Eval Logs
     sync_eval_metrics(all_data)
 
-    # Filter Warmup Steps (<= 20) for Throughput
-    filter_warmup(all_data, warmup_steps=20)
-
     # Generate filenames
     base_name, ext = os.path.splitext(args.output)
     ext = ext if ext else ".png"
@@ -478,46 +475,6 @@ def main():
     plot_metric_set(all_data, "local_throughput", f"{base_name}_throughput_local{ext}")
     plot_metric_set(all_data, "global_throughput", f"{base_name}_throughput_global{ext}")
     plot_throughput_breakdown(all_data, f"{base_name}_breakdown{ext}")
-
-def filter_warmup(all_data: List[TrainingLogData], warmup_steps: int = 20):
-    """
-    Filters out training steps <= warmup_steps from all throughput-related fields.
-    """
-    print(f"Filtering warmup steps (<= {warmup_steps})...")
-    for d in all_data:
-        if not d.has_train_data():
-            continue
-            
-        # Identify valid indices
-        valid_indices = [i for i, s in enumerate(d.train_steps) if s > warmup_steps]
-        
-        if len(valid_indices) == len(d.train_steps):
-            continue
-            
-        initial_count = len(d.train_steps)
-        
-        # Helper to slice list
-        def slice_list(lst, indices):
-            if not lst: return lst
-            return [lst[i] for i in indices]
-            
-        d.train_steps = slice_list(d.train_steps, valid_indices)
-        d.train_wall_times = slice_list(d.train_wall_times, valid_indices)
-        d.train_compute_times = slice_list(d.train_compute_times, valid_indices)
-        d.local_throughputs = slice_list(d.local_throughputs, valid_indices)
-        d.global_throughputs = slice_list(d.global_throughputs, valid_indices)
-        
-        d.step_loads = slice_list(d.step_loads, valid_indices)
-        d.step_preps = slice_list(d.step_preps, valid_indices)
-        d.step_h2d_struc = slice_list(d.step_h2d_struc, valid_indices)
-        d.step_h2d_fetch = slice_list(d.step_h2d_fetch, valid_indices)
-        d.step_h2ds = slice_list(d.step_h2ds, valid_indices)
-        d.step_fwds = slice_list(d.step_fwds, valid_indices)
-        d.step_bwds = slice_list(d.step_bwds, valid_indices)
-        d.step_opts = slice_list(d.step_opts, valid_indices)
-        
-        dropped = initial_count - len(d.train_steps)
-        print(f"  -> {d.name}: Dropped {dropped} steps.")
 
 def sync_eval_metrics(all_data: List[TrainingLogData]):
     """
