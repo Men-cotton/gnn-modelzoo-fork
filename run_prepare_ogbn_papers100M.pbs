@@ -1,0 +1,24 @@
+#!/bin/bash
+#PBS -A AC2
+#PBS -q gpu
+#PBS -M mencotton0410@gmail.com
+#PBS -m e
+
+set -euo pipefail
+
+cd "$PBS_O_WORKDIR" || exit 1
+
+SCRIPT_PATH="src/cerebras/modelzoo/models/gnn/tools/prepare_ogbn_papers100M.py"
+DATA_ROOT="src/cerebras/modelzoo/models/gnn/data/datasets/ogbn-papers100M"
+
+if [ ! -f "$SCRIPT_PATH" ]; then
+    echo "[ERROR] script not found: $SCRIPT_PATH" >&2
+    exit 2
+fi
+
+if [ ! -d "$DATA_ROOT" ]; then
+    echo "[ERROR] dataset root not found: $DATA_ROOT" >&2
+    exit 3
+fi
+
+uv run python "$SCRIPT_PATH" --root "$DATA_ROOT"
