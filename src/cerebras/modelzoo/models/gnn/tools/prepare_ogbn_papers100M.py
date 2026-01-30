@@ -27,11 +27,38 @@ def _resolve_root(root: str | None) -> Path:
 
 
 def _select_dataset_dir(root: Path) -> Path:
-    primary = root / DIR_NAME
-    pyg_variant = root / f"{DIR_NAME}_pyg"
-    if pyg_variant.exists():
-        return pyg_variant
-    return primary
+    candidates = []
+
+    def _add(path: Path) -> None:
+        if path not in candidates:
+            candidates.append(path)
+
+    root = root.resolve()
+    _add(root)
+    _add(root / DIR_NAME)
+    _add(root / f"{DIR_NAME}_pyg")
+
+    outer = root / DATASET_NAME
+    _add(outer / DIR_NAME)
+    _add(outer / f"{DIR_NAME}_pyg")
+
+    with_data = [
+        candidate
+        for candidate in candidates
+        if (candidate / "raw" / "data.npz").exists()
+    ]
+    if with_data:
+        return with_data[0]
+
+    with_raw = [candidate for candidate in candidates if (candidate / "raw").is_dir()]
+    if with_raw:
+        return with_raw[0]
+
+    checked = "\n  - ".join(str(path) for path in candidates)
+    raise FileNotFoundError(
+        "Could not locate ogbn-papers100M dataset directory. "
+        "Checked candidates:\n  - " + checked
+    )
 
 
 def _require_file(path: Path, label: str) -> None:
@@ -112,9 +139,11 @@ def main(argv: list[str] | None = None) -> None:
     args = _parse_args(argv)
     root = _resolve_root(args.root)
     dataset_dir = _select_dataset_dir(root)
+    ogb_root = dataset_dir.parent
 
     print(f"[info] Using dataset root: {root}")
     print(f"[info] Checking dataset directory: {dataset_dir}")
+    print(f"[info] Using OGB root for processing: {ogb_root}")
 
     try:
         _check_raw(dataset_dir)
@@ -128,7 +157,7 @@ def main(argv: list[str] | None = None) -> None:
         print("[done] Raw and split files look OK.")
         return
 
-    _process_dataset(root)
+    _process_dataset(ogb_root)
 
 
 if __name__ == "__main__":
