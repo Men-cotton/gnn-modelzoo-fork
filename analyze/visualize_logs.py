@@ -459,6 +459,9 @@ def main():
         print("No plotable data found.")
         return
 
+    # Synchronize Wall Times for Eval Logs
+    sync_eval_wall_times(all_data)
+
     # Generate filenames
     base_name, ext = os.path.splitext(args.output)
     ext = ext if ext else ".png"
@@ -468,6 +471,78 @@ def main():
     plot_metric_set(all_data, "local_throughput", f"{base_name}_throughput_local{ext}")
     plot_metric_set(all_data, "global_throughput", f"{base_name}_throughput_global{ext}")
     plot_throughput_breakdown(all_data, f"{base_name}_breakdown{ext}")
+
+def sync_eval_wall_times(all_data: List[TrainingLogData]):
+    """
+    Replaces wall times in _eval logs with those from corresponding minimal logs.
+    If no minimal log is found, clears eval_wall_times to exclude from Wall Time plot.
+    """
+    # Create a lookup for minimal logs
+    minimal_logs = {}
+    for d in all_data:
+        if not d.name.endswith("_eval.log") and "_eval" not in d.name:
+            minimal_logs[d.name] = d
+
+    for d in all_data:
+        # Check if it's an eval log
+        is_eval = d.name.endswith("_eval.log") or "_eval" in d.name
+        if not is_eval:
+            continue
+
+        # Try to find counterpart
+        # Simple heuristic: remove "_eval"
+        minimal_name = d.name.replace("_eval", "")
+        if minimal_name in minimal_logs:
+            target = minimal_logs[minimal_name]
+            print(f"Aligning {d.name} with {target.name}...")
+            
+            # Map Step -> Wall Time from target
+            step_map = {s: w for s, w in zip(target.train_steps, target.train_wall_times)}
+            
+            new_wall_times = []
+            valid_indices = []
+            
+            for i, step in enumerate(d.eval_steps):
+                if step in step_map:
+                    new_wall_times.append(step_map[step])
+                    valid_indices.append(i)
+                else:
+                    # If step mismatch, maybe interpolate? 
+                    # For now, just keep original? No, user wants minimal log time.
+                    # accessible. If exact step missing, we can't map accurately.
+                    pass 
+
+            # Update if we found matches
+            if len(new_wall_times) == len(d.eval_steps):
+                 d.eval_wall_times = new_wall_times
+                 print(f"  -> Successfully replaced {len(new_wall_times)} timestamps.")
+            else:
+                 # Partial match?
+                 # Case 1: Eval steps are subset of Train steps (Expected ideal)
+                 # Case 2: Eval steps differ. 
+                 # We will strict replace only if we can match. 
+                 
+                 # Actually, let's just replace assuming steps match index-wise? 
+                 # Unsafe. Better to match by Step ID.
+                 
+                 # Refined approach:
+                 final_walls = []
+                 for step, old_wall in zip(d.eval_steps, d.eval_wall_times):
+                     if step in step_map:
+                         final_walls.append(step_map[step])
+                     else:
+                         # Fallback or keep? The request implies minimal log is the source of truth.
+                         # usage "accuracy vs wall time ... refer to corresponding log".
+                         # If step not in minimal log, we don't have a minimal wall time.
+                         final_walls.append(old_wall) # Fallback to original?
+                 
+                 d.eval_wall_times = final_walls
+                 print(f"  -> Replaced timestamps where possible.")
+
+        else:
+            # Standalone Eval Log
+            print(f"Dropping Wall Time plot for {d.name} (no minimal log found).")
+            d.eval_wall_times = [] # Clear to exclude from Wall Time plot
 
 if __name__ == "__main__":
     main()
