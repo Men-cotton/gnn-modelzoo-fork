@@ -299,6 +299,13 @@ def plot_metric_set(all_data: List[TrainingLogData],
             if x_vals and y_vals:
                 ax.plot(x_vals, y_vals, marker='.' if metric_type == "accuracy" else None, label=data.name)
 
+        # Set Axis Limits
+        if i in [0, 1, 2]: # Wall Time, Compute Time, Steps
+            ax.set_xlim(left=0)
+        
+        if "throughput" in metric_type:
+            ax.set_ylim(bottom=0)
+
         ax.set_xlabel(x_labels[i])
         ax.set_ylabel(y_label)
         ax.set_title(titles[i])
