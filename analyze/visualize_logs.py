@@ -380,20 +380,22 @@ def plot_throughput_breakdown(all_data: List[TrainingLogData], output_file: str)
     indices = range(len(names))
     width = 0.6
 
-    # Stack: Struc -> Fetch -> Fwd -> Bwd -> Opt -> CPU Overhead
-    p1 = ax.bar(indices, strucs, width, label='H2D (Struc/Load)')
-    p2 = ax.bar(indices, fetchs, width, bottom=strucs, label='H2D (Fetch)')
+    # Stack: Fwd -> Bwd -> Opt -> Struc -> Fetch -> CPU Overhead
+    p1 = ax.bar(indices, fwds, width, label='Forward')
+
+    bottom_bwd = fwds
+    p2 = ax.bar(indices, bwds, width, bottom=bottom_bwd, label='Backward')
+
+    bottom_opt = [f + b for f, b in zip(fwds, bwds)]
+    p3 = ax.bar(indices, opts, width, bottom=bottom_opt, label='Optimizer')
+
+    bottom_struc = [f + b + o for f, b, o in zip(fwds, bwds, opts)]
+    p4 = ax.bar(indices, strucs, width, bottom=bottom_struc, label='H2D (Struc/Load)')
+
+    bottom_fetch = [f + b + o + s for f, b, o, s in zip(fwds, bwds, opts, strucs)]
+    p5 = ax.bar(indices, fetchs, width, bottom=bottom_fetch, label='H2D (Fetch)')
     
-    bottom_fwd = [s + fe for s, fe in zip(strucs, fetchs)]
-    p3 = ax.bar(indices, fwds, width, bottom=bottom_fwd, label='Forward')
-    
-    bottom_bwd = [s + fe + f for s, fe, f in zip(strucs, fetchs, fwds)]
-    p4 = ax.bar(indices, bwds, width, bottom=bottom_bwd, label='Backward')
-    
-    bottom_opt = [s + fe + f + b for s, fe, f, b in zip(strucs, fetchs, fwds, bwds)]
-    p5 = ax.bar(indices, opts, width, bottom=bottom_opt, label='Optimizer')
-    
-    bottom_gap = [s + fe + f + b + o for s, fe, f, b, o in zip(strucs, fetchs, fwds, bwds, opts)]
+    bottom_gap = [f + b + o + s + fe for f, b, o, s, fe in zip(fwds, bwds, opts, strucs, fetchs)]
     p6 = ax.bar(indices, cpu_overhead_idles, width, bottom=bottom_gap, label='CPU Overhead / Idle', hatch='//')
 
     ax.set_ylabel('Time per Step (s)')
