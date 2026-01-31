@@ -64,21 +64,15 @@ class LogPatterns:
     PYG_MULTI_STEP = re.compile(r"\[Step=(\d+)\] Wall=([\d\.]+)s \| Loss=([\d\.]+)")
     # Line 2: [Profile] Avg ms/step | Load: 23.309 (Prep: 10.757, Struc: 0.568, Fetch: 11.984) | Fwd: 5.622 | Bwd: 5.306 | Opt: 0.152 | GPU_Tot: 23.631
     PYG_MULTI_PROFILE = re.compile(r"\[Profile\] Avg ms/step \| Load: ([\d\.]+) \(Prep: ([\d\.]+), Struc: ([\d\.]+), Fetch: ([\d\.]+)\) \| Fwd: ([\d\.]+) \| Bwd: ([\d\.]+) \| Opt: ([\d\.]+) \| GPU_Tot: ([\d\.]+)")
+    # Line 2 (CSZoo variant): [Profile] Avg ms/step | Load: 1705.805 | Host_Submit(Fwd: 0.000, Bwd: 0.000, Opt: 0.000) | Residual(Dev): 0.458 | Iter_Wall: 0.458
+    CSZOO_PROFILE = re.compile(r"\[Profile\] Avg ms/step \| Load: ([\d\.]+) \| Host_Submit\(Fwd: ([\d\.]+), Bwd: ([\d\.]+), Opt: ([\d\.]+)\) \| Residual\(Dev\): ([\d\.]+) \| Iter_Wall: ([\d\.]+)")
+    
     # Line 3: [Throughput] Samples: 32843.58 samples/s (32843.54) | Edges: ...
     PYG_MULTI_THROUGHPUT = re.compile(r"\[Throughput\] Samples: ([\d\.]+) samples/s \(([\d\.]+)\)")
 
     # PyG Eval (New Format)
     # [Eval] Step=2000, Wall=77.8175s, Val_Acc=0.7004
     PYG_EVAL = re.compile(r"\[Eval\] Step=(\d+), Wall=([\d\.]+)s, Val_Acc=([\d\.]+)")
-
-    # ModelZoo (WSE)
-    TIMESTAMP = re.compile(r"^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3})")
-    MZ_STEP = re.compile(r"GlobalStep=(\d+)")
-    MZ_ACC = re.compile(r"eval/masked_accuracy = ([\d\.]+)")
-    MZ_COMPUTE = re.compile(r"compute_time=([\d\.]+)")
-    MZ_THROUGHPUT = re.compile(r"\| Train Device=.*Step=(\d+).*Rate=([\d\.]+) samples/sec, GlobalRate=([\d\.]+) samples/sec")
-    MZ_COMPUTETIME_EXPLICIT = re.compile(r"ComputeTime Step=(\d+) compute_time=([\d\.]+)s")
-
 
 class LogParser:
     """Parses log files into TrainingLogData"""
@@ -93,21 +87,10 @@ class LogParser:
         self._current_compute_time = 0.0
         self._last_step = 0
 
-        # ModelZoo Parsing State
-        self._mz_start_time: Optional[datetime] = None
-        self._mz_current_wall: float = 0.0
-        self._mz_current_step: int = 0
-        self._mz_step_to_compute: Dict[int, float] = {}
-        self._mz_throughput_buffer: List[Dict] = []
-
     def parse(self) -> TrainingLogData:
         with open(self.filepath, "r") as f:
             for line in f:
-                if self._parse_pyg_line(line):
-                    continue
-                self._parse_modelzoo_line(line)
-        
-        self._finalize_modelzoo_data()
+                self._parse_pyg_line(line)
         return self.data
 
     def _parse_pyg_line(self, line: str) -> bool:
@@ -129,7 +112,7 @@ class LogParser:
             }
             return True
 
-        # 3. PyG Multi-Line Profile (Line 2)
+        # 3a. PyG Multi-Line Profile (Standard)
         match = LogPatterns.PYG_MULTI_PROFILE.search(line)
         if match:
             if self._current_step_data:
@@ -142,6 +125,26 @@ class LogParser:
                 self._current_step_data["bwd"] = float(match.group(6)) / 1000.0
                 self._current_step_data["opt"] = float(match.group(7)) / 1000.0
                 self._current_step_data["gpu_tot"] = float(match.group(8)) / 1000.0
+            return True
+
+        # 3b. CSZoo Profile
+        match = LogPatterns.CSZOO_PROFILE.search(line)
+        if match:
+            if self._current_step_data:
+                # ms to sec
+                # Load: (1) | Host_Submit(Fwd: (2), Bwd: (3), Opt: (4)) | Residual: (5) | Iter_Wall: (6)
+                self._current_step_data["load"] = float(match.group(1)) / 1000.0
+                self._current_step_data["prep"] = 0.0
+                self._current_step_data["struc"] = 0.0
+                self._current_step_data["fetch"] = 0.0
+                
+                # These are "Host_Submit" times which map to Fwd/Bwd/Opt for breakdown purposes if > 0
+                self._current_step_data["fwd"] = float(match.group(2)) / 1000.0
+                self._current_step_data["bwd"] = float(match.group(3)) / 1000.0
+                self._current_step_data["opt"] = float(match.group(4)) / 1000.0
+                
+                # Use Iter_Wall as total GPU time (compute time)
+                self._current_step_data["gpu_tot"] = float(match.group(6)) / 1000.0
             return True
 
         # 4. PyG Multi-Line Throughput (Line 3) - Trigger flush
@@ -180,71 +183,6 @@ class LogParser:
             return True
 
         return False
-
-    def _parse_modelzoo_line(self, line: str):
-        # 1. Timestamp (Calc Wall Time)
-        ts_match = LogPatterns.TIMESTAMP.search(line)
-        if ts_match:
-            try:
-                dt = datetime.strptime(ts_match.group(1), "%Y-%m-%d %H:%M:%S,%f")
-                if self._mz_start_time is None:
-                    self._mz_start_time = dt
-                self._mz_current_wall = (dt - self._mz_start_time).total_seconds()
-            except ValueError:
-                pass
-
-        # 2. Step
-        step_match = LogPatterns.MZ_STEP.search(line)
-        if step_match:
-            self._mz_current_step = int(step_match.group(1))
-
-        # 3. Compute Time (Standard metric)
-        comp_match = LogPatterns.MZ_COMPUTE.search(line)
-        if comp_match:
-            comp_val = float(comp_match.group(1))
-            # Backfill compute time for the last eval entry if it was initialized to 0
-            if self.data.eval_compute_times and self.data.eval_compute_times[-1] <= 0:
-                self.data.eval_compute_times[-1] = comp_val
-
-        # 4. Accuracy
-        acc_match = LogPatterns.MZ_ACC.search(line)
-        if acc_match:
-            if self._mz_start_time is not None:
-                self.data.eval_steps.append(self._mz_current_step)
-                self.data.accuracies.append(float(acc_match.group(1)))
-                self.data.eval_wall_times.append(self._mz_current_wall)
-                self.data.eval_compute_times.append(0.0) # Will be backfilled
-
-        # 5. Throughput
-        tp_match = LogPatterns.MZ_THROUGHPUT.search(line)
-        if tp_match and self._mz_start_time is not None:
-            self._mz_throughput_buffer.append({
-                "step": int(tp_match.group(1)),
-                "wall": self._mz_current_wall,
-                "local": float(tp_match.group(2)),
-                "global": float(tp_match.group(3))
-            })
-
-        # 6. Explicit Compute Time
-        ct_match = LogPatterns.MZ_COMPUTETIME_EXPLICIT.search(line)
-        if ct_match:
-            self._mz_step_to_compute[int(ct_match.group(1))] = float(ct_match.group(2))
-
-    def _finalize_modelzoo_data(self):
-        if not self._mz_throughput_buffer:
-            return
-
-        self._mz_throughput_buffer.sort(key=lambda x: x["step"])
-
-        for entry in self._mz_throughput_buffer:
-            step = entry["step"]
-            comp_time = self._mz_step_to_compute.get(step, 0.0)
-            
-            self.data.train_steps.append(step)
-            self.data.train_wall_times.append(entry["wall"])
-            self.data.train_compute_times.append(comp_time)
-            self.data.local_throughputs.append(entry["local"])
-            self.data.global_throughputs.append(entry["global"])
 
 # -----------------------------------------------------------------------------
 # Visualization Logic
@@ -347,8 +285,15 @@ def plot_throughput_breakdown(all_data: List[TrainingLogData], output_file: str)
 
         # Determine average metrics for this run
         if len(data.step_fwds) > 0:
+            # Check if breakdown is meaningful (non-negligible fwd/bwd)
+            avg_fwd_time = sum(data.step_fwds) / len(data.step_fwds)
+            # Threshold: 1 microsecond. If less, likely WSE run with async host submission or empty breakdown.
+            if avg_fwd_time < 1e-6:
+                print(f"Skipping breakdown for {data.name} (negligible forward time, likely WSE run).")
+                continue
+
             # We have at least basic component data
-            f = sum(data.step_fwds) / len(data.step_fwds)
+            f = avg_fwd_time
             b = sum(data.step_bwds) / len(data.step_bwds)
             o = sum(data.step_opts) / len(data.step_opts)
             
@@ -361,8 +306,11 @@ def plot_throughput_breakdown(all_data: List[TrainingLogData], output_file: str)
                 s = sum(data.step_h2ds) / len(data.step_h2ds)
                 fe = 0.0 # Assign all to structure/generic
             elif len(data.step_loads) > 0:
-                # Legacy fallback
-                # Assuming Load = H2D roughly for old logs if no other info
+                # Legacy fallback / New CSZoo Load
+                # In CSZoo logs Load is separate, but we can treat it as Structure/Prep for viz if desired,
+                # or just use it as 'H2D' block. For now, map simple Load to Struct if others are empty.
+                # Actually, standard PyG breakdown usually has separate H2D.
+                # If we only have 'Load' and others are 0, we can map it to 'Struc' to be visible.
                 s = sum(data.step_loads) / len(data.step_loads)
                 fe = 0.0
             else:
@@ -396,7 +344,7 @@ def plot_throughput_breakdown(all_data: List[TrainingLogData], output_file: str)
         has_data = True
 
     if not has_data:
-        print("No breakdown data found for stacked bar chart.")
+        print("No valid breakdown data found for stacked bar chart.")
         return
 
     # Plot
@@ -406,7 +354,7 @@ def plot_throughput_breakdown(all_data: List[TrainingLogData], output_file: str)
     width = 0.6
 
     # Stack: Struc -> Fetch -> Fwd -> Bwd -> Opt -> CPU Overhead
-    p1 = ax.bar(indices, strucs, width, label='H2D (Struc)')
+    p1 = ax.bar(indices, strucs, width, label='H2D (Struc/Load)')
     p2 = ax.bar(indices, fetchs, width, bottom=strucs, label='H2D (Fetch)')
     
     bottom_fwd = [s + fe for s, fe in zip(strucs, fetchs)]
