@@ -74,6 +74,14 @@ class LogPatterns:
     # [Eval] Step=2000, Wall=77.8175s, Val_Acc=0.7004
     PYG_EVAL = re.compile(r"\[Eval\] Step=(\d+), Wall=([\d\.]+)s, Val_Acc=([\d\.]+)")
 
+    # WSE Eval (Header)
+    # | Eval Device=CSX, GlobalStep=20, Batch=8, ...
+    WSE_EVAL_HEADER = re.compile(r"\| Eval Device=CSX, GlobalStep=(\d+),")
+
+    # WSE Eval (Metric)
+    #     - eval/masked_accuracy = 0.3185677230358124
+    WSE_EVAL_METRIC = re.compile(r"\s+-\s+eval/masked_accuracy\s+=\s+([\d\.]+)")
+
 class LogParser:
     """Parses log files into TrainingLogData"""
     
@@ -86,6 +94,7 @@ class LogParser:
         self._current_step_data = {}
         self._current_compute_time = 0.0
         self._last_step = 0
+        self._current_wse_eval_step = None
 
     def parse(self) -> TrainingLogData:
         with open(self.filepath, "r") as f:
@@ -182,6 +191,23 @@ class LogParser:
                 self._current_step_data = {}
             return True
 
+        # 5. WSE Eval Header
+        match = LogPatterns.WSE_EVAL_HEADER.search(line)
+        if match:
+            self._current_wse_eval_step = int(match.group(1))
+            return True
+
+        # 6. WSE Eval Metric
+        match = LogPatterns.WSE_EVAL_METRIC.search(line)
+        if match and self._current_wse_eval_step is not None:
+            self.data.eval_steps.append(self._current_wse_eval_step)
+            # Wall/Compute time unknown here, set to 0.0 for sync later
+            self.data.eval_wall_times.append(0.0) 
+            self.data.eval_compute_times.append(0.0)
+            self.data.accuracies.append(float(match.group(1)))
+            self._current_wse_eval_step = None
+            return True
+
         return False
 
 # -----------------------------------------------------------------------------
@@ -201,7 +227,8 @@ def plot_metric_set(all_data: List[TrainingLogData],
         title_base = "Accuracy"
         x_attrs = ("eval_wall_times", "eval_compute_times", "eval_steps")
         y_attr = "accuracies"
-        check_fn = lambda d: d.has_eval_data()
+        # Filter out single-point evaluations (e.g. final eval only) as they don't show convergence
+        check_fn = lambda d: d.has_eval_data() and len(d.eval_steps) > 1
     elif "throughput" in metric_type:
         is_local = "local" in metric_type
         y_label = "Samples / Sec"
@@ -451,9 +478,18 @@ def sync_eval_metrics(all_data: List[TrainingLogData]):
         # Try to find counterpart
         # Simple heuristic: remove "_eval"
         minimal_name = d.name.replace("_eval", "")
+        target = None
         if minimal_name in minimal_logs:
             target = minimal_logs[minimal_name]
-            print(f"Aligning {d.name} with {target.name}...")
+        elif d.has_train_data():
+            # Fallback: Sync with self if training data exists in the SAME log
+            target = d
+            
+        if target:
+            if target is d:
+                print(f"Aligning {d.name} with self (contains both train and eval)...")
+            else:
+                print(f"Aligning {d.name} with {target.name}...")
             
             # Map Step -> Wall Time & Compute Time from target
             step_to_wall = {s: w for s, w in zip(target.train_steps, target.train_wall_times)}
@@ -462,20 +498,18 @@ def sync_eval_metrics(all_data: List[TrainingLogData]):
             new_wall_times = []
             new_compute_times = []
             
-            for step, old_wall in zip(d.eval_steps, d.eval_wall_times):
+            for i, step in enumerate(d.eval_steps):
                 # Wall Time
                 if step in step_to_wall:
                     new_wall_times.append(step_to_wall[step])
                 else:
-                    new_wall_times.append(old_wall) # Fallback
+                    new_wall_times.append(d.eval_wall_times[i]) # Keep original (0.0 or valid)
 
                 # Compute Time
-                # Original eval_compute_times might be empty or 0s. 
-                # We prioritize the mapped value.
                 if step in step_to_compute:
                     new_compute_times.append(step_to_compute[step])
                 else:
-                    new_compute_times.append(0.0) # No compute time known for this step
+                    new_compute_times.append(d.eval_compute_times[i]) # Keep original
             
             d.eval_wall_times = new_wall_times
             d.eval_compute_times = new_compute_times
