@@ -457,6 +457,65 @@ def main():
     plot_metric_set(all_data, "local_throughput", f"{base_name}_throughput_local{ext}")
     plot_metric_set(all_data, "global_throughput", f"{base_name}_throughput_global{ext}")
     plot_throughput_breakdown(all_data, f"{base_name}_breakdown{ext}")
+    plot_metrics_table(all_data, f"{base_name}_metrics_table{ext}")
+
+def plot_metrics_table(all_data: List[TrainingLogData], output_file: str):
+    """
+    Computes and plots a table of metrics:
+    - Last Global Rate * Total Wall Time
+    - Last Global Rate * Total Compute Time
+    """
+    table_data = []
+    headers = ["Log Name", "Average Rate * Wall", "Average Rate * Compute"]
+
+    for data in all_data:
+        # Only consider logs with valid training data
+        if not data.has_train_data():
+            continue
+            
+        # Skip purely eval logs if they don't have their own training data (already handled by check above)
+        if "_eval" in data.name and not data.train_steps:
+             continue
+
+        last_global_rate = data.global_throughputs[-1] if data.global_throughputs else 0.0
+        total_wall_time = data.train_wall_times[-1] if data.train_wall_times else 0.0
+        total_compute_time = data.train_compute_times[-1] if data.train_compute_times else 0.0
+
+        # Compute Metrics (Total Samples Processed Estimate?)
+        # User requested: Last Global Rate * Time
+        metric_wall = last_global_rate * total_wall_time
+        metric_compute = last_global_rate * total_compute_time
+
+        table_data.append([
+            data.name,
+            f"{metric_wall:,.0f}",
+            f"{metric_compute:,.0f}"
+        ])
+
+    if not table_data:
+        print("No data for metrics table.")
+        return
+
+    # Sort by Log Name
+    table_data.sort(key=lambda x: x[0])
+
+    # Plot Table
+    fig, ax = plt.subplots(figsize=(10, len(table_data) * 0.5 + 1))
+    ax.axis('off')
+    
+    table = ax.table(cellText=table_data,
+                     colLabels=headers,
+                     loc='center',
+                     cellLoc='center')
+    
+    table.auto_set_font_size(False)
+    table.set_fontsize(10)
+    table.scale(1.2, 1.5)
+
+    plt.tight_layout()
+    plt.savefig(output_file)
+    print(f"Metrics table saved to {output_file}")
+    plt.close(fig)
 
 def sync_eval_metrics(all_data: List[TrainingLogData]):
     """
