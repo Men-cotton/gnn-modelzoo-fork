@@ -388,7 +388,7 @@ def plot_throughput_breakdown(all_data: List[TrainingLogData], output_file: str)
 def main():
     parser = argparse.ArgumentParser(description="Visualize Time-to-Accuracy and Throughput from training logs")
     parser.add_argument("log_dir", help="Path to the directory containing log files")
-    parser.add_argument("--output", default="result.png", help="Base output filename")
+    parser.add_argument("--output", default="result.svg", help="Base output filename")
     args = parser.parse_args()
 
     if not os.path.isdir(args.log_dir):
@@ -423,7 +423,7 @@ def main():
 
     # Generate filenames
     base_name, ext = os.path.splitext(args.output)
-    ext = ext if ext else ".png"
+    ext = ext if ext else ".svg"
     
     # Create Plots
     plot_metric_set(all_data, "accuracy", f"{base_name}_accuracy{ext}")
