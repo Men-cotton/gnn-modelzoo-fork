@@ -47,10 +47,17 @@ def _get_fanouts(loader_cfg, profile):
     return fanouts
 
 
-def _build_generator(loader_cfg):
+def _require_sampler_seed(loader_cfg, context: str) -> int:
     seed = loader_cfg.get("sampler_seed")
     if seed is None:
-        return None
+        raise ValueError(
+            f"sampler_seed must be set for {context} to ensure reproducibility."
+        )
+    return seed
+
+
+def _build_generator(loader_cfg, context: str):
+    seed = _require_sampler_seed(loader_cfg, context)
     gen = torch.Generator()
     gen.manual_seed(seed)
     return gen
@@ -314,6 +321,9 @@ def make_loaders(data, split_idx, cfg, rank=0, world_size=1):
     train_profile = _resolve_dataset_profile(train_c)
     val_profile = _resolve_dataset_profile(val_c)
 
+    _require_sampler_seed(train_c, "train_dataloader")
+    _require_sampler_seed(val_c, "val_dataloader")
+
     is_dist = (
         isinstance(data, tuple)
         and len(data) == 2
@@ -444,7 +454,7 @@ def make_loaders(data, split_idx, cfg, rank=0, world_size=1):
         num_neighbors=_get_fanouts(train_c, train_profile),
         shuffle=train_c["shuffle"],
         drop_last=train_c["drop_last_batch"],
-        generator=_build_generator(train_c),
+        generator=_build_generator(train_c, "train_dataloader"),
         **train_kwargs,
     )
 
@@ -455,7 +465,7 @@ def make_loaders(data, split_idx, cfg, rank=0, world_size=1):
         num_neighbors=_get_fanouts(val_c, val_profile),
         shuffle=val_c["shuffle"],
         drop_last=val_c["drop_last_batch"],
-        generator=_build_generator(val_c),
+        generator=_build_generator(val_c, "val_dataloader"),
         **val_kwargs,
     )
     return train_loader, val_loader
