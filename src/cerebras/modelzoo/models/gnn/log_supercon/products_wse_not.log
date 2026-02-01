@@ -1,0 +1,162 @@
+2026-01-31 08:40:13,137 INFO:   Current Working Directory: /home/watanuki/gnn-modelzoo-v2.6/src/cerebras/modelzoo/models/gnn
+2026-01-31 08:40:13,137 INFO:   Running command: /home/watanuki/gnn-modelzoo-v2.6/.venv/bin/cszoo fit configs/params_graphsage_ogbn_products.yaml --target_device CSX
+2026-01-31 08:40:13,550 INFO:   Appliance client semantic version: 1.1.0, cluster server semantic version: 1.1.2, job operator semantic version: 1.1.2
+2026-01-31 08:40:13,553 INFO:   Successfully initialized workflow with id: wflow-qvfu4smtpmmndcmvud3xbw
+2026-01-31 08:40:13,553 INFO:   Checkpoint autoloading is enabled. Looking for latest checkpoint in "model_dir_gnn/ogbn_products_graphsage" directory with the following naming convention: `checkpoint_(step)(_timestamp)?.mdl`.
+2026-01-31 08:40:13,555 INFO:   No checkpoints were found in "model_dir_gnn/ogbn_products_graphsage".
+2026-01-31 08:40:13,555 INFO:   No checkpoint was provided. Using randomly initialized model parameters.
+2026-01-31 08:40:13,555 INFO:   Ordinal 0: Initializing GNNDataProcessor for dataset 'ogbn-products' (split=train, mode=neighbor).
+2026-01-31 08:41:20,704 WARNING:   A validation dataloader was provided but `eval_frequency` is None. The trainer will not run validation during training.
+2026-01-31 08:41:20,705 INFO:   ===========================================================================
+2026-01-31 08:41:20,705 INFO:   Trainer Fit Summary
+2026-01-31 08:41:20,705 INFO:   ---------------------------------------------------------------------------
+2026-01-31 08:41:20,705 INFO:   Trainer will run 1 train loop.
+2026-01-31 08:41:20,705 INFO:   
+2026-01-31 08:41:20,705 INFO:   Train steps per train loop:
+2026-01-31 08:41:20,705 INFO:   * 1 loop of 1000 steps
+2026-01-31 08:41:20,705 INFO:   for a total of 1000 train steps.
+2026-01-31 08:41:20,705 INFO:   
+2026-01-31 08:41:20,705 INFO:   Progress will be logged every 40 steps.
+2026-01-31 08:41:20,705 INFO:   ===========================================================================
+2026-01-31 08:41:20,705 INFO:   ---------------------------------------------------------------------------
+2026-01-31 08:41:20,705 INFO:   Starting train loop 1 of 1, from global step 1 to 1000 (1000 steps)
+2026-01-31 08:41:20,705 INFO:   ---------------------------------------------------------------------------
+[Compilation] Step=1 finished. Duration=3.95s
+2026-01-31 08:41:26,749 INFO:   Compiling the model. This may take a few minutes.
+2026-01-31 08:41:26,765 INFO:   Appliance client semantic version: 1.1.0, cluster server semantic version: 1.1.2, job operator semantic version: 1.1.2
+2026-01-31 08:41:27,815 INFO:   Initiating a new image build job against the cluster server.
+2026-01-31 08:41:27,822 INFO:   User sidecar image build is disabled from server. Falling back to venv mounting.
+2026-01-31 08:41:27,839 INFO:   Appliance client semantic version: 1.1.0, cluster server semantic version: 1.1.2, job operator semantic version: 1.1.2
+2026-01-31 08:41:27,842 INFO:   Initiating a new compile wsjob against the cluster server.
+2026-01-31 08:41:27,861 INFO:   Job id: wsjob-euj7dqhrybbivw4wj6enwv, workflow id: wflow-qvfu4smtpmmndcmvud3xbw, namespace: job-operator, remote log path: /n1/wsjob/workdir/job-operator/wsjob-euj7dqhrybbivw4wj6enwv
+2026-01-31 08:41:47,861 INFO:   Poll ingress status: Waiting for all Coordinator pods to be running, current running: 0/1.
+2026-01-31 08:41:47,865 INFO:   Recording the timestamp when jobs is scheduled.
+2026-01-31 08:41:47,882 WARNING:   Event 2026-01-31 08:41:28 +0000 UTC reason=InconsistentVersion wsjob=wsjob-euj7dqhrybbivw4wj6enwv message='Warning: client semantic version 1.1.0 is inconsistent with cluster server semantic version 1.1.2, there's a risk job could fail due to inconsistent setup.'
+2026-01-31 08:41:57,882 INFO:   Poll ingress status: Job ingress ready, dashboard: https://grafana.anl0.cerebras.internal/d/WebHNShVz/wsjob-dashboard?orgId=1&var-wsjob=wsjob-euj7dqhrybbivw4wj6enwv&from=1769848299000&to=now
+2026-01-31 08:41:57,892 INFO:   Poll ingress success: Job ingress ready, dashboard: https://grafana.anl0.cerebras.internal/d/WebHNShVz/wsjob-dashboard?orgId=1&var-wsjob=wsjob-euj7dqhrybbivw4wj6enwv&from=1769848299000&to=now
+2026-01-31 08:41:57,967 INFO:   Found existing cached compile with hash: "cs_15401457958313813015"
+2026-01-31 08:41:59,641 INFO:   Compile artifacts successfully written to remote compile directory. Compile hash is: cs_15401457958313813015
+2026-01-31 08:42:07,880 INFO:   Compile was successful!
+2026-01-31 08:42:07,880 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+2026-01-31 08:42:09,907 INFO:   Appliance client semantic version: 1.1.0, cluster server semantic version: 1.1.2, job operator semantic version: 1.1.2
+2026-01-31 08:42:09,908 INFO:   Initiating a new execute wsjob against the cluster server.
+2026-01-31 08:42:09,936 INFO:   Job id: wsjob-hnorg22m63suqup4sf3t88, workflow id: wflow-qvfu4smtpmmndcmvud3xbw, namespace: job-operator, remote log path: /n1/wsjob/workdir/job-operator/wsjob-hnorg22m63suqup4sf3t88
+2026-01-31 08:42:29,936 INFO:   Poll ingress status: Waiting for all Command pods to be running, current running: 0/1.
+2026-01-31 08:42:29,940 INFO:   Recording the timestamp when jobs is scheduled.
+2026-01-31 08:42:29,957 WARNING:   Event 2026-01-31 08:42:18 +0000 UTC reason=InconsistentVersion wsjob=wsjob-hnorg22m63suqup4sf3t88 message='Warning: client semantic version 1.1.0 is inconsistent with cluster server semantic version 1.1.2, there's a risk job could fail due to inconsistent setup.'
+2026-01-31 08:42:39,957 INFO:   Poll ingress status: Waiting for all Weight pods to be running, current running: 0/2.
+2026-01-31 08:42:49,970 INFO:   Poll ingress status: Job ingress ready, dashboard: https://grafana.anl0.cerebras.internal/d/WebHNShVz/wsjob-dashboard?orgId=1&var-wsjob=wsjob-hnorg22m63suqup4sf3t88&from=1769848346000&to=now
+2026-01-31 08:42:49,985 INFO:   Poll ingress success: Job ingress ready, dashboard: https://grafana.anl0.cerebras.internal/d/WebHNShVz/wsjob-dashboard?orgId=1&var-wsjob=wsjob-hnorg22m63suqup4sf3t88&from=1769848346000&to=now
+2026-01-31 08:42:50,078 INFO:   Preparing to execute using 1 CSX
+2026-01-31 08:43:07,242 INFO:   About to send initial weights
+2026-01-31 08:43:08,474 INFO:   Finished sending initial weights
+2026-01-31 08:43:08,474 INFO:   Finalizing appliance staging for the run
+2026-01-31 08:43:15,931 INFO:   Waiting for device programming to complete
+2026-01-31 08:44:15,215 INFO:   Device programming is complete
+2026-01-31 08:44:15,781 INFO:   Using network type: ROCE
+2026-01-31 08:44:15,781 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+2026-01-31 08:44:15,789 INFO:   Input workers have begun streaming input data
+2026-01-31 08:44:16,885 INFO:   Appliance staging is complete
+2026-01-31 08:44:16,885 INFO:   Beginning appliance run
+2026-01-31 08:46:08,659 INFO:   | Train Device=CSX, Step=40, Loss=1.83799, Rate=1364.82 samples/sec, GlobalRate=576.66 samples/sec, LoopTimeRemaining=0:47:58, TimeRemaining=0:47:58
+[Step=0040] Wall=90.4672s | Loss=1.8380
+[Profile] Avg ms/step | Load: 3015.040 | Host_Submit(Fwd: 0.000, Bwd: 0.000, Opt: 0.000) | Residual(Dev): 0.532 | Iter_Wall: 0.532
+[Throughput] Samples: 1358.28 samples/s (1358.28)
+2026-01-31 08:48:06,911 INFO:   | Train Device=CSX, Step=80, Loss=1.30500, Rate=1371.95 samples/sec, GlobalRate=814.37 samples/sec, LoopTimeRemaining=0:45:58, TimeRemaining=0:45:58
+[Step=0080] Wall=208.7474s | Loss=1.3050
+[Profile] Avg ms/step | Load: 2956.462 | Host_Submit(Fwd: 0.000, Bwd: 0.000, Opt: 0.000) | Residual(Dev): 0.537 | Iter_Wall: 0.537
+[Throughput] Samples: 1373.53 samples/s (1374.42)
+2026-01-31 08:50:05,860 INFO:   | Train Device=CSX, Step=120, Loss=1.04528, Rate=1354.00 samples/sec, GlobalRate=942.83 samples/sec, LoopTimeRemaining=0:44:00, TimeRemaining=0:44:00
+[Step=0120] Wall=327.6647s | Loss=1.0453
+[Profile] Avg ms/step | Load: 2972.392 | Host_Submit(Fwd: 0.000, Bwd: 0.000, Opt: 0.000) | Residual(Dev): 0.538 | Iter_Wall: 0.538
+[Throughput] Samples: 1375.06 samples/s (1376.43)
+2026-01-31 08:52:04,611 INFO:   | Train Device=CSX, Step=160, Loss=0.88023, Rate=1355.07 samples/sec, GlobalRate=1023.88 samples/sec, LoopTimeRemaining=0:42:01, TimeRemaining=0:42:01
+[Step=0160] Wall=446.4016s | Loss=0.8802
+[Profile] Avg ms/step | Load: 2967.881 | Host_Submit(Fwd: 0.000, Bwd: 0.000, Opt: 0.000) | Residual(Dev): 0.538 | Iter_Wall: 0.538
+[Throughput] Samples: 1376.34 samples/s (1378.49)
+2026-01-31 08:54:03,434 INFO:   | Train Device=CSX, Step=200, Loss=0.82693, Rate=1412.93 samples/sec, GlobalRate=1079.46 samples/sec, LoopTimeRemaining=0:40:03, TimeRemaining=0:40:03
+[Step=0200] Wall=565.2244s | Loss=0.8269
+[Profile] Avg ms/step | Load: 2970.023 | Host_Submit(Fwd: 0.000, Bwd: 0.000, Opt: 0.000) | Residual(Dev): 0.544 | Iter_Wall: 0.544
+[Throughput] Samples: 1376.87 samples/s (1378.71)
+2026-01-31 08:56:04,061 INFO:   | Train Device=CSX, Step=240, Loss=0.67809, Rate=1364.58 samples/sec, GlobalRate=1117.70 samples/sec, LoopTimeRemaining=0:38:04, TimeRemaining=0:38:04
+[Step=0240] Wall=685.8716s | Loss=0.6781
+[Profile] Avg ms/step | Load: 3015.636 | Host_Submit(Fwd: 0.000, Bwd: 0.000, Opt: 0.000) | Residual(Dev): 0.542 | Iter_Wall: 0.542
+[Throughput] Samples: 1373.55 samples/s (1366.29)
+2026-01-31 08:58:01,971 INFO:   | Train Device=CSX, Step=280, Loss=0.63874, Rate=1372.99 samples/sec, GlobalRate=1149.83 samples/sec, LoopTimeRemaining=0:36:00, TimeRemaining=0:36:00
+[Step=0280] Wall=803.8116s | Loss=0.6387
+[Profile] Avg ms/step | Load: 2947.952 | Host_Submit(Fwd: 0.000, Bwd: 0.000, Opt: 0.000) | Residual(Dev): 0.544 | Iter_Wall: 0.544
+[Throughput] Samples: 1375.84 samples/s (1380.02)
+2026-01-31 08:59:59,229 INFO:   | Train Device=CSX, Step=320, Loss=0.57993, Rate=1371.79 samples/sec, GlobalRate=1175.86 samples/sec, LoopTimeRemaining=0:33:52, TimeRemaining=0:33:52
+[Step=0320] Wall=921.0535s | Loss=0.5799
+[Profile] Avg ms/step | Load: 2930.501 | Host_Submit(Fwd: 0.000, Bwd: 0.000, Opt: 0.000) | Residual(Dev): 0.543 | Iter_Wall: 0.543
+[Throughput] Samples: 1378.60 samples/s (1390.48)
+2026-01-31 09:01:56,948 INFO:   | Train Device=CSX, Step=360, Loss=0.52791, Rate=1371.91 samples/sec, GlobalRate=1196.49 samples/sec, LoopTimeRemaining=0:31:48, TimeRemaining=0:31:48
+[Step=0360] Wall=1038.7558s | Loss=0.5279
+[Profile] Avg ms/step | Load: 2942.018 | Host_Submit(Fwd: 0.000, Bwd: 0.000, Opt: 0.000) | Residual(Dev): 0.536 | Iter_Wall: 0.536
+[Throughput] Samples: 1380.11 samples/s (1391.38)
+2026-01-31 09:03:54,184 INFO:   | Train Device=CSX, Step=400, Loss=0.55853, Rate=1382.49 samples/sec, GlobalRate=1213.95 samples/sec, LoopTimeRemaining=0:29:45, TimeRemaining=0:29:45
+[Step=0400] Wall=1156.0334s | Loss=0.5585
+[Profile] Avg ms/step | Load: 2931.392 | Host_Submit(Fwd: 0.000, Bwd: 0.000, Opt: 0.000) | Residual(Dev): 0.544 | Iter_Wall: 0.544
+[Throughput] Samples: 1381.83 samples/s (1394.77)
+2026-01-31 09:05:52,945 INFO:   | Train Device=CSX, Step=440, Loss=0.54071, Rate=1400.42 samples/sec, GlobalRate=1227.34 samples/sec, LoopTimeRemaining=0:27:39, TimeRemaining=0:27:39
+[Step=0440] Wall=1274.8428s | Loss=0.5407
+[Profile] Avg ms/step | Load: 2969.689 | Host_Submit(Fwd: 0.000, Bwd: 0.000, Opt: 0.000) | Residual(Dev): 0.544 | Iter_Wall: 0.544
+[Throughput] Samples: 1381.57 samples/s (1385.32)
+2026-01-31 09:07:48,835 INFO:   | Train Device=CSX, Step=480, Loss=0.54890, Rate=1360.44 samples/sec, GlobalRate=1240.98 samples/sec, LoopTimeRemaining=0:25:32, TimeRemaining=0:25:32
+[Step=0480] Wall=1390.6754s | Loss=0.5489
+[Profile] Avg ms/step | Load: 2895.267 | Host_Submit(Fwd: 0.000, Bwd: 0.000, Opt: 0.000) | Residual(Dev): 0.545 | Iter_Wall: 0.545
+[Throughput] Samples: 1384.31 samples/s (1402.80)
+2026-01-31 09:09:44,375 INFO:   | Train Device=CSX, Step=520, Loss=0.53069, Rate=1350.78 samples/sec, GlobalRate=1253.01 samples/sec, LoopTimeRemaining=0:23:28, TimeRemaining=0:23:28
+[Step=0520] Wall=1506.0750s | Loss=0.5307
+[Profile] Avg ms/step | Load: 2884.443 | Host_Submit(Fwd: 0.000, Bwd: 0.000, Opt: 0.000) | Residual(Dev): 0.542 | Iter_Wall: 0.542
+[Throughput] Samples: 1387.02 samples/s (1412.98)
+2026-01-31 09:11:39,619 INFO:   | Train Device=CSX, Step=560, Loss=0.53865, Rate=1418.94 samples/sec, GlobalRate=1263.72 samples/sec, LoopTimeRemaining=0:21:28, TimeRemaining=0:21:28
+[Step=0560] Wall=1621.5313s | Loss=0.5386
+[Profile] Avg ms/step | Load: 2885.870 | Host_Submit(Fwd: 0.000, Bwd: 0.000, Opt: 0.000) | Residual(Dev): 0.535 | Iter_Wall: 0.535
+[Throughput] Samples: 1389.30 samples/s (1416.63)
+2026-01-31 09:13:34,424 INFO:   | Train Device=CSX, Step=600, Loss=0.51977, Rate=1409.59 samples/sec, GlobalRate=1273.44 samples/sec, LoopTimeRemaining=0:19:25, TimeRemaining=0:19:25
+[Step=0600] Wall=1736.2743s | Loss=0.5198
+[Profile] Avg ms/step | Load: 2868.048 | Host_Submit(Fwd: 0.000, Bwd: 0.000, Opt: 0.000) | Residual(Dev): 0.523 | Iter_Wall: 0.523
+[Throughput] Samples: 1391.85 samples/s (1423.38)
+2026-01-31 09:15:28,990 INFO:   | Train Device=CSX, Step=640, Loss=0.55512, Rate=1546.33 samples/sec, GlobalRate=1282.22 samples/sec, LoopTimeRemaining=0:17:26, TimeRemaining=0:17:26
+[Step=0640] Wall=1850.8383s | Loss=0.5551
+[Profile] Avg ms/step | Load: 2863.575 | Host_Submit(Fwd: 0.000, Bwd: 0.000, Opt: 0.000) | Residual(Dev): 0.521 | Iter_Wall: 0.521
+[Throughput] Samples: 1394.22 samples/s (1427.42)
+2026-01-31 09:17:25,859 INFO:   | Train Device=CSX, Step=680, Loss=0.52197, Rate=1409.52 samples/sec, GlobalRate=1288.69 samples/sec, LoopTimeRemaining=0:15:30, TimeRemaining=0:15:30
+[Step=0680] Wall=1967.7145s | Loss=0.5220
+[Profile] Avg ms/step | Load: 2921.380 | Host_Submit(Fwd: 0.000, Bwd: 0.000, Opt: 0.000) | Residual(Dev): 0.522 | Iter_Wall: 0.522
+[Throughput] Samples: 1394.67 samples/s (1412.06)
+2026-01-31 09:19:20,745 INFO:   | Train Device=CSX, Step=720, Loss=0.52218, Rate=1405.89 samples/sec, GlobalRate=1295.63 samples/sec, LoopTimeRemaining=0:13:35, TimeRemaining=0:13:35
+[Step=0720] Wall=2082.5811s | Loss=0.5222
+[Profile] Avg ms/step | Load: 2871.137 | Host_Submit(Fwd: 0.000, Bwd: 0.000, Opt: 0.000) | Residual(Dev): 0.525 | Iter_Wall: 0.525
+[Throughput] Samples: 1396.42 samples/s (1420.64)
+2026-01-31 09:21:16,130 INFO:   | Train Device=CSX, Step=760, Loss=0.47222, Rate=1413.61 samples/sec, GlobalRate=1301.63 samples/sec, LoopTimeRemaining=0:11:39, TimeRemaining=0:11:39
+[Step=0760] Wall=2197.9708s | Loss=0.4722
+[Profile] Avg ms/step | Load: 2884.215 | Host_Submit(Fwd: 0.000, Bwd: 0.000, Opt: 0.000) | Residual(Dev): 0.524 | Iter_Wall: 0.524
+[Throughput] Samples: 1397.65 samples/s (1420.18)
+2026-01-31 09:23:10,588 INFO:   | Train Device=CSX, Step=800, Loss=0.46803, Rate=1404.82 samples/sec, GlobalRate=1307.56 samples/sec, LoopTimeRemaining=0:09:42, TimeRemaining=0:09:42
+[Step=0800] Wall=2312.4175s | Loss=0.4680
+[Profile] Avg ms/step | Load: 2860.642 | Host_Submit(Fwd: 0.000, Bwd: 0.000, Opt: 0.000) | Residual(Dev): 0.523 | Iter_Wall: 0.523
+[Throughput] Samples: 1399.33 samples/s (1427.02)
+2026-01-31 09:25:05,119 INFO:   | Train Device=CSX, Step=840, Loss=0.51656, Rate=1400.59 samples/sec, GlobalRate=1312.93 samples/sec, LoopTimeRemaining=0:07:45, TimeRemaining=0:07:45
+[Step=0840] Wall=2426.9334s | Loss=0.5166
+[Profile] Avg ms/step | Load: 2862.371 | Host_Submit(Fwd: 0.000, Bwd: 0.000, Opt: 0.000) | Residual(Dev): 0.521 | Iter_Wall: 0.521
+[Throughput] Samples: 1400.81 samples/s (1429.24)
+2026-01-31 09:27:02,235 INFO:   | Train Device=CSX, Step=880, Loss=0.48176, Rate=1399.21 samples/sec, GlobalRate=1316.61 samples/sec, LoopTimeRemaining=0:05:49, TimeRemaining=0:05:49
+[Step=0880] Wall=2544.0788s | Loss=0.4818
+[Profile] Avg ms/step | Load: 2928.108 | Host_Submit(Fwd: 0.000, Bwd: 0.000, Opt: 0.000) | Residual(Dev): 0.524 | Iter_Wall: 0.524
+[Throughput] Samples: 1400.71 samples/s (1410.86)
+2026-01-31 09:28:57,221 INFO:   | Train Device=CSX, Step=920, Loss=0.44049, Rate=1411.83 samples/sec, GlobalRate=1320.97 samples/sec, LoopTimeRemaining=0:03:52, TimeRemaining=0:03:52
+[Step=0920] Wall=2659.0805s | Loss=0.4405
+[Profile] Avg ms/step | Load: 2874.514 | Host_Submit(Fwd: 0.000, Bwd: 0.000, Opt: 0.000) | Residual(Dev): 0.526 | Iter_Wall: 0.526
+[Throughput] Samples: 1401.75 samples/s (1419.15)
+2026-01-31 09:30:51,830 INFO:   | Train Device=CSX, Step=960, Loss=0.50323, Rate=1407.52 samples/sec, GlobalRate=1325.17 samples/sec, LoopTimeRemaining=0:01:56, TimeRemaining=0:01:56
+[Step=0960] Wall=2773.6832s | Loss=0.5032
+[Profile] Avg ms/step | Load: 2864.537 | Host_Submit(Fwd: 0.000, Bwd: 0.000, Opt: 0.000) | Residual(Dev): 0.525 | Iter_Wall: 0.525
+[Throughput] Samples: 1402.90 samples/s (1425.44)
+2026-01-31 09:32:46,601 INFO:   | Train Device=CSX, Step=1000, Loss=0.49785, Rate=1408.90 samples/sec, GlobalRate=1328.98 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:00:00
+[Step=1000] Wall=2888.4425s | Loss=0.4979
+[Profile] Avg ms/step | Load: 2868.453 | Host_Submit(Fwd: 0.000, Bwd: 0.000, Opt: 0.000) | Residual(Dev): 0.527 | Iter_Wall: 0.527
+[Throughput] Samples: 1403.88 samples/s (1426.79)
+2026-01-31 09:32:48,139 INFO:   Training completed successfully!
+2026-01-31 09:32:48,189 INFO:   Processed 4096000 training sample(s) in 3087.485918052 seconds.
