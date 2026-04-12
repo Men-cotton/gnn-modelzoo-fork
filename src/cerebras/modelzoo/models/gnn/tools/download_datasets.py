@@ -314,6 +314,19 @@ def download_ogb_dataset(dataset_name: str, root_dir: Path) -> None:
             shutil.rmtree(dataset_subdir)
         shutil.move(str(extracted_dir), str(dataset_subdir))
 
+    if dataset_name == "ogbn-papers100M":
+        print(
+            f"[{dataset_name}] Raw files are staged under {dataset_subdir}. "
+            "Skipping PyG processed-graph generation because it can require tens "
+            "of GB of host RAM."
+        )
+        print(
+            f"[{dataset_name}] Run "
+            "`uv run src/cerebras/modelzoo/models/gnn/tools/prepare_ogbn_papers100M.py` "
+            "to validate the dataset and generate lightweight metadata."
+        )
+        return
+
     print(f"[{dataset_name}] Processing dataset with PygNodePropPredDataset into {dataset_subdir}.")
     try:
         dataset = PygNodePropPredDataset(name=dataset_name, root=str(dataset_dir))

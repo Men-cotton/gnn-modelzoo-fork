@@ -1,11 +1,16 @@
 from __future__ import annotations
 
 import argparse
+import gzip
+import json
 import os
 import sys
+import zipfile
 from pathlib import Path
 
 import numpy as np
+import torch
+from numpy.lib import format as npformat
 
 try:
     from ogb.nodeproppred import PygNodePropPredDataset
@@ -109,17 +114,117 @@ def _check_release(dataset_dir: Path) -> None:
         print(f"[warn] Release marker not found: {release}")
 
 
-def _process_dataset(root: Path) -> None:
+def _load_split_indices(path: Path) -> np.ndarray:
+    with gzip.open(path, "rt", encoding="utf-8") as handle:
+        values = np.loadtxt(handle, dtype=np.int64, ndmin=1)
+    return np.asarray(values, dtype=np.int64).reshape(-1)
+
+
+def _prepare_split_dict(dataset_dir: Path) -> Path:
+    split_dir = dataset_dir / "split" / SPLIT_NAME
+    split_dict_path = split_dir / "split_dict.pt"
+    if split_dict_path.exists():
+        print(f"[info] Reusing existing split dictionary: {split_dict_path}")
+        return split_dict_path
+
+    split_dict = {
+        "train": torch.from_numpy(_load_split_indices(split_dir / "train.csv.gz")),
+        "valid": torch.from_numpy(_load_split_indices(split_dir / "valid.csv.gz")),
+        "test": torch.from_numpy(_load_split_indices(split_dir / "test.csv.gz")),
+    }
+    torch.save(split_dict, split_dict_path)
+    print(f"[done] Wrote split dictionary: {split_dict_path}")
+    return split_dict_path
+
+
+def _read_npz_array_header(npz_path: Path, key: str) -> tuple[list[int], str]:
+    member_name = f"{key}.npy"
+    with zipfile.ZipFile(npz_path) as archive:
+        try:
+            with archive.open(member_name) as member:
+                version = npformat.read_magic(member)
+                if version == (1, 0):
+                    shape, _fortran_order, dtype = npformat.read_array_header_1_0(
+                        member
+                    )
+                elif version == (2, 0):
+                    shape, _fortran_order, dtype = npformat.read_array_header_2_0(
+                        member
+                    )
+                else:
+                    raise ValueError(
+                        f"Unsupported .npy header version {version} in {npz_path}:{member_name}"
+                    )
+        except KeyError as exc:
+            raise KeyError(f"Missing {member_name} in {npz_path}") from exc
+
+    return list(shape), str(dtype)
+
+
+def _write_manifest(dataset_dir: Path) -> Path:
+    raw_dir = dataset_dir / "raw"
+    data = np.load(raw_dir / "data.npz", mmap_mode="r")
+    edge_index_shape, edge_index_dtype = _read_npz_array_header(
+        raw_dir / "data.npz", "edge_index"
+    )
+    node_feat_shape = None
+    node_feat_dtype = None
+    if "node_feat" in data.files:
+        node_feat_shape, node_feat_dtype = _read_npz_array_header(
+            raw_dir / "data.npz", "node_feat"
+        )
+    node_label_shape, node_label_dtype = _read_npz_array_header(
+        raw_dir / "node-label.npz", "node_label"
+    )
+
+    manifest = {
+        "dataset_name": DATASET_NAME,
+        "dataset_dir": str(dataset_dir),
+        "num_nodes": int(data["num_nodes_list"][0]),
+        "num_edges": int(data["num_edges_list"][0]),
+        "edge_index_shape": edge_index_shape,
+        "edge_index_dtype": edge_index_dtype,
+        "node_feat_shape": node_feat_shape,
+        "node_feat_dtype": node_feat_dtype,
+        "node_label_shape": node_label_shape,
+        "node_label_dtype": node_label_dtype,
+    }
+
+    processed_dir = dataset_dir / "processed"
+    processed_dir.mkdir(parents=True, exist_ok=True)
+    manifest_path = processed_dir / "papers100M_prepared_manifest.json"
+    manifest_path.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
+    print(f"[done] Wrote preparation manifest: {manifest_path}")
+    return manifest_path
+
+
+def _process_dataset(root: Path) -> Path:
     if PygNodePropPredDataset is None:
         raise RuntimeError("ogb is not installed. Please install ogb to proceed.")
     dataset = PygNodePropPredDataset(name=DATASET_NAME, root=str(root))
     processed_path = Path(dataset.processed_paths[0])
     print(f"[done] Processed dataset written to: {processed_path}")
+    return processed_path
+
+
+def _prepare_large_dataset(dataset_dir: Path) -> None:
+    split_dict_path = _prepare_split_dict(dataset_dir)
+    manifest_path = _write_manifest(dataset_dir)
+    print(
+        "[done] Prepared lightweight papers100M metadata without building "
+        "PyG's in-memory processed graph.\n"
+        f"       split_dict: {split_dict_path}\n"
+        f"       manifest:   {manifest_path}"
+    )
 
 
 def _parse_args(argv: list[str] | None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Prepare ogbn-papers100M PyG processed data file.",
+        description=(
+            "Prepare ogbn-papers100M metadata safely. "
+            "By default this avoids PyG's monolithic processed graph, which often "
+            "requires tens of GB of host RAM."
+        ),
     )
     parser.add_argument(
         "--root",
@@ -131,6 +236,14 @@ def _parse_args(argv: list[str] | None) -> argparse.Namespace:
         "--check-only",
         action="store_true",
         help="Only validate raw and split files without processing.",
+    )
+    parser.add_argument(
+        "--force-pyg-processing",
+        action="store_true",
+        help=(
+            "Force creation/loading of PyG's geometric_data_processed.pt. "
+            "This can require very large host RAM for ogbn-papers100M."
+        ),
     )
     return parser.parse_args(argv)
 
@@ -157,7 +270,11 @@ def main(argv: list[str] | None = None) -> None:
         print("[done] Raw and split files look OK.")
         return
 
-    _process_dataset(ogb_root)
+    if args.force_pyg_processing:
+        _process_dataset(ogb_root)
+        return
+
+    _prepare_large_dataset(dataset_dir)
 
 
 if __name__ == "__main__":
