@@ -10,6 +10,7 @@ from torch.utils.data import DataLoader, Dataset
 from torch_geometric.data import Data
 
 import cerebras.pytorch as cstorch
+from cerebras.modelzoo.models.gnn.worker_validation import validate_num_workers
 
 from .caching import GraphCache
 from .common import BaseGraphDataSource
@@ -251,7 +252,10 @@ class NeighborSamplingDataProcessor(BaseGraphDataSource):
         self.batch_size = batch_size
         self.shuffle = shuffle
         self.sampler_seed = sampler_seed
-        self.num_workers = num_workers
+        self.num_workers = validate_num_workers(
+            num_workers,
+            context=f"{self.__class__.__name__}.num_workers",
+        )
         self.pad_id = pad_id
         self.caching_percent = caching_percent
         self.graph_cache = None

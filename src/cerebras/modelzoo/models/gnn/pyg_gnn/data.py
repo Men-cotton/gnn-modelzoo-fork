@@ -10,6 +10,7 @@ from torch_geometric.data.data import DataTensorAttr, DataEdgeAttr, BaseData
 from torch_geometric.datasets import Reddit, Planetoid
 import os.path as osp
 from cerebras.modelzoo.config.types import resolve_path
+from cerebras.modelzoo.models.gnn.worker_validation import validate_num_workers
 
 try:
     from torch_geometric.distributed import (
@@ -355,6 +356,10 @@ def make_loaders(data, split_idx, cfg, rank=0, world_size=1):
             raise ValueError(
                 f"num_workers must be > 0 for HPC performance. Got {num_workers}."
             )
+        validate_num_workers(
+            num_workers,
+            context=f"{loader_cls.__name__}.num_workers",
+        )
 
         kwargs = {
             "batch_size": loader_cfg["batch_size"],

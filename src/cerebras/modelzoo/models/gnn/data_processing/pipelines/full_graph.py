@@ -12,6 +12,7 @@ from torch.utils.data import DataLoader, Dataset
 import cerebras.pytorch as cstorch
 from cerebras.modelzoo.common.input_utils import get_streaming_batch_size
 from cerebras.modelzoo.common.pytorch_utils import SampleGenerator
+from cerebras.modelzoo.models.gnn.worker_validation import validate_num_workers
 
 from .common import (
     BaseGraphDataSource,
@@ -74,7 +75,10 @@ class FullGraphDataProcessor(BaseGraphDataSource):
             adj_normalization_fn=adj_normalization_fn,
         )
         self.drop_last = drop_last
-        self.num_workers = num_workers
+        self.num_workers = validate_num_workers(
+            num_workers,
+            context=f"{self.__class__.__name__}.num_workers",
+        )
 
     def create_dataloader(self) -> DataLoader:
         features, adjacency, labels, mask = self.load_full_graph()

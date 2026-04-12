@@ -13,6 +13,7 @@ from torch.utils.data import DataLoader
 from cerebras.modelzoo.config import DataConfig
 from cerebras.modelzoo.config.types import AliasedPath
 from cerebras.modelzoo.common.pytorch_utils import SampleGenerator
+from cerebras.modelzoo.models.gnn.worker_validation import validate_num_workers
 
 from .batches import GraphSAGEBatch
 from .pipelines import (
@@ -109,6 +110,14 @@ class GNNDataProcessorConfig(DataConfig):
                 value,
             )
         return value
+
+    @field_validator("num_workers")
+    @classmethod
+    def validate_num_workers_not_exceed_cpu_cores(cls, value):
+        return validate_num_workers(
+            value,
+            context=f"{cls.__name__}.num_workers",
+        )
 
     @field_validator("split", mode="after")
     @classmethod
