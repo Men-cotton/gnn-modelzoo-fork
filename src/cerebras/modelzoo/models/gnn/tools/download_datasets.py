@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import argparse
+import csv
 import hashlib
 import os
+import shutil
 import sys
 import urllib.error
 import urllib.request
@@ -79,7 +81,12 @@ def _download_with_resume(url: str, dest_path: Path, *, expected_sha256: Optiona
                 temp_path.unlink(missing_ok=True)
                 return
             print(f"[download] Existing file has wrong checksum ({current_hash}); re-downloading.")
-        dest_path.unlink()
+            dest_path.unlink()
+        elif not temp_path.exists():
+            print(f"[download] Found existing partial file, resuming from: {dest_path}")
+            os.replace(dest_path, temp_path)
+        else:
+            dest_path.unlink()
 
     download_complete = False
     while not download_complete:
@@ -168,6 +175,52 @@ def _download_with_resume(url: str, dest_path: Path, *, expected_sha256: Optiona
         print(f"[download] Checksum verified for {dest_path}.")
 
 
+def _get_ogb_dataset_metadata(dataset_name: str) -> Dict[str, str]:
+    if PygNodePropPredDataset is None:
+        raise ImportError(
+            "ogb is not installed. Install it with `uv pip install ogb` or "
+            "`pip install ogb` before downloading OGB datasets."
+        )
+
+    module = sys.modules.get(PygNodePropPredDataset.__module__)
+    if module is None or not hasattr(module, "__file__"):
+        raise RuntimeError("Could not locate ogb dataset metadata.")
+
+    master_path = Path(module.__file__).with_name("master.csv")
+    with master_path.open(newline="") as handle:
+        reader = csv.reader(handle)
+        rows = list(reader)
+
+    if not rows or dataset_name not in rows[0]:
+        raise ValueError(f"Could not find OGB metadata for '{dataset_name}'.")
+
+    dataset_col = rows[0].index(dataset_name)
+    metadata: Dict[str, str] = {}
+    for row in rows[1:]:
+        if not row or dataset_col >= len(row):
+            continue
+        metadata[row[0]] = row[dataset_col]
+    return metadata
+
+
+def _ogb_raw_is_ready(dataset_subdir: Path, metadata: Dict[str, str]) -> bool:
+    raw_dir = dataset_subdir / "raw"
+    split_dir = dataset_subdir / "split" / metadata["split"]
+    if not raw_dir.is_dir() or not split_dir.is_dir():
+        return False
+
+    if metadata["binary"] == "True":
+        raw_graph_file = (
+            "edge_index_dict.npz" if metadata["is hetero"] == "True" else "data.npz"
+        )
+        label_file = "node-label.npz"
+    else:
+        raw_graph_file = "triplet-type-list.csv.gz" if metadata["is hetero"] == "True" else "edge.csv.gz"
+        label_file = "node-label.csv.gz"
+
+    return (raw_dir / raw_graph_file).exists() and (raw_dir / label_file).exists()
+
+
 def download_pubmed(root_dir: Path) -> None:
     dataset_name = "PubMed"
     dataset_root = root_dir / dataset_name
@@ -227,11 +280,7 @@ def download_reddit(root_dir: Path) -> None:
 
 
 def download_ogb_dataset(dataset_name: str, root_dir: Path) -> None:
-    if PygNodePropPredDataset is None:
-        raise ImportError(
-            "ogb is not installed. Install it with `uv pip install ogb` or "
-            "`pip install ogb` before downloading OGB datasets."
-        )
+    metadata = _get_ogb_dataset_metadata(dataset_name)
     dataset_dir = root_dir / dataset_name
     dataset_subdir = dataset_dir / dataset_name.replace("-", "_")
     processed_flag = dataset_subdir / "processed"
@@ -241,13 +290,36 @@ def download_ogb_dataset(dataset_name: str, root_dir: Path) -> None:
     if not _request_download(dataset_name):
         return
 
-    print(f"[{dataset_name}] Downloading with PygNodePropPredDataset into {dataset_dir}.")
     dataset_dir.mkdir(parents=True, exist_ok=True)
+    archive_url = metadata["url"]
+    archive_name = archive_url.rpartition("/")[2]
+    archive_path = dataset_dir / archive_name
+    extracted_dir = dataset_dir / metadata["download_name"]
+
+    if not _ogb_raw_is_ready(dataset_subdir, metadata):
+        print(f"[{dataset_name}] Downloading archive with resume support into {archive_path}.")
+        _download_with_resume(archive_url, archive_path)
+
+        if extracted_dir.exists():
+            shutil.rmtree(extracted_dir)
+        print(f"[{dataset_name}] Extracting archive to {dataset_dir}.")
+        with zipfile.ZipFile(archive_path, "r") as zip_handle:
+            zip_handle.extractall(dataset_dir)
+
+        if not extracted_dir.exists():
+            raise RuntimeError(
+                f"Expected extracted directory '{extracted_dir}' was not created."
+            )
+        if dataset_subdir.exists():
+            shutil.rmtree(dataset_subdir)
+        shutil.move(str(extracted_dir), str(dataset_subdir))
+
+    print(f"[{dataset_name}] Processing dataset with PygNodePropPredDataset into {dataset_subdir}.")
     try:
         dataset = PygNodePropPredDataset(name=dataset_name, root=str(dataset_dir))
     except Exception as exc:  # pragma: no cover - defensive
         raise RuntimeError(
-            f"Failed to download OGB dataset '{dataset_name}': {exc}"
+            f"Failed to prepare OGB dataset '{dataset_name}': {exc}"
         ) from exc
 
     split_idx = dataset.get_idx_split()
