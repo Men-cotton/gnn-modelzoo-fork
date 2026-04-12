@@ -131,6 +131,10 @@ class BaseGraphDataSource:
         self.adj_normalization_fn = adj_normalization_fn
         self._graph_data_cache: Optional[PyGData] = None
 
+    def _requires_materialized_undirected_edges(self) -> bool:
+        # ogbn-papers100M is too large to duplicate every edge eagerly.
+        return self.dataset_name.lower() != "ogbn-papers100m"
+
     def _get_planetoid_raw_file_names(self, dataset_name_lower: str) -> List[str]:
         names = ["x", "tx", "allx", "y", "ty", "ally", "graph", "test.index"]
         return [f"ind.{dataset_name_lower}.{name}" for name in names]
@@ -454,7 +458,11 @@ class BaseGraphDataSource:
         edge_index = graph.edge_index
         if edge_index is None:
             edge_index = torch.empty((2, 0), dtype=torch.long)
-        edge_index = to_undirected(edge_index, num_nodes=graph.num_nodes)
+        elif self._requires_materialized_undirected_edges():
+            edge_index = to_undirected(edge_index, num_nodes=graph.num_nodes)
+        elif edge_index.dtype != torch.int32:
+            edge_index = edge_index.to(dtype=torch.int32)
+            graph.edge_index = edge_index
 
         split_masks: Dict[str, Tensor] = {}
         for split in ("train", "test"):

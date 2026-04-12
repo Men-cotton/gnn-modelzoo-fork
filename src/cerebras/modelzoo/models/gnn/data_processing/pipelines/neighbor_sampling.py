@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+from dataclasses import dataclass
 from typing import Dict, List, Optional, Sequence, Tuple
 
 import numpy as np
@@ -14,6 +15,46 @@ from cerebras.modelzoo.models.gnn.worker_validation import validate_num_workers
 
 from .caching import GraphCache
 from .common import BaseGraphDataSource
+
+
+@dataclass(frozen=True)
+class NeighborSliceIndex:
+    row_offsets: np.ndarray
+    neighbors: np.ndarray
+
+    @classmethod
+    def from_edge_index(
+        cls,
+        rows: Tensor,
+        cols: Tensor,
+        num_nodes: int,
+    ) -> "NeighborSliceIndex":
+        if rows.numel() == 0:
+            return cls(
+                row_offsets=np.zeros(num_nodes + 1, dtype=np.int32),
+                neighbors=np.empty(0, dtype=np.int32),
+            )
+
+        row_cpu = rows.to(device="cpu", dtype=torch.int32).contiguous()
+        col_cpu = cols.to(device="cpu", dtype=torch.int32).contiguous()
+
+        counts = torch.bincount(row_cpu, minlength=num_nodes)
+        row_offsets = torch.empty(num_nodes + 1, dtype=torch.long)
+        row_offsets[0] = 0
+        row_offsets[1:] = torch.cumsum(counts, dim=0)
+
+        sort_order = torch.argsort(row_cpu, stable=True)
+        sorted_neighbors = col_cpu.index_select(0, sort_order)
+
+        row_offset_dtype = (
+            torch.int32
+            if int(row_offsets[-1].item()) <= np.iinfo(np.int32).max
+            else torch.int64
+        )
+        return cls(
+            row_offsets=row_offsets.to(dtype=row_offset_dtype).cpu().numpy(),
+            neighbors=sorted_neighbors.cpu().numpy(),
+        )
 
 
 class GraphSAGENeighborSamplerDataset(Dataset):
@@ -31,6 +72,7 @@ class GraphSAGENeighborSamplerDataset(Dataset):
         shuffle: bool,
         pad_id: int,
         seed: int,
+        edge_index_is_undirected: bool,
         graph_cache: Optional[GraphCache] = None,
     ):
         if batch_size <= 0:
@@ -49,7 +91,18 @@ class GraphSAGENeighborSamplerDataset(Dataset):
         self.num_nodes = features.size(0)
         self.graph_cache = graph_cache
 
-        self._neighbor_table = self._build_neighbor_table(edge_index, self.num_nodes)
+        self._forward_index = NeighborSliceIndex.from_edge_index(
+            edge_index[0],
+            edge_index[1],
+            self.num_nodes,
+        )
+        self._reverse_index = None
+        if not edge_index_is_undirected:
+            self._reverse_index = NeighborSliceIndex.from_edge_index(
+                edge_index[1],
+                edge_index[0],
+                self.num_nodes,
+            )
         self._target_nodes = (
             torch.nonzero(self.mask, as_tuple=False).squeeze(1).cpu().numpy()
         )
@@ -120,23 +173,20 @@ class GraphSAGENeighborSamplerDataset(Dataset):
             rng.shuffle(ordered)
         return ordered
 
-    def _build_neighbor_table(
-        self, edge_index: Tensor, num_nodes: int
-    ) -> List[np.ndarray]:
-        src = edge_index[0].cpu().numpy()
-        dst = edge_index[1].cpu().numpy()
-        neighbors: List[List[int]] = [[] for _ in range(num_nodes)]
-        for s, d in zip(src, dst):
-            neighbors[int(s)].append(int(d))
+    def _neighbor_slices(
+        self, node_id: int
+    ) -> Tuple[np.ndarray, Optional[np.ndarray]]:
+        out_start = int(self._forward_index.row_offsets[node_id])
+        out_end = int(self._forward_index.row_offsets[node_id + 1])
+        out_neighbors = self._forward_index.neighbors[out_start:out_end]
 
-        neighbor_arrays: List[np.ndarray] = []
-        for node_neighbors in neighbors:
-            if not node_neighbors:
-                neighbor_arrays.append(np.empty(0, dtype=np.int64))
-            else:
-                unique_sorted = sorted(set(node_neighbors))
-                neighbor_arrays.append(np.asarray(unique_sorted, dtype=np.int64))
-        return neighbor_arrays
+        if self._reverse_index is None:
+            return out_neighbors, None
+
+        in_start = int(self._reverse_index.row_offsets[node_id])
+        in_end = int(self._reverse_index.row_offsets[node_id + 1])
+        in_neighbors = self._reverse_index.neighbors[in_start:in_end]
+        return out_neighbors, in_neighbors
 
     def _sample_layers(
         self, target_nodes: np.ndarray, target_mask: np.ndarray
@@ -177,29 +227,61 @@ class GraphSAGENeighborSamplerDataset(Dataset):
                 continue
 
             node_id = int(nodes[idx])
-            neighbors = self._neighbor_table[node_id]
-            num_neighbors = neighbors.size
+            out_neighbors, in_neighbors = self._neighbor_slices(node_id)
+            num_out = out_neighbors.size
+            num_in = 0 if in_neighbors is None else in_neighbors.size
+            num_neighbors = num_out + num_in
             if num_neighbors == 0:
                 continue
 
             if num_neighbors >= fanout:
-                selected = self._deterministic_choice(neighbors, fanout, node_id, hop_idx)
+                selected = self._deterministic_choice(
+                    out_neighbors,
+                    in_neighbors,
+                    fanout,
+                    node_id,
+                    hop_idx,
+                )
                 next_nodes[idx, :] = selected
                 next_mask[idx, :] = True
             else:
-                next_nodes[idx, :num_neighbors] = neighbors
+                if num_out > 0:
+                    next_nodes[idx, :num_out] = out_neighbors
+                if num_in > 0 and in_neighbors is not None:
+                    next_nodes[idx, num_out:num_neighbors] = in_neighbors
                 next_mask[idx, :num_neighbors] = True
 
         return next_nodes, next_mask
 
     def _deterministic_choice(
-        self, neighbors: np.ndarray, fanout: int, node_id: int, hop_idx: int
+        self,
+        out_neighbors: np.ndarray,
+        in_neighbors: Optional[np.ndarray],
+        fanout: int,
+        node_id: int,
+        hop_idx: int,
     ) -> np.ndarray:
-        if neighbors.size == 0:
+        total_neighbors = out_neighbors.size + (
+            0 if in_neighbors is None else in_neighbors.size
+        )
+        if total_neighbors == 0:
             return np.empty(0, dtype=np.int64)
-        rotation = (self.seed + node_id * 131 + hop_idx * 17) % neighbors.size
-        rotated = np.concatenate([neighbors[rotation:], neighbors[:rotation]])
-        return rotated[:fanout]
+        rotation = (self.seed + node_id * 131 + hop_idx * 17) % total_neighbors
+        positions = (rotation + np.arange(fanout, dtype=np.int64)) % total_neighbors
+        selected = np.empty(fanout, dtype=np.int64)
+        out_mask = positions < out_neighbors.size
+        if out_mask.any():
+            selected[out_mask] = out_neighbors[positions[out_mask]]
+        if (~out_mask).any():
+            if in_neighbors is None:
+                selected[~out_mask] = out_neighbors[
+                    positions[~out_mask] - out_neighbors.size
+                ]
+            else:
+                selected[~out_mask] = in_neighbors[
+                    positions[~out_mask] - out_neighbors.size
+                ]
+        return selected
 
     def _gather_features(
         self, layer_nodes: List[np.ndarray], layer_masks: List[np.ndarray]
@@ -295,8 +377,12 @@ class NeighborSamplingDataProcessor(BaseGraphDataSource):
             shuffle=self.shuffle and split_key == "train",
             pad_id=self.pad_id,
             seed=self.sampler_seed,
+            edge_index_is_undirected=self._requires_materialized_undirected_edges(),
             graph_cache=self.graph_cache,
         )
+        if not self._requires_materialized_undirected_edges() and self._graph_data_cache is not None:
+            self._graph_data_cache.edge_index = None
+        del edge_index
 
         def _build_torch_dataloader() -> DataLoader:
             return DataLoader(
