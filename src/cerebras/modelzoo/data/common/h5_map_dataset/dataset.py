@@ -18,7 +18,6 @@ from typing import Dict, List, Optional, Union
 
 import numpy
 import torch
-from PIL import Image
 from pydantic import PositiveInt, model_validator
 
 import cerebras.pytorch as cstorch
@@ -26,18 +25,41 @@ import cerebras.pytorch.distributed as dist
 from cerebras.modelzoo.common.input_utils import PaddingSample
 from cerebras.modelzoo.config import BaseConfig
 from cerebras.modelzoo.config.types import ValidatedPath
-
-# for mllama dataset and configs
-from cerebras.modelzoo.data.common.h5_map_dataset.mllama_image_processor import (
-    MllamaImageProcessor,
-)
 from cerebras.modelzoo.data.common.h5_map_dataset.readers import (
     H5Reader,
     Mixture,
 )
-from cerebras.modelzoo.data.vision.preprocessing import get_preprocess_transform
 from cerebras.modelzoo.data.vision.utils import create_worker_cache
 from cerebras.pytorch.utils.data.sampler import pad_index
+
+
+_PIL_BICUBIC = 3
+
+
+def _require_pillow_image():
+    try:
+        from PIL import Image
+    except ModuleNotFoundError as exc:
+        raise ModuleNotFoundError(
+            "Pillow is required for image or multimodal HDF5 datasets."
+        ) from exc
+    return Image
+
+
+def _get_preprocess_transform(params):
+    from cerebras.modelzoo.data.vision.preprocessing import (
+        get_preprocess_transform,
+    )
+
+    return get_preprocess_transform(params)
+
+
+def _get_mllama_image_processor():
+    from cerebras.modelzoo.data.common.h5_map_dataset.mllama_image_processor import (
+        MllamaImageProcessor,
+    )
+
+    return MllamaImageProcessor
 
 
 class HDF5DatasetConfig(BaseConfig):
@@ -472,7 +494,7 @@ class MultiModalHDF5Dataset(HDF5Dataset):
 
         self.img_data_dir = config.img_data_dir
         self.image_data_size = config.image_data_size  # (C, H, W)
-        self.transforms = get_preprocess_transform(
+        self.transforms = _get_preprocess_transform(
             {"transforms": config.transforms}
         )
 
@@ -489,6 +511,7 @@ class MultiModalHDF5Dataset(HDF5Dataset):
         return text_sample, img_sample
 
     def preprocess_img(self, path):
+        Image = _require_pillow_image()
         path = path[0].decode("utf-8")
         if path != "None":
             image_path = os.path.join(self.img_data_dir, path)
@@ -619,6 +642,7 @@ class MultimodalSimpleHDF5Dataset(MultiModalHDF5Dataset):
         return text_sample, img_sample, img_data_loc_sample
 
     def preprocess_img(self, path_list):
+        Image = _require_pillow_image()
         img_list = []
         for path in path_list:
             path = path.decode("utf-8")
@@ -665,7 +689,7 @@ class MLlamaHDF5DatasetConfig(HDF5DatasetConfig):
     do_convert_rgb: bool = True  # Convert image to RGB
     do_resize: bool = True  # Resize image
     size: Dict[str, int] = {"height": 448, "width": 448}  # tile size
-    resample: int = Image.BICUBIC  # bicubic from PIL.Image
+    resample: int = _PIL_BICUBIC  # Pillow's bicubic enum value
     do_rescale: bool = True  # Rescale image
     rescale_factor: float = 1 / 255  # Rescale factor
     do_normalize: bool = True  # Normalize image
@@ -695,6 +719,7 @@ class MLlamaHDF5Dataset(HDF5Dataset):
         super().__init__(config)
 
         self.img_data_dir = config.img_data_dir
+        MllamaImageProcessor = _get_mllama_image_processor()
         self.image_processor = MllamaImageProcessor(
             do_convert_rgb=config.do_convert_rgb,
             do_resize=config.do_resize,
@@ -720,6 +745,7 @@ class MLlamaHDF5Dataset(HDF5Dataset):
         return text_sample, img_sample
 
     def preprocess_img(self, path_list):
+        Image = _require_pillow_image()
         img_list = []
         for path in path_list:
             path = path.decode("utf-8")
