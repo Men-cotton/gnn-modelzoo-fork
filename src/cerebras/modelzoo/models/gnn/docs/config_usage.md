@@ -4,7 +4,7 @@ This document outlines how the configuration file `src/cerebras/modelzoo/models/
 
 ## Overview
 
-The configuration flow involves an intermediate model wrapper class `GNNModel` (defined in `src/cerebras/modelzoo/models/gnn/model.py`). The parameters from the YAML file are first parsed into a `GNNModelConfig` object, which is then used by `GNNModel` to instantiate the underlying `GraphSAGE` architecture with the correct arguments.
+The configuration flow uses the registered model alias `graphsage`, which resolves to `GraphSAGEModel` in `src/cerebras/modelzoo/models/gnn/model.py`. The parameters from the YAML file are first parsed into a `GNNModelConfig` object, which is then used by the shared `GNNTaskWrapper` implementation to instantiate the underlying `GraphSAGE` architecture with the correct arguments.
 
 ## 1. Configuration Source (`params_graphsage_ogbn_arxiv.yaml`)
 
@@ -28,7 +28,7 @@ model:
 
 ## 2. Intermediate Parsing (`model.py`)
 
-The class `GNNModel` in `src/cerebras/modelzoo/models/gnn/model.py` acts as the point of entry. It uses `GNNModelConfig` to validate and structure the parameters.
+The `GraphSAGEModel` alias in `src/cerebras/modelzoo/models/gnn/model.py` acts as the registry entry point. It uses `GNNModelConfig` to validate and structure the parameters through the shared `GNNTaskWrapper`.
 
 ### `GNNModelConfig`
 This class defines the schema for the configuration, matching the keys in the YAML file:
@@ -46,7 +46,7 @@ class GNNModelConfig(GNNArchConfig):
     # ...
 ```
 
-### `GNNModel.build_model`
+### `GNNTaskWrapper.build_model`
 The `build_model` method uses these configuration values to initialize the `GraphSAGE` class.
 
 ```python
@@ -205,7 +205,7 @@ The model's wall-clock performance is likely dominated by **Data Transfer (Host-
 
 ## 9. Investigation of `pyg_gnn` Scripts (Comparison with `cszoo`)
 
-The directory `src/cerebras/modelzoo/models/gnn/pyg_gnn` contains a separate set of scripts (entry point: `graphsage_pyg.py`) intended for running GraphSAGE using standard PyTorch Geometric (PyG) implementations, likely for benchmarking or reference purposes.
+The directory `src/cerebras/modelzoo/models/gnn/reference/pyg` contains a separate set of scripts (entry point: `graphsage_pyg.py`) intended for running GraphSAGE using standard PyTorch Geometric (PyG) implementations, likely for benchmarking or reference purposes.
 
 This section highlights the key differences between the standard `cszoo` flow (investigated above) and this `pyg_gnn` script flow.
 
@@ -217,7 +217,7 @@ This section highlights the key differences between the standard `cszoo` flow (i
     *   **Config Usage**: `graphsage_num_layers` from the YAML is correctly passed to the model constructor.
 
 *   **`pyg_gnn` Flow (`graphsage_pyg.py`)**:
-    *   **Class**: `src/cerebras/modelzoo/models/gnn/pyg_gnn/model.py` (`GraphSAGEWrapper`) wrapping `torch_geometric.nn.models.GraphSAGE`.
+    *   **Class**: `src/cerebras/modelzoo/models/gnn/reference/pyg/model.py` (`GraphSAGEWrapper`) wrapping `torch_geometric.nn.models.GraphSAGE`.
     *   **Implementation**: Standard PyTorch Geometric implementation.
     *   **Config Usage**:
         *   `n_feat`, `graphsage_hidden_dim`, `n_class`, `graphsage_dropout` are used.
@@ -231,7 +231,7 @@ This section highlights the key differences between the standard `cszoo` flow (i
     *   **Logic**: Manually handles sampling logic and determinism.
 
 *   **`pyg_gnn` Flow**:
-    *   **Loader**: `src/cerebras/modelzoo/models/gnn/pyg_gnn/data.py` uses `torch_geometric.loader.NeighborLoader` (or `DistNeighborLoader` for distributed).
+    *   **Loader**: `src/cerebras/modelzoo/models/gnn/reference/pyg/data.py` uses `torch_geometric.loader.NeighborLoader` (or `DistNeighborLoader` for distributed).
     *   **Mechanism**: Standard PyG loader.
     *   **Seed**: The `sampler_seed` from config is used to seed a `torch.Generator`, which is passed to the `NeighborLoader`. This controls shuffling and sampling randomness in the standard PyG way.
 

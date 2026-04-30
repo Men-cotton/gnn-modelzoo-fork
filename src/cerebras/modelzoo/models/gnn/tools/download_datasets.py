@@ -68,7 +68,9 @@ def _compute_sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
-def _download_with_resume(url: str, dest_path: Path, *, expected_sha256: Optional[str] = None) -> None:
+def _download_with_resume(
+    url: str, dest_path: Path, *, expected_sha256: Optional[str] = None
+) -> None:
     dest_path = dest_path.resolve()
     temp_path = dest_path.with_suffix(dest_path.suffix + ".part")
     dest_path.parent.mkdir(parents=True, exist_ok=True)
@@ -77,10 +79,14 @@ def _download_with_resume(url: str, dest_path: Path, *, expected_sha256: Optiona
         if expected_sha256:
             current_hash = _compute_sha256(dest_path)
             if current_hash == expected_sha256:
-                print(f"[download] Found existing file with matching checksum: {dest_path}")
+                print(
+                    f"[download] Found existing file with matching checksum: {dest_path}"
+                )
                 temp_path.unlink(missing_ok=True)
                 return
-            print(f"[download] Existing file has wrong checksum ({current_hash}); re-downloading.")
+            print(
+                f"[download] Existing file has wrong checksum ({current_hash}); re-downloading."
+            )
             dest_path.unlink()
         elif not temp_path.exists():
             print(f"[download] Found existing partial file, resuming from: {dest_path}")
@@ -102,11 +108,16 @@ def _download_with_resume(url: str, dest_path: Path, *, expected_sha256: Optiona
 
         request = urllib.request.Request(url, headers=headers)
         try:
-            with urllib.request.urlopen(request) as response, temp_path.open(mode) as out_file:
+            with (
+                urllib.request.urlopen(request) as response,
+                temp_path.open(mode) as out_file,
+            ):
                 status = getattr(response, "status", None) or response.getcode()
                 if existing_size > 0 and status == 200:
                     # Server did not honor range request; restart download.
-                    print("[download] Range header ignored. Restarting download from scratch.")
+                    print(
+                        "[download] Range header ignored. Restarting download from scratch."
+                    )
                     temp_path.unlink(missing_ok=True)
                     continue
 
@@ -215,7 +226,11 @@ def _ogb_raw_is_ready(dataset_subdir: Path, metadata: Dict[str, str]) -> bool:
         )
         label_file = "node-label.npz"
     else:
-        raw_graph_file = "triplet-type-list.csv.gz" if metadata["is hetero"] == "True" else "edge.csv.gz"
+        raw_graph_file = (
+            "triplet-type-list.csv.gz"
+            if metadata["is hetero"] == "True"
+            else "edge.csv.gz"
+        )
         label_file = "node-label.csv.gz"
 
     return (raw_dir / raw_graph_file).exists() and (raw_dir / label_file).exists()
@@ -297,7 +312,9 @@ def download_ogb_dataset(dataset_name: str, root_dir: Path) -> None:
     extracted_dir = dataset_dir / metadata["download_name"]
 
     if not _ogb_raw_is_ready(dataset_subdir, metadata):
-        print(f"[{dataset_name}] Downloading archive with resume support into {archive_path}.")
+        print(
+            f"[{dataset_name}] Downloading archive with resume support into {archive_path}."
+        )
         _download_with_resume(archive_url, archive_path)
 
         if extracted_dir.exists():
@@ -327,7 +344,9 @@ def download_ogb_dataset(dataset_name: str, root_dir: Path) -> None:
         )
         return
 
-    print(f"[{dataset_name}] Processing dataset with PygNodePropPredDataset into {dataset_subdir}.")
+    print(
+        f"[{dataset_name}] Processing dataset with PygNodePropPredDataset into {dataset_subdir}."
+    )
     try:
         dataset = PygNodePropPredDataset(name=dataset_name, root=str(dataset_dir))
     except Exception as exc:  # pragma: no cover - defensive

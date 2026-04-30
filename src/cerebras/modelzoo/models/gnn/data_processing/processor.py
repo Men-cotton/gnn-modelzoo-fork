@@ -15,15 +15,18 @@ from cerebras.modelzoo.config.types import AliasedPath
 from cerebras.modelzoo.common.pytorch_utils import SampleGenerator
 from cerebras.modelzoo.models.gnn.worker_validation import validate_num_workers
 
-from .batches import GraphSAGEBatch
-from .pipelines import (
+from .batches import FullGraphBatch, GraphSAGEBatch
+from .samplers import (
     FullGraphDataProcessor,
     GraphSAGENeighborSamplerDataset,
     NeighborSamplingDataProcessor,
+)
+from .transforms import (
     normalize_adj_gcn,
 )
 
 logger = logging.getLogger(__name__)
+
 
 class GNNDataProcessorConfig(DataConfig):
     data_processor: Literal["GNNDataProcessor"]
@@ -34,7 +37,9 @@ class GNNDataProcessorConfig(DataConfig):
 
     sampling_mode: Literal["full_graph", "neighbor"] = "full_graph"
     fanouts: Optional[List[int]] = None
-    caching_percent: Optional[float] = None  # Percentage of nodes to cache on GPU (0.0 to 1.0)
+    caching_percent: Optional[float] = (
+        None  # Percentage of nodes to cache on GPU (0.0 to 1.0)
+    )
     sampler_seed: int = 0
 
     batch_size: int = Field(1)
@@ -46,7 +51,9 @@ class GNNDataProcessorConfig(DataConfig):
     pin_memory: bool = True
 
     split: Optional[Literal["train", "val", "valid", "test"]] = None
-    adj_normalization: Optional[str] = None # Defaults to None (raw adjacency) unless specified (e.g. "gcn")
+    adj_normalization: Optional[str] = (
+        None  # Defaults to None (raw adjacency) unless specified (e.g. "gcn")
+    )
 
     # Fake data support (full-graph only, retained for parity with legacy config)
     use_fake_data: bool = False
@@ -207,10 +214,10 @@ class GNNDataProcessor:
                     "Fake data generation is only supported for full-graph sampling."
                 )
             return self._processor.create_fake_dataloader(
-                fake_num_nodes=self.config.fake_num_nodes,
-                fake_n_feat=self.config.fake_n_feat,
-                fake_n_class=self.config.fake_n_class,
-                fake_data_seed=self.config.fake_data_seed,
+                num_nodes=self.config.fake_num_nodes,
+                n_feat=self.config.fake_n_feat,
+                n_class=self.config.fake_n_class,
+                seed=self.config.fake_data_seed,
             )
         return self._processor.create_dataloader()
 
@@ -218,6 +225,7 @@ class GNNDataProcessor:
 __all__ = [
     "GNNDataProcessor",
     "GNNDataProcessorConfig",
+    "FullGraphBatch",
     "GraphSAGEBatch",
     "GraphSAGENeighborSamplerDataset",
     "normalize_adj_gcn",

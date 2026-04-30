@@ -5,7 +5,7 @@ This document outlines the data processing strategies for GraphSAGE implementati
 ## 1. Implementations
 
 - **CSX (ModelZoo)**: `src/cerebras/modelzoo/models/gnn/data_processing/processor.py` (delegates to `pipelines/neighbor_sampling.py`)
-- **GPU (PyG)**: `src/cerebras/modelzoo/models/gnn/pyg_gnn/train.py` (uses `pyg_gnn/data.py` for loading)
+- **GPU (PyG)**: `src/cerebras/modelzoo/models/gnn/reference/pyg/train.py` (uses `pyg_gnn/data.py` for loading)
 
 ## 2. Processing Policies
 

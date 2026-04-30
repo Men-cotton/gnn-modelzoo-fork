@@ -1,9 +1,9 @@
 trainer:
   init:
-    model_dir: ./model_dir_gnn
+    model_dir: ./src/cerebras/modelzoo/models/gnn/docs/artifacts/runtime/model_dirs/PubMed_gcn
     seed: 42
     model:
-      name: gnn
+      name: gcn
 
       # GNN Architecture parameters (from GNNArchConfig)
       # These are dataset-specific (n_feat, n_class) or architecture-specific.
@@ -11,7 +11,7 @@ trainer:
       n_class: 3 # PubMed: Number of classes
       n_hid: 64 # Hidden dimension for GCN
 
-      # GNNModel wrapper parameters (from GNNModelConfig)
+      # Trainer wrapper parameters (from GNNModelConfig)
       compute_eval_metrics: False
       disable_log_softmax: False
       core_architecture: GCN
@@ -47,24 +47,24 @@ trainer:
     train_dataloader:
       data_processor: GNNDataProcessor # Must match GNNDataProcessorConfig.data_processor
       dataset_name: PubMed # Example: "PubMed", "Cora", "ogbn-arxiv"
-      data_dir: "$MODELZOO_ROOT/models/gnn/data/datasets" # Root path for various datasets
+      data_dir: "$MODELZOO_ROOT/../../../data/gnn/datasets" # Root path for various datasets
       sampling_mode: full_graph
       batch_size: 1
       drop_last_batch: True
       shuffle: False
-      num_workers: 40
+      num_workers: 8
       split: train
       adj_normalization: "gcn"
 
     val_dataloader: &val_dataloader_params
       data_processor: GNNDataProcessor
       dataset_name: PubMed
-      data_dir: "$MODELZOO_ROOT/models/gnn/data/datasets"
+      data_dir: "$MODELZOO_ROOT/../../../data/gnn/datasets"
       sampling_mode: full_graph
       batch_size: 1
       drop_last_batch: True
       shuffle: False
-      num_workers: 40
+      num_workers: 8
       split: val
       adj_normalization: "gcn"
 

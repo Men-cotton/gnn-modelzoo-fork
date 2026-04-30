@@ -1,6 +1,6 @@
 trainer:
   init:
-    model_dir: ./model_dir_gnn/reddit_graphsage
+    model_dir: ./src/cerebras/modelzoo/models/gnn/docs/artifacts/runtime/model_dirs/reddit_graphsage
     seed: 42
     model:
       name: graphsage
@@ -42,13 +42,13 @@ trainer:
     train_dataloader:
       data_processor: GNNDataProcessor
       dataset_name: Reddit
-      data_dir: "$MODELZOO_ROOT/models/gnn/data/datasets"
+      data_dir: "$MODELZOO_ROOT/../../../data/gnn/datasets"
       sampling_mode: neighbor
       fanouts: [15, 10, 5]
       batch_size: 4096
       drop_last_batch: False
       shuffle: True
-      num_workers: 40
+      num_workers: 8
       prefetch_factor: 2
       persistent_workers: True
       pin_memory: True
@@ -59,13 +59,13 @@ trainer:
     val_dataloader: &val_neighbor_params
       data_processor: GNNDataProcessor
       dataset_name: Reddit
-      data_dir: "$MODELZOO_ROOT/models/gnn/data/datasets"
+      data_dir: "$MODELZOO_ROOT/../../../data/gnn/datasets"
       sampling_mode: neighbor
       fanouts: [15, 10, 5]
       batch_size: 4096
       drop_last_batch: False
       shuffle: False
-      num_workers: 40
+      num_workers: 8
       prefetch_factor: 2
       persistent_workers: True
       pin_memory: True

@@ -54,6 +54,7 @@ def destroy_cagnet_groups() -> None:
             pass
     _current_topology = None
 
+
 @dataclass
 class _Topology:
     rows: int
@@ -168,7 +169,9 @@ def make_process_grid(
     if replication > 1:
         cube = int(round(world_size ** (1.0 / 3.0)))
         if cube * cube * cube != world_size:
-            _warn_once("3D topology recommended on near-cubic world sizes; proceeding anyway.")
+            _warn_once(
+                "3D topology recommended on near-cubic world sizes; proceeding anyway."
+            )
 
     if world_size <= 1 or (rows == 1 and cols == 1 and replication == 1):
         _current_topology = _Topology(rows, cols, replication, world_size)
@@ -359,8 +362,6 @@ def spmm_15d_or_2d(
     topo = _current_topology
     g_row = row_group or (topo.row_group if topo else None)
     g_col = col_group or (topo.col_group if topo else None)
-    g_rep = rep_group or (topo.rep_group if topo else None)
-    g_plane = plane_group or (topo.plane_group if topo else None)
     use_cache = bool(is_full_batch)
 
     # --- Stage 0: Uninitialized DDP / No PG / Not full-batch ---
@@ -402,10 +403,7 @@ def spmm_15d_or_2d(
             return _spmm_process_grid_2d_ax(A, X, topo, use_cache=use_cache)
         return _spmm_process_grid(A, X, g_row, g_col, use_cache=use_cache)
     except Exception as e:
-        _warn_once(
-            f"grid SpMM failed ({e}); "
-            "falling back to local SpMM only."
-        )
+        _warn_once(f"grid SpMM failed ({e}); " "falling back to local SpMM only.")
         out = _local_spmm(A, X)
         if weight is not None:
             out = out.matmul(weight.t())
@@ -436,12 +434,16 @@ def _spmm_process_grid(
 
     # Row slice
     if rows > 1:
-        row_part, (r_start, r_end) = _split_coo_single(A, rows, dim=0, idx=row_id, use_cache=use_cache)
+        row_part, (r_start, r_end) = _split_coo_single(
+            A, rows, dim=0, idx=row_id, use_cache=use_cache
+        )
     else:
         row_part, (r_start, r_end) = A, (0, A.size(0))
 
     # Build column slice
-    part, (c_start, c_end) = _split_coo_single(row_part, cols, dim=1, idx=col_id, use_cache=use_cache)
+    part, (c_start, c_end) = _split_coo_single(
+        row_part, cols, dim=1, idx=col_id, use_cache=use_cache
+    )
     if part.device != X.device:
         part = part.to(device=X.device)
 
@@ -462,17 +464,23 @@ def _spmm_process_grid(
     try:
         dist.all_reduce(partial, op=dist.ReduceOp.SUM, group=row_group)
     except Exception as e:
-        _warn_once(f"all_reduce failed in CAGNET SpMM ({e}); falling back to local result.")
+        _warn_once(
+            f"all_reduce failed in CAGNET SpMM ({e}); falling back to local result."
+        )
         return partial
 
     # If row-split, restore by all_gather in col_group
     if rows > 1 and col_group is not None:
-        rows_local = torch.tensor([r_end - r_start], device=partial.device, dtype=torch.int64)
+        rows_local = torch.tensor(
+            [r_end - r_start], device=partial.device, dtype=torch.int64
+        )
         rows_bufs = [torch.zeros_like(rows_local) for _ in range(rows)]
         try:
             dist.all_gather(rows_bufs, rows_local, group=col_group)
         except Exception as e:
-            _warn_once(f"all_gather(row sizes) failed in CAGNET SpMM ({e}); returning row-sliced output.")
+            _warn_once(
+                f"all_gather(row sizes) failed in CAGNET SpMM ({e}); returning row-sliced output."
+            )
             return partial
         sizes = [int(t.item()) for t in rows_bufs]
         max_rows = max(sizes) if sizes else 0
@@ -481,19 +489,28 @@ def _spmm_process_grid(
         if partial.size(0) < max_rows:
             pad = max_rows - partial.size(0)
             partial_padded = torch.cat(
-                [partial, torch.zeros(pad, partial.size(1), device=partial.device, dtype=partial.dtype)],
+                [
+                    partial,
+                    torch.zeros(
+                        pad, partial.size(1), device=partial.device, dtype=partial.dtype
+                    ),
+                ],
                 dim=0,
             )
         else:
             partial_padded = partial
         gather_bufs = [
-            torch.empty(max_rows, partial.size(1), device=partial.device, dtype=partial.dtype)
+            torch.empty(
+                max_rows, partial.size(1), device=partial.device, dtype=partial.dtype
+            )
             for _ in range(rows)
         ]
         try:
             dist.all_gather(gather_bufs, partial_padded, group=col_group)
         except Exception as e:
-            _warn_once(f"all_gather(row blocks) failed in CAGNET SpMM ({e}); returning row-sliced output.")
+            _warn_once(
+                f"all_gather(row blocks) failed in CAGNET SpMM ({e}); returning row-sliced output."
+            )
             return partial
         full_rows = torch.cat([buf[:sz] for buf, sz in zip(gather_bufs, sizes)], dim=0)
         return full_rows
@@ -528,12 +545,16 @@ def _spmm_process_grid_2d_ax(
 
     # Row blocks
     if rows > 1:
-        row_part, (r_start, r_end) = _split_coo_single(A, rows, dim=0, idx=row_id, use_cache=use_cache)
+        row_part, (r_start, r_end) = _split_coo_single(
+            A, rows, dim=0, idx=row_id, use_cache=use_cache
+        )
     else:
         row_part, (r_start, r_end) = A, (0, A.size(0))
 
     # Column blocks
-    part, (c_start, c_end) = _split_coo_single(row_part, cols, dim=1, idx=col_id, use_cache=use_cache)
+    part, (c_start, c_end) = _split_coo_single(
+        row_part, cols, dim=1, idx=col_id, use_cache=use_cache
+    )
     if part.device != X.device:
         part = part.to(device=X.device)
 
@@ -554,17 +575,23 @@ def _spmm_process_grid_2d_ax(
     try:
         dist.all_reduce(partial, op=dist.ReduceOp.SUM, group=row_group)
     except Exception as e:
-        _warn_once(f"all_reduce failed in 2D SpMM row_group ({e}); falling back to local row slice.")
+        _warn_once(
+            f"all_reduce failed in 2D SpMM row_group ({e}); falling back to local row slice."
+        )
         return partial
 
     # If rows>1, all_gather row blocks in col_group (variable length)
     if rows > 1 and col_group is not None:
-        rows_local = torch.tensor([r_end - r_start], device=partial.device, dtype=torch.int64)
+        rows_local = torch.tensor(
+            [r_end - r_start], device=partial.device, dtype=torch.int64
+        )
         rows_bufs = [torch.zeros_like(rows_local) for _ in range(rows)]
         try:
             dist.all_gather(rows_bufs, rows_local, group=col_group)
         except Exception as e:
-            _warn_once(f"all_gather(row sizes) failed in 2D SpMM ({e}); returning row slice.")
+            _warn_once(
+                f"all_gather(row sizes) failed in 2D SpMM ({e}); returning row slice."
+            )
             return partial
         sizes = [int(t.item()) for t in rows_bufs]
         max_rows = max(sizes) if sizes else 0
@@ -573,20 +600,29 @@ def _spmm_process_grid_2d_ax(
         if partial.size(0) < max_rows:
             pad = max_rows - partial.size(0)
             partial_padded = torch.cat(
-                [partial, torch.zeros(pad, partial.size(1), device=partial.device, dtype=partial.dtype)],
+                [
+                    partial,
+                    torch.zeros(
+                        pad, partial.size(1), device=partial.device, dtype=partial.dtype
+                    ),
+                ],
                 dim=0,
             )
         else:
             partial_padded = partial
 
         gather_bufs = [
-            torch.empty(max_rows, partial.size(1), device=partial.device, dtype=partial.dtype)
+            torch.empty(
+                max_rows, partial.size(1), device=partial.device, dtype=partial.dtype
+            )
             for _ in range(rows)
         ]
         try:
             dist.all_gather(gather_bufs, partial_padded, group=col_group)
         except Exception as e:
-            _warn_once(f"all_gather(row blocks) failed in 2D SpMM ({e}); returning row slice.")
+            _warn_once(
+                f"all_gather(row blocks) failed in 2D SpMM ({e}); returning row slice."
+            )
             return partial
         full_rows = torch.cat([buf[:sz] for buf, sz in zip(gather_bufs, sizes)], dim=0)
         return full_rows
@@ -611,18 +647,20 @@ def _spmm_process_grid_3d(
     if topo.replication <= 1 or topo.row_group is None or topo.rep_group is None:
         return _spmm_process_grid(A, X, topo.row_group, topo.col_group)
 
-    rows, cols, rep = topo.rows, topo.cols, topo.replication
-    world = topo.world_size
+    rows, cols = topo.rows, topo.cols
     rank = dist.get_rank()
     plane_size = rows * cols
-    rep_id = rank // plane_size
     rc = rank % plane_size
     row_id = rc // cols
     col_id = rc % cols
 
     # Slice sparse matrix: row split -> col split (cached)
-    row_part, (r_start, r_end) = _split_coo_single(A, rows, dim=0, idx=row_id, use_cache=use_cache)
-    col_part, (c_start, c_end) = _split_coo_single(row_part, cols, dim=1, idx=col_id, use_cache=use_cache)
+    row_part, (r_start, r_end) = _split_coo_single(
+        A, rows, dim=0, idx=row_id, use_cache=use_cache
+    )
+    col_part, (c_start, c_end) = _split_coo_single(
+        row_part, cols, dim=1, idx=col_id, use_cache=use_cache
+    )
     if col_part.device != X.device:
         col_part = col_part.to(device=X.device)
 
@@ -663,15 +701,21 @@ def _spmm_process_grid_3d(
         try:
             dist.all_reduce(partial, op=dist.ReduceOp.SUM, group=topo.row_group)
         except Exception as e:
-            _warn_once(f"all_reduce failed in 3D SpMM row_group ({e}); falling back to local result.")
+            _warn_once(
+                f"all_reduce failed in 3D SpMM row_group ({e}); falling back to local result."
+            )
             return partial
     # all_gather row blocks in col_group (variable length) to restore (N, f_chunk)
-    rows_local = torch.tensor([r_end - r_start], device=partial.device, dtype=torch.int64)
+    rows_local = torch.tensor(
+        [r_end - r_start], device=partial.device, dtype=torch.int64
+    )
     rows_bufs = [torch.zeros_like(rows_local) for _ in range(rows)]
     try:
         dist.all_gather(rows_bufs, rows_local, group=topo.col_group)
     except Exception as e:
-        _warn_once(f"all_gather(row sizes) failed in 3D SpMM ({e}); returning row slice.")
+        _warn_once(
+            f"all_gather(row sizes) failed in 3D SpMM ({e}); returning row slice."
+        )
         return partial
     sizes_row = [int(t.item()) for t in rows_bufs]
     max_rows = max(sizes_row) if sizes_row else 0
@@ -680,29 +724,44 @@ def _spmm_process_grid_3d(
     if partial.size(0) < max_rows:
         pad = max_rows - partial.size(0)
         partial_padded = torch.cat(
-            [partial, torch.zeros(pad, partial.size(1), device=partial.device, dtype=partial.dtype)],
+            [
+                partial,
+                torch.zeros(
+                    pad, partial.size(1), device=partial.device, dtype=partial.dtype
+                ),
+            ],
             dim=0,
         )
     else:
         partial_padded = partial
     gather_row_bufs = [
-        torch.empty(max_rows, partial.size(1), device=partial.device, dtype=partial.dtype)
+        torch.empty(
+            max_rows, partial.size(1), device=partial.device, dtype=partial.dtype
+        )
         for _ in range(rows)
     ]
     try:
         dist.all_gather(gather_row_bufs, partial_padded, group=topo.col_group)
     except Exception as e:
-        _warn_once(f"all_gather(row blocks) failed in 3D SpMM ({e}); returning row slice.")
+        _warn_once(
+            f"all_gather(row blocks) failed in 3D SpMM ({e}); returning row slice."
+        )
         return partial
-    full_rows = torch.cat([buf[:sz] for buf, sz in zip(gather_row_bufs, sizes_row)], dim=0)
+    full_rows = torch.cat(
+        [buf[:sz] for buf, sz in zip(gather_row_bufs, sizes_row)], dim=0
+    )
 
     # Gather each chunk length in rep dimension (share size without padding)
-    len_local = torch.tensor([full_rows.size(1)], device=full_rows.device, dtype=torch.int64)
+    len_local = torch.tensor(
+        [full_rows.size(1)], device=full_rows.device, dtype=torch.int64
+    )
     len_bufs = [torch.zeros_like(len_local) for _ in range(rep_world)]
     try:
         dist.all_gather(len_bufs, len_local, group=topo.rep_group)
     except Exception as e:
-        _warn_once(f"all_gather(len) failed in 3D SpMM ({e}); returning row-assembled output.")
+        _warn_once(
+            f"all_gather(len) failed in 3D SpMM ({e}); returning row-assembled output."
+        )
         if weight is not None:
             return full_rows.matmul(weight.t())
         return full_rows
@@ -717,24 +776,38 @@ def _spmm_process_grid_3d(
     if full_rows.size(1) < max_len:
         pad_cols = max_len - full_rows.size(1)
         full_rows_padded = torch.cat(
-            [full_rows, torch.zeros(full_rows.size(0), pad_cols, device=full_rows.device, dtype=full_rows.dtype)],
+            [
+                full_rows,
+                torch.zeros(
+                    full_rows.size(0),
+                    pad_cols,
+                    device=full_rows.device,
+                    dtype=full_rows.dtype,
+                ),
+            ],
             dim=1,
         )
     else:
         full_rows_padded = full_rows
     gather_feat_bufs = [
-        torch.empty(full_rows.size(0), max_len, device=full_rows.device, dtype=full_rows.dtype)
+        torch.empty(
+            full_rows.size(0), max_len, device=full_rows.device, dtype=full_rows.dtype
+        )
         for _ in range(rep_world)
     ]
     try:
         dist.all_gather(gather_feat_bufs, full_rows_padded, group=topo.rep_group)
     except Exception as e:
-        _warn_once(f"all_gather(data) failed in 3D SpMM ({e}); returning row-assembled output.")
+        _warn_once(
+            f"all_gather(data) failed in 3D SpMM ({e}); returning row-assembled output."
+        )
         if weight is not None:
             return full_rows.matmul(weight.t())
         return full_rows
 
-    full_feat = torch.cat([buf[:, :sz] for buf, sz in zip(gather_feat_bufs, sizes)], dim=1)
+    full_feat = torch.cat(
+        [buf[:, :sz] for buf, sz in zip(gather_feat_bufs, sizes)], dim=1
+    )
     if weight is not None:
         return full_feat.matmul(weight.t())
     return full_feat

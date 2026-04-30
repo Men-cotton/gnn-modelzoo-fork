@@ -63,7 +63,7 @@ Since this model always uses the CAGNET implementation path (`CagnetSAGE`), it r
 Without this kernel, the model will fallback to a slower PyTorch implementation (torch.sparse.mm).
  
 ```bash
-cd src/cerebras/modelzoo/models/gnn/pyg_gnn/ops
+cd src/cerebras/modelzoo/models/gnn/reference/pyg/ops
 uv run setup.py install
 ```
 

@@ -1,41 +1,42 @@
-import time
-import torch
-from typing import Dict, Any
-from cerebras.modelzoo.trainer.callbacks import Callback
 import cerebras.pytorch as cstorch
+import torch
 from cerebras.pytorch.utils.tracker import RateTracker
 from cerebras.pytorch.utils.data.utils import infer_batch_size
+from cerebras.modelzoo.trainer.callbacks import Callback
+import time
+
 
 class ComputeTimeCallback(Callback):
     """
     HPC Logger using precise 'before/after' hooks to isolate host dispatch latency.
     """
+
     def __init__(self, log_steps: int = 10, warmup_steps: int = 10):
         self.log_steps = log_steps
         self.warmup_steps = warmup_steps
-        
+
         self.rate_tracker = RateTracker()
-        
+
         self.metrics = {
             "load": 0.0,
             "host_submit_fwd": 0.0,
             "host_submit_bwd": 0.0,
             "host_submit_opt": 0.0,
-            "iter_wall": 0.0
+            "iter_wall": 0.0,
         }
-        
+
         # Timestamps
         self.total_wall_start = 0.0
         self.t_batch_end = 0.0
         self.t_batch_start = 0.0
-        self.t_temp_start = 0.0 # Temporary storage for 'before' hook
+        self.t_temp_start = 0.0  # Temporary storage for 'before' hook
         self.in_warmup = True
         self.pause_start_time = None
-        
+
         # State tracking
         self._in_train_loop = False
         self.window_steps = 0
-        
+
         # Compilation tracking
         self.is_compiled = False
         self.compile_start_time = 0.0
@@ -54,12 +55,12 @@ class ComputeTimeCallback(Callback):
             duration = time.perf_counter() - self.pause_start_time
             self.total_wall_start += duration
             self.t_batch_end += duration
-            
+
             # Correct RateTracker by effectively subtracting the paused duration
             elapsed = self.rate_tracker.elapsed_seconds()
             if elapsed > duration:
                 self.rate_tracker.reset_time(offset=(elapsed - duration))
-                
+
             self.pause_start_time = None
 
     def on_train_end(self, trainer, model, loop, loop_idx):
@@ -116,13 +117,13 @@ class ComputeTimeCallback(Callback):
             batch_size = 1
 
         self.rate_tracker.add(batch_size)
-    
+
         # Step Wall Time and Residual
         t_now = time.perf_counter()
         iter_wall = (t_now - self.t_batch_start) * 1000.0
 
         self.metrics["iter_wall"] += iter_wall
-        
+
         step = trainer.global_step
         self.window_steps += 1
 
@@ -132,29 +133,32 @@ class ComputeTimeCallback(Callback):
             compile_dur = time.perf_counter() - self.compile_start_time
             print(f"[Compilation] Step={step} finished. Duration={compile_dur:.2f}s")
             self.is_compiled = True
-            
+
             # Reset trackers to avoid polluting steady-state metrics
             self.rate_tracker.reset()
-            for k in self.metrics: self.metrics[k] = 0.0
+            for k in self.metrics:
+                self.metrics[k] = 0.0
             self.window_steps = 0
             self.total_wall_start = time.perf_counter()
-            self.t_batch_end = time.perf_counter() 
-            return # Skip standard logging for this outlier step
+            self.t_batch_end = time.perf_counter()
+            return  # Skip standard logging for this outlier step
 
         # Warmup logic
         if step == self.warmup_steps:
             self.rate_tracker.reset()
-            for k in self.metrics: self.metrics[k] = 0.0
+            for k in self.metrics:
+                self.metrics[k] = 0.0
             self.window_steps = 0
             self.in_warmup = False
             self.total_wall_start = time.perf_counter()
             self.t_batch_end = time.perf_counter()
-            return # Skip logging at the warmup boundary to avoid printing zero/reset metrics
+            return  # Skip logging at the warmup boundary to avoid printing zero/reset metrics
 
         # Logging
         if not self.in_warmup and step % self.log_steps == 0:
             self._print_log(trainer, step, outputs)
-            for k in self.metrics: self.metrics[k] = 0.0
+            for k in self.metrics:
+                self.metrics[k] = 0.0
             self.window_steps = 0
 
         self.t_batch_end = time.perf_counter()
@@ -169,7 +173,7 @@ class ComputeTimeCallback(Callback):
 
         # Averages
         if self.window_steps == 0:
-             return # Avoid division by zero
+            return  # Avoid division by zero
 
         avg_load = self.metrics["load"] / self.window_steps
         avg_fwd = self.metrics["host_submit_fwd"] / self.window_steps
@@ -180,17 +184,17 @@ class ComputeTimeCallback(Callback):
         # WSE "Device" Time (Residual)
         # We display Host Submit separately from Residual.
         avg_residual = avg_wall - avg_host
-        
+
         # Detect measurement breakdown (negative residual)
         if avg_residual < -1e-3:
-             print(f"[Warn] Residual became negative: {avg_residual:.3f} ms/step")
+            print(f"[Warn] Residual became negative: {avg_residual:.3f} ms/step")
 
         wall_time = time.perf_counter() - self.total_wall_start
 
         # Capture rates now so they match this logging window.
         global_rate = self.rate_tracker.global_rate()
         local_rate = self.rate_tracker.rate()
-        
+
         self._print_log_step_closure(
             trainer,
             step,
@@ -242,6 +246,4 @@ class ComputeTimeCallback(Callback):
             f"Iter_Wall: {avg_wall:.3f}"
         )
 
-        print(
-            f"[Throughput] Samples: {global_rate:.2f} samples/s ({local_rate:.2f})"
-        )
+        print(f"[Throughput] Samples: {global_rate:.2f} samples/s ({local_rate:.2f})")

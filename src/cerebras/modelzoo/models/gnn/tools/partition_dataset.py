@@ -2,6 +2,7 @@
 High-level partitioning logic for OGB/PyG datasets.
 Encapsulates environment setup, offline checks, and calling the lower-level partition_graph.
 """
+
 import argparse
 import os
 import builtins
@@ -18,7 +19,7 @@ from torch_geometric.distributed import Partitioner
 from torch_geometric.utils import mask_to_index
 from ogb.nodeproppred import PygNodePropPredDataset
 
-from cerebras.modelzoo.models.gnn.pyg_gnn.utils import (
+from cerebras.modelzoo.models.gnn.reference.pyg.utils import (
     _canonicalize_ogb_name,
     _resolve_ogb_dir,
     _ensure_ogb_alias,
@@ -27,7 +28,7 @@ from cerebras.modelzoo.models.gnn.pyg_gnn.utils import (
     OfflineDatasetNotFound,
     load_cfg,
 )
-from cerebras.modelzoo.models.gnn.pyg_gnn.data import _resolve_dataset_profile
+from cerebras.modelzoo.models.gnn.reference.pyg.data import _resolve_dataset_profile
 
 GNN_ROOT = Path(__file__).resolve().parents[1]
 
@@ -62,7 +63,10 @@ def partition_dataset(
     dataset = get_dataset(dataset_name, dataset_dir, use_sparse_tensor)
     data = dataset[0]
 
-    if dataset_name in ("ogbn-products", "ogbn-arxiv") and getattr(data, "y", None) is not None:
+    if (
+        dataset_name in ("ogbn-products", "ogbn-arxiv")
+        and getattr(data, "y", None) is not None
+    ):
         data.y = data.y.view(-1)
 
     save_dir = osp.join(root_dir, "partitions", dataset_name, f"{num_parts}-parts")
@@ -169,12 +173,14 @@ def save_partitions(split_idx, dataset_name, num_parts, save_dir):
     # Load node_map to assign indices to correct partition
     # node_map is at save_dir/../{dataset_name}-partitions/node_map.pt
     # save_dir is .../{num_parts}-parts
-    
+
     parts_dir = osp.join(save_dir, f"{dataset_name}-partitions")
     node_map_path = osp.join(parts_dir, "node_map.pt")
-    
+
     if not osp.exists(node_map_path):
-        print(f"[warn] node_map.pt not found at {node_map_path}. Falling back to tensor_split (contiguous).")
+        print(
+            f"[warn] node_map.pt not found at {node_map_path}. Falling back to tensor_split (contiguous)."
+        )
         node_map = None
     else:
         print(f"-- Loading node map from {node_map_path}")
@@ -191,7 +197,7 @@ def save_partitions(split_idx, dataset_name, num_parts, save_dir):
             # idx contains global node IDs. node_map[global_id] -> partition_id
             ownership = node_map[idx]
             for i in range(num_parts):
-                mask = (ownership == i)
+                mask = ownership == i
                 chunk = idx[mask]
                 torch.save(chunk, osp.join(part_dir, f"partition{i}.pt"))
         else:
@@ -402,7 +408,10 @@ def _resolve_config_dataset(config_path: str, dataset_override: Optional[str]):
         dataset_name = dataset_override
     data_dir = dataset_profile.get("data_dir")
     if data_dir is None:
-        print("[warn] data_dir is missing from dataset_profiles; cannot prepare partitions.", file=sys.stderr)
+        print(
+            "[warn] data_dir is missing from dataset_profiles; cannot prepare partitions.",
+            file=sys.stderr,
+        )
         raise SystemExit(1)
     if not osp.isabs(data_dir):
         data_dir = str((GNN_ROOT / data_dir).resolve())
@@ -410,20 +419,36 @@ def _resolve_config_dataset(config_path: str, dataset_override: Optional[str]):
 
 
 def main():
-    ap = argparse.ArgumentParser(description="Prepare PyG partitions for distributed training.")
-    ap.add_argument("--config", help="Path to training YAML (uses dataset_profiles for data_dir).")
+    ap = argparse.ArgumentParser(
+        description="Prepare PyG partitions for distributed training."
+    )
+    ap.add_argument(
+        "--config", help="Path to training YAML (uses dataset_profiles for data_dir)."
+    )
     ap.add_argument("--dataset", help="Dataset name (overrides config if set).")
-    ap.add_argument("--num-partitions", type=int, default=1, help="Number of partitions to generate.")
-    ap.add_argument("--recursive", action="store_true", help="Use recursive partitioning.")
+    ap.add_argument(
+        "--num-partitions",
+        type=int,
+        default=1,
+        help="Number of partitions to generate.",
+    )
+    ap.add_argument(
+        "--recursive", action="store_true", help="Use recursive partitioning."
+    )
     args = ap.parse_args()
 
     if not args.config:
-        print("[warn] --config is required to resolve dataset_profiles and data_dir.", file=sys.stderr)
+        print(
+            "[warn] --config is required to resolve dataset_profiles and data_dir.",
+            file=sys.stderr,
+        )
         raise SystemExit(1)
 
     dataset_name, data_dir = _resolve_config_dataset(args.config, args.dataset)
 
-    print(f"[Partition] Generating {args.num_partitions} partitions for {dataset_name} in {data_dir}")
+    print(
+        f"[Partition] Generating {args.num_partitions} partitions for {dataset_name} in {data_dir}"
+    )
     path = prepare_partition(
         dataset_name,
         data_dir,

@@ -6,12 +6,15 @@ import torch.distributed as dist
 import sys
 from importlib import import_module
 from pathlib import Path
-from typing import Iterable, Optional, Union
+from typing import Iterable
 import yaml
+
 
 class OfflineDatasetNotFound(FileNotFoundError):
     """Raised when offline=True and required dataset files are not present."""
+
     pass
+
 
 def set_seed(seed: int, deterministic: bool = False):
     random.seed(seed)
@@ -31,21 +34,26 @@ def set_seed(seed: int, deterministic: bool = False):
     torch.backends.cudnn.allow_tf32 = True
     torch.set_float32_matmul_precision("high")
 
+
 def ensure_pickle_friendly_load():
     """
     Patches torch.load to default to weights_only=False.
     This safely suppresses the FutureWarning from libraries like OGB that rely on implicit pickle loading.
     """
     original_load = torch.load
+
     def patched_load(*args, **kwargs):
         # Set default weights_only=False if not specified
         kwargs.setdefault("weights_only", False)
         return original_load(*args, **kwargs)
+
     torch.load = patched_load
+
 
 def load_cfg(path: str):
     with open(path, "r") as f:
         return yaml.safe_load(f)
+
 
 def setup_ddp():
     """
@@ -58,15 +66,17 @@ def setup_ddp():
     if "RANK" in os.environ and "WORLD_SIZE" in os.environ:
         # Initialize the process group
         dist.init_process_group(backend="nccl")
-        
+
         rank = int(os.environ["RANK"])
         world_size = int(os.environ["WORLD_SIZE"])
         local_rank = int(os.environ.get("LOCAL_RANK", 0))
-        
+
         torch.cuda.set_device(local_rank)
         device = torch.device(f"cuda:{local_rank}")
-        
-        print(f"[ddp] Initialized: rank={rank}, world_size={world_size}, device={device}")
+
+        print(
+            f"[ddp] Initialized: rank={rank}, world_size={world_size}, device={device}"
+        )
         return rank, world_size, device
     else:
         # Fallback for single GPU/CPU
@@ -74,10 +84,12 @@ def setup_ddp():
         print(f"[ddp] Single-process mode: device={device}")
         return 0, 1, device
 
+
 def cleanup_ddp():
     """Destroys the process group if it exists."""
     if dist.is_available() and dist.is_initialized():
         dist.destroy_process_group()
+
 
 def _canonicalize_ogb_name(name: str) -> str:
     """Return the official OGB dataset identifier (ogbn-*) for the given name."""
@@ -86,6 +98,7 @@ def _canonicalize_ogb_name(name: str) -> str:
     if name.startswith("ogbn_"):
         return name.replace("_", "-")
     return name
+
 
 def _ogb_name_variants(name: str) -> Iterable[str]:
     """Yield plausible directory names (underscore / hyphen) for an ogbn dataset."""
@@ -101,6 +114,7 @@ def _ogb_name_variants(name: str) -> Iterable[str]:
         seen.add(variant)
         yield variant
 
+
 def _resolve_ogb_dir(root: str, name: str) -> Path:
     """
     Returns the actual directory for an OGB dataset (preferring existing raw/processed).
@@ -114,6 +128,7 @@ def _resolve_ogb_dir(root: str, name: str) -> Path:
         if (d / "processed").exists() or (d / "raw").exists():
             return d
     return candidates[0]
+
 
 def _ensure_ogb_alias(root: Path, canonical_name: str, actual_dir: Path):
     """
@@ -131,8 +146,12 @@ def _ensure_ogb_alias(root: Path, canonical_name: str, actual_dir: Path):
     except FileExistsError:
         pass
     except OSError as exc:
-        print(f"[warn] could not create OGB alias {alias_dir} -> {actual_dir}: {exc}", file=sys.stderr)
+        print(
+            f"[warn] could not create OGB alias {alias_dir} -> {actual_dir}: {exc}",
+            file=sys.stderr,
+        )
     return alias_dir if alias_dir.exists() else actual_dir
+
 
 def _import_optional(path: str):
     try:
@@ -141,6 +160,7 @@ def _import_optional(path: str):
         return getattr(module, attr)
     except Exception:
         return None
+
 
 def _register_safe_globals():
     """Register PyG classes as safe globals for torch.load."""

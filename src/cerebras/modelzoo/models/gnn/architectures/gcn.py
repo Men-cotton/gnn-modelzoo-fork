@@ -3,11 +3,10 @@ from __future__ import annotations
 from contextlib import nullcontext
 from typing import Dict, Tuple, Union
 
-import cerebras.pytorch as cstorch
 import torch
 import torch.nn as nn
 
-from ..data_processing.pipelines.common import EdgeIndexAdjacency
+from ..data_processing.runtime.torch import EdgeIndexAdjacency
 
 try:
     from torch.cuda.amp import autocast as cuda_autocast
@@ -63,7 +62,7 @@ class GCNLayer(nn.Module):
         output_dtype = features.dtype
         support = torch.matmul(features, self.weight)
 
-        if cstorch.use_cs():
+        if isinstance(adjacency, torch.Tensor) and not adjacency.is_sparse:
             adjacency_dense = self._prepare_dense_adjacency(
                 adjacency,
                 device=support.device,
@@ -83,7 +82,7 @@ class GCNLayer(nn.Module):
             else nullcontext()
         )
         with ctx:
-            if cstorch.use_cs():
+            if isinstance(adjacency, torch.Tensor) and not adjacency.is_sparse:
                 output = self._propagate_dense(support, adjacency_dense)
             else:
                 output = self._propagate(support, edge_index, edge_weight)
@@ -139,7 +138,7 @@ class GCNLayer(nn.Module):
                 f"edge_index must have shape [2, E]; received {tuple(edge_index.shape)}"
             )
 
-        index_dtype = torch.int32 if cstorch.use_cs() else torch.long
+        index_dtype = torch.long
         edge_index = edge_index.to(device=device, dtype=index_dtype)
         if edge_weight is None:
             edge_weight = torch.ones(
@@ -151,12 +150,8 @@ class GCNLayer(nn.Module):
             edge_weight = edge_weight.to(device=device, dtype=dtype)
 
         if edge_index.size(1) == 0:
-            empty_index = torch.empty(
-                (2, 0), device=device, dtype=index_dtype
-            )
-            empty_weight = torch.empty(
-                (0,), device=device, dtype=dtype
-            )
+            empty_index = torch.empty((2, 0), device=device, dtype=index_dtype)
+            empty_weight = torch.empty((0,), device=device, dtype=dtype)
             return empty_index, empty_weight
 
         return edge_index, edge_weight
@@ -188,9 +183,7 @@ class GCNLayer(nn.Module):
                 f"Dense adjacency must be square; received shape {tuple(adjacency.shape)}."
             )
         if adjacency.size(1) != num_nodes:
-            raise ValueError(
-                "Dense adjacency dimension mismatch with feature tensor."
-            )
+            raise ValueError("Dense adjacency dimension mismatch with feature tensor.")
         return adjacency.to(device=device, dtype=dtype)
 
     def _propagate(

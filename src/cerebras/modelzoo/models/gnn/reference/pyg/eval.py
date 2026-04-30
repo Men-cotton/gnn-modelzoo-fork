@@ -2,9 +2,15 @@ import argparse
 import os
 import torch
 import torch.distributed as dist
-from cerebras.modelzoo.models.gnn.pyg_gnn.utils import set_seed, load_cfg
-from cerebras.modelzoo.models.gnn.pyg_gnn.data import load_dataset, make_loaders, check_pyg_lib, _resolve_dataset_profile
-from cerebras.modelzoo.models.gnn.pyg_gnn.model import get_model
+from cerebras.modelzoo.models.gnn.reference.pyg.utils import set_seed, load_cfg
+from cerebras.modelzoo.models.gnn.reference.pyg.data import (
+    load_dataset,
+    make_loaders,
+    check_pyg_lib,
+    _resolve_dataset_profile,
+)
+from cerebras.modelzoo.models.gnn.reference.pyg.model import get_model
+
 
 @torch.no_grad()
 def evaluate(model, loader, device, cache=None):
@@ -14,7 +20,7 @@ def evaluate(model, loader, device, cache=None):
     for batch in loader:
         batch = batch.to(device, non_blocking=True)
         if cache is not None:
-             batch.x = cache.fetch(batch.n_id)
+            batch.x = cache.fetch(batch.n_id)
         # GraphSAGE with NeighborLoader: pass batch_size to get only seed nodes
         out = model(batch.x, batch.edge_index, batch_size=batch.batch_size)
         out = out[: batch.batch_size]
@@ -29,6 +35,7 @@ def evaluate(model, loader, device, cache=None):
         total = int(counts[1].item())
     return correct / max(total, 1)
 
+
 @torch.no_grad()
 def evaluate_full_batch(model, data, node_idx, device):
     model.eval()
@@ -38,6 +45,7 @@ def evaluate_full_batch(model, data, node_idx, device):
     correct = (pred == y).sum().item()
     return correct / max(y.numel(), 1)
 
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--config", required=True, help="path to YAML")
@@ -45,7 +53,7 @@ def main():
     args = ap.parse_args()
 
     cfg = load_cfg(args.config)
-    
+
     # Seed
     seed = cfg["trainer"]["init"]["seed"]
     set_seed(seed)
@@ -56,7 +64,7 @@ def main():
     val_c = cfg["trainer"]["validate"]["val_dataloader"]
     dataset_profile = _resolve_dataset_profile(val_c)
     data, split_idx = load_dataset(dataset_profile)
-    
+
     check_pyg_lib()
     # We only need val loader for evaluation
     # But make_loaders returns both. Let's just use make_loaders for simplicity or manually create val loader.
@@ -66,11 +74,11 @@ def main():
 
     # Model
     model = get_model(cfg).to(device)
-    
+
     # Load Checkpoint
     if not os.path.exists(args.checkpoint):
         raise FileNotFoundError(f"Checkpoint not found: {args.checkpoint}")
-    
+
     print(f"Loading checkpoint from {args.checkpoint}")
     ckpt = torch.load(args.checkpoint, map_location=device)
     state_dict = ckpt["model_state"]
@@ -89,6 +97,7 @@ def main():
     # Evaluate
     acc = evaluate(model, val_loader, device)
     print(f"Validation Accuracy: {acc:.4f}")
+
 
 if __name__ == "__main__":
     main()
