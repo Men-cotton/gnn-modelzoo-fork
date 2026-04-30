@@ -1,0 +1,23 @@
+trainer:
+  init:
+    model_dir: ./model_dir/sdk_benchmark/FFT
+    seed: 1
+    backend: {}
+    model:
+      name: sdk_benchmark/FFT
+      dim: 2
+      size: 4
+    loop:
+      eval_steps: 4
+    checkpoint:
+      steps: null
+    logging:
+      log_steps: 1
+  validate:
+    val_dataloader:
+      data_processor: SdkBenchmarkFFTDataProcessor
+      batch_size: 1
+      sample_count: 4
+      dim: 2
+      size: 4
+      inverse: false

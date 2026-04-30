@@ -1,0 +1,23 @@
+trainer:
+  init:
+    model_dir: ./model_dir/sdk-benchmark/gemm-collectives_2d
+    backend: {}
+    model:
+      name: sdk_benchmark/gemm-collectives_2d
+      p: 4
+      mt: 14
+      kt: 14
+      nt: 14
+    loop:
+      eval_steps: 5
+    checkpoint:
+      steps: null
+  validate:
+    val_dataloader:
+      data_processor: GemmCollectives2dDataProcessor
+      batch_size: 1
+      sample_count: 5
+      p: 4
+      mt: 14
+      kt: 14
+      nt: 14

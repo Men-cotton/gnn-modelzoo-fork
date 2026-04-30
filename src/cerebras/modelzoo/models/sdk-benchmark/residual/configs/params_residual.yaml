@@ -1,0 +1,20 @@
+trainer:
+  init:
+    model_dir: ./model_dir/sdk-benchmark/residual
+    seed: 1
+    backend: {}
+    model:
+      name: sdk_benchmark/residual
+      rows: 6
+      cols: 4
+    loop:
+      eval_steps: 10
+    checkpoint:
+      steps: null
+  validate:
+    val_dataloader:
+      data_processor: SdkBenchmarkResidualDataProcessor
+      batch_size: 1
+      sample_count: 10
+      rows: 6
+      cols: 4

@@ -1,0 +1,23 @@
+trainer:
+  init:
+    model_dir: ./model_dir/sdk-benchmark/single-tile-matvec
+    backend: {}
+    model:
+      name: sdk_benchmark/single-tile-matvec
+      width: 2
+      height: 2
+      tile_size: 25
+      iters: 1
+    loop:
+      eval_steps: 5
+    checkpoint:
+      steps: null
+  validate:
+    val_dataloader:
+      data_processor: SingleTileMatvecDataProcessor
+      batch_size: 1
+      sample_count: 5
+      width: 2
+      height: 2
+      tile_size: 25
+      iters: 1

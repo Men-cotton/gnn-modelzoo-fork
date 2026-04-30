@@ -1,0 +1,21 @@
+trainer:
+  init:
+    model_dir: ./model_dir/sdk-benchmark/game-of-life
+    backend: {}
+    model:
+      name: sdk_benchmark/game-of-life
+      height: 16
+      width: 16
+      generations: 8
+    loop:
+      eval_steps: 16
+    checkpoint:
+      steps: null
+  validate:
+    val_dataloader:
+      data_processor: SdkBenchmarkGameOfLifeDataProcessor
+      batch_size: 1
+      height: 16
+      width: 16
+      generations: 8
+      sample_count: 16

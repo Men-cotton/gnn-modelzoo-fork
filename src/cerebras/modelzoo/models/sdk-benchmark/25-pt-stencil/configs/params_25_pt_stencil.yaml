@@ -1,0 +1,24 @@
+trainer:
+  init:
+    model_dir: ./model_dir/sdk-benchmark/25-pt-stencil
+    seed: 1
+    backend: {}
+    model:
+      name: sdk_benchmark/25-pt-stencil
+      size: 10
+      z_dim: 10
+      iterations: 10
+      dx: 20
+    loop:
+      eval_steps: 10
+    checkpoint:
+      steps: null
+  validate:
+    val_dataloader:
+      data_processor: SdkBenchmark25PtStencilDataProcessor
+      batch_size: 1
+      sample_count: 10
+      size: 10
+      z_dim: 10
+      iterations: 10
+      dx: 20

@@ -1,0 +1,25 @@
+trainer:
+  init:
+    model_dir: ./model_dir/sdk-benchmark/histogram-torus
+    backend: {}
+    model:
+      name: sdk_benchmark/histogram-torus
+      hist_height: 4
+      hist_width: 4
+      input_size: 8
+      num_buckets: 5
+      bucket_size: 10
+    loop:
+      eval_steps: 16
+    checkpoint:
+      steps: null
+  validate:
+    val_dataloader:
+      data_processor: SdkBenchmarkHistogramTorusDataProcessor
+      batch_size: 1
+      hist_height: 4
+      hist_width: 4
+      input_size: 8
+      num_buckets: 5
+      bucket_size: 10
+      sample_count: 16

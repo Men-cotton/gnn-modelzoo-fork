@@ -1,0 +1,24 @@
+trainer:
+  init:
+    seed: 1
+    model_dir: ./model_dir/sdk_benchmark/csl-libs-stencil_3d_7pts
+    backend: {}
+    model:
+      name: sdk_benchmark/csl-libs-stencil_3d_7pts
+      depth: 8
+      height: 8
+      width: 8
+    loop:
+      eval_steps: 10
+    checkpoint:
+      steps: null
+    logging:
+      log_steps: 1
+  validate:
+    val_dataloader:
+      data_processor: CslLibsStencil3d7ptsDataProcessor
+      batch_size: 1
+      sample_count: 10
+      depth: 8
+      height: 8
+      width: 8

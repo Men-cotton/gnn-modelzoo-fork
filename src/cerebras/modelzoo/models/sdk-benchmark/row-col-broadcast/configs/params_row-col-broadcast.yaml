@@ -1,0 +1,23 @@
+trainer:
+  init:
+    model_dir: ./model_dir/sdk-benchmark/row-col-broadcast
+    backend: {}
+    model:
+      name: sdk_benchmark/row-col-broadcast
+      height: 8
+      width: 8
+      pe_length: 16
+      broadcast_axis: row
+    loop:
+      eval_steps: 16
+    checkpoint:
+      steps: null
+  validate:
+    val_dataloader:
+      data_processor: SdkBenchmarkRowColBroadcastDataProcessor
+      batch_size: 1
+      height: 8
+      width: 8
+      pe_length: 16
+      broadcast_axis: row
+      sample_count: 16

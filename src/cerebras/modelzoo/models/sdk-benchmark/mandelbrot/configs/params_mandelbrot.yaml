@@ -1,0 +1,24 @@
+trainer:
+  init:
+    model_dir: ./model_dir/sdk_benchmark/mandelbrot
+    seed: 1
+    backend: {}
+    model:
+      name: sdk_benchmark/mandelbrot
+      rows: 16
+      cols: 16
+      max_iters: 32
+    loop:
+      eval_steps: 4
+    checkpoint:
+      steps: null
+    logging:
+      log_steps: 1
+  validate:
+    val_dataloader:
+      data_processor: SdkBenchmarkMandelbrotDataProcessor
+      batch_size: 1
+      sample_count: 4
+      rows: 16
+      cols: 16
+      max_iters: 32

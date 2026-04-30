@@ -1,0 +1,21 @@
+trainer:
+  init:
+    model_dir: ./model_dir/sdk-benchmark/gemv-collectives_2d
+    backend: {}
+    model:
+      name: sdk_benchmark/gemv-collectives_2d
+      matrix_rows: 32
+      matrix_cols: 16
+      kernel_rows: 4
+      kernel_cols: 4
+    loop:
+      eval_steps: 5
+    checkpoint:
+      steps: null
+  validate:
+    val_dataloader:
+      data_processor: GemvCollectives2dDataProcessor
+      batch_size: 1
+      sample_count: 5
+      matrix_rows: 32
+      matrix_cols: 16

@@ -1,0 +1,26 @@
+trainer:
+  init:
+    seed: 1
+    model_dir: ./model_dir/sdk-benchmark/conjugate-gradient
+    backend: {}
+    model:
+      name: sdk_benchmark/conjugate-gradient
+      height: 5
+      width: 5
+      z_dim: 5
+      iterations: 4
+      epsilon: 1.0e-6
+    loop:
+      eval_steps: 8
+    checkpoint:
+      steps: null
+  validate:
+    val_dataloader:
+      data_processor: ConjugateGradientDataProcessor
+      batch_size: 1
+      sample_count: 8
+      height: 5
+      width: 5
+      z_dim: 5
+      iterations: 4
+      epsilon: 1.0e-6

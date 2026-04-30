@@ -1,0 +1,26 @@
+trainer:
+  init:
+    seed: 1
+    model_dir: ./model_dir/sdk_benchmark/csl-libs-allreduce
+    backend: {}
+    model:
+      name: sdk_benchmark/csl-libs-allreduce
+      grid_height: 4
+      grid_width: 4
+      vector_length: 16
+      op: add
+    loop:
+      eval_steps: 10
+    checkpoint:
+      steps: null
+    logging:
+      log_steps: 1
+  validate:
+    val_dataloader:
+      data_processor: CslLibsAllreduceDataProcessor
+      batch_size: 1
+      sample_count: 10
+      grid_height: 4
+      grid_width: 4
+      vector_length: 16
+      op: add

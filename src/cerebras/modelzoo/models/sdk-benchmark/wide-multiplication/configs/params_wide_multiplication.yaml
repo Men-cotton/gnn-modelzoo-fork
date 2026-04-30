@@ -1,0 +1,22 @@
+trainer:
+  init:
+    model_dir: ./model_dir/sdk_benchmark/wide_multiplication
+    seed: 1
+    backend: {}
+    model:
+      name: sdk_benchmark/wide-multiplication
+      operand_bits: 128
+      result_bits: 256
+    loop:
+      eval_steps: 4
+    checkpoint:
+      steps: null
+    logging:
+      log_steps: 1
+  validate:
+    val_dataloader:
+      data_processor: SdkBenchmarkWideMultiplicationDataProcessor
+      batch_size: 1
+      sample_count: 4
+      operand_bits: 128
+      result_bits: 256

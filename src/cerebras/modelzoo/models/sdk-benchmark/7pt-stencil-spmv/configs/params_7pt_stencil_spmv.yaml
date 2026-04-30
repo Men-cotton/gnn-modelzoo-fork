@@ -1,0 +1,22 @@
+trainer:
+  init:
+    model_dir: ./model_dir/sdk-benchmark/7pt-stencil-spmv
+    seed: 1
+    backend: {}
+    model:
+      name: sdk_benchmark/7pt-stencil-spmv
+      height: 4
+      width: 4
+      z_dim: 8
+    loop:
+      eval_steps: 10
+    checkpoint:
+      steps: null
+  validate:
+    val_dataloader:
+      data_processor: SdkBenchmark7ptStencilSpmvDataProcessor
+      batch_size: 1
+      sample_count: 10
+      height: 4
+      width: 4
+      z_dim: 8

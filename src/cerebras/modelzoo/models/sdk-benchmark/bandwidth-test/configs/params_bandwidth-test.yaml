@@ -1,0 +1,21 @@
+trainer:
+  init:
+    model_dir: ./model_dir/sdk-benchmark/bandwidth-test
+    backend: {}
+    model:
+      name: sdk_benchmark/bandwidth-test
+      tensor_length: 4096
+      loop_count: 8
+      channel_count: 4
+    loop:
+      eval_steps: 16
+    checkpoint:
+      steps: null
+  validate:
+    val_dataloader:
+      data_processor: SdkBenchmarkBandwidthTestDataProcessor
+      batch_size: 1
+      tensor_length: 4096
+      loop_count: 8
+      channel_count: 4
+      sample_count: 16
