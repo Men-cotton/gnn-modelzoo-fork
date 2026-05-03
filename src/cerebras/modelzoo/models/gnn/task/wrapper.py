@@ -9,7 +9,7 @@ from cerebras.pytorch.metrics import AccuracyMetric
 
 from ..architectures.registry import get_architecture_class
 from .adapters import GNNBatch, adapt_gnn_batch
-from .config import GCNConfig, GNNModelConfig, GraphSAGEConfig
+from .config import GATv2Config, GCNConfig, GNNModelConfig, GraphSAGEConfig
 
 _ACTIVATION_FN_MAP: Dict[str, Type[nn.Module]] = {
     "relu": nn.ReLU,
@@ -52,6 +52,23 @@ class GNNTaskWrapper(nn.Module):
                 in_dim=architecture_config.n_feat,
                 hidden_dim=architecture_config.n_hid,
                 num_classes=architecture_config.n_class,
+                dropout_rate=architecture_config.dropout_rate,
+                activation_hidden=activation_hidden,
+                activation_output=activation_output,
+                use_bias=architecture_config.use_bias,
+            )
+        if isinstance(architecture_config, GATv2Config):
+            activation_hidden = _ACTIVATION_FN_MAP[
+                architecture_config.activation_fn_hidden
+            ]()
+            activation_output = _ACTIVATION_FN_MAP[
+                architecture_config.activation_fn_output
+            ]()
+            return get_architecture_class(architecture_config.core_architecture)(
+                in_dim=architecture_config.n_feat,
+                hidden_dim=architecture_config.n_hid,
+                num_classes=architecture_config.n_class,
+                num_heads=architecture_config.num_heads,
                 dropout_rate=architecture_config.dropout_rate,
                 activation_hidden=activation_hidden,
                 activation_output=activation_output,
