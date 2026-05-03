@@ -47,6 +47,33 @@ Both implementations explicitly convert supported heterogeneous datasets to **Ho
   - Uses `split_idx` (dictionary of indices) to define `input_nodes` for the `NeighborLoader`.
   - For `ogbn-mag`, effectively predicts on "paper" nodes using "paper" labels.
 
+### Node Structural Features
+Degree-derived node features are not part of the main GNN data pipeline.
+
+A local PubMed experiment evaluated a single additional structural feature:
+`standardize(log1p(degree))` concatenated to the input node feature matrix. The
+run used fresh model directories and CPU `uv run cszoo fit` executions with
+evaluation metrics enabled.
+
+| Model | Baseline final validation accuracy | With degree feature | Delta |
+| :--- | ---: | ---: | ---: |
+| GATv2 | 0.7419999838 | 0.7540000081 | +0.0120 |
+| Graph Transformer | 0.2020000070 | 0.3880000114 | +0.1860 |
+
+The GATv2 improvement is small enough to be treated as inconclusive without
+multi-seed confirmation. The Graph Transformer final-step value improved, but
+the baseline already reached similar intermediate validation accuracy around
+0.42, so this result does not establish a stable structural-feature benefit.
+
+For the HPC-oriented path, the extra feature plumbing is intentionally omitted.
+The additional configuration surface, `n_feat` bookkeeping, data-processing
+branches, and CPU/GPU/CSX parity checks would broaden the implementation
+without directly advancing the main objectives: static-shape execution,
+throughput, memory movement, scaling, and compile/runtime behavior. Learned
+degree embeddings would require still more model-side surface area, so they
+should remain out of scope unless a repeated ablation shows a robust accuracy
+gain that is large enough to justify that complexity.
+
 ## Summary Table
 
 | Feature | CSX (`data_processing`) | GPU (`pyg_gnn`) |
