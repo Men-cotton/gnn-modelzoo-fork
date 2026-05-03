@@ -101,6 +101,10 @@ def adapt_gnn_batch(
             device=device,
             model_dtype=model_dtype,
         )
+    if architecture.lower() in {"graphsage", "graphtransformer"}:
+        raise ValueError(
+            f"{architecture} requires neighbor-sampling GraphSAGEBatch inputs."
+        )
     return adapt_full_graph_batch(
         batch,
         architecture=architecture,

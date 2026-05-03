@@ -35,6 +35,12 @@ class GraphSAGEModel(GNNTaskWrapper):
     pass
 
 
+class GraphTransformerModel(GNNTaskWrapper):
+    """Alias model registered separately for GraphTransformer experiments."""
+
+    pass
+
+
 __all__ = [
     "FullGraphBatch",
     "GATv2Model",
@@ -43,4 +49,5 @@ __all__ = [
     "GNNModelConfig",
     "GraphSAGEBatch",
     "GraphSAGEModel",
+    "GraphTransformerModel",
 ]

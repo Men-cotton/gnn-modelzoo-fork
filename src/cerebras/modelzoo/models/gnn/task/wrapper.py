@@ -9,7 +9,13 @@ from cerebras.pytorch.metrics import AccuracyMetric
 
 from ..architectures.registry import get_architecture_class
 from .adapters import GNNBatch, adapt_gnn_batch
-from .config import GATv2Config, GCNConfig, GNNModelConfig, GraphSAGEConfig
+from .config import (
+    GATv2Config,
+    GCNConfig,
+    GNNModelConfig,
+    GraphSAGEConfig,
+    GraphTransformerConfig,
+)
 
 _ACTIVATION_FN_MAP: Dict[str, Type[nn.Module]] = {
     "relu": nn.ReLU,
@@ -82,6 +88,16 @@ class GNNTaskWrapper(nn.Module):
                 dropout=architecture_config.dropout,
                 aggregator=architecture_config.aggregator,
                 num_classes=architecture_config.n_class,
+            )
+        if isinstance(architecture_config, GraphTransformerConfig):
+            return get_architecture_class(architecture_config.core_architecture)(
+                in_dim=architecture_config.n_feat,
+                hidden_dim=architecture_config.hidden_dim,
+                num_layers=architecture_config.num_layers,
+                num_classes=architecture_config.n_class,
+                heads=architecture_config.heads,
+                dropout=architecture_config.dropout,
+                aggregator=architecture_config.aggregator,
             )
         raise ValueError(
             f"Unsupported core architecture '{model_config.core_architecture}'."

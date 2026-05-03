@@ -6,15 +6,17 @@ import torch.nn as nn
 
 from .gatv2 import GATv2
 from .gcn import GCN
+from .graph_transformer import GraphTransformer
 from .graphsage import GraphSAGE
 
-ArchitectureName = Literal["GATv2", "GCN", "GraphSAGE"]
+ArchitectureName = Literal["GATv2", "GCN", "GraphSAGE", "GraphTransformer"]
 
 
 _ARCHITECTURE_REGISTRY: Dict[str, Type[nn.Module]] = {
     "gatv2": GATv2,
     "gcn": GCN,
     "graphsage": GraphSAGE,
+    "graphtransformer": GraphTransformer,
 }
 
 
