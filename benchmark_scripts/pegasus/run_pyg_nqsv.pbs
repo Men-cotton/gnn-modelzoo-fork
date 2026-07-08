@@ -43,12 +43,15 @@ case "$PYG_BENCHMARK" in
     graphsage_ogbn_products|graphsage_ogbn_product|products|product)
         CONFIG_PREFIX="params_graphsage_ogbn_products"
         ;;
+    graphsage_ogbn_papers100m|graphsage_ogbn_papers100M|papers100m|papers100M)
+        CONFIG_PREFIX="params_graphsage_ogbn_papers100m"
+        ;;
     gcn_ogbn_arxiv|gcn_arxiv)
         CONFIG_PREFIX="params_gcn_ogbn_arxiv"
         ;;
     *)
         echo "[ERROR] unknown PYG_BENCHMARK: $PYG_BENCHMARK" >&2
-        echo "[ERROR] expected one of: graphsage_ogbn_arxiv graphsage_ogbn_products gcn_ogbn_arxiv" >&2
+        echo "[ERROR] expected one of: graphsage_ogbn_arxiv graphsage_ogbn_products graphsage_ogbn_papers100m gcn_ogbn_arxiv" >&2
         exit 2
         ;;
 esac

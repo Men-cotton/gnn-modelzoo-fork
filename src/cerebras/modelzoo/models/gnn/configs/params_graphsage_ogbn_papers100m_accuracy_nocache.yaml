@@ -1,0 +1,9 @@
+extends:
+  - params_graphsage_ogbn_papers100m.yaml
+  - components/architectures/input_pipelines/neighbor.yaml
+  - components/runtime/profile_accuracy.yaml
+  - components/runtime/cache_disabled.yaml
+
+trainer:
+  init:
+    model_dir: "$MODELZOO_ROOT/../../../model_dirs/ogbn_papers100m_graphsage_accuracy_nocache"
