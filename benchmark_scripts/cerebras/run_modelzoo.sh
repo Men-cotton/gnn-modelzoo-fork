@@ -23,6 +23,8 @@ CONFIG_LABELS=(
     "ogbn-products accuracy"
     "ogbn-arxiv throughput cache"
     "ogbn-products throughput cache"
+    "ogbn-arxiv GCN throughput"
+    "ogbn-arxiv GCN accuracy"
 )
 CONFIG_PATHS=(
     "configs/params_graphsage_ogbn_arxiv.yaml"
@@ -31,6 +33,8 @@ CONFIG_PATHS=(
     "configs/params_graphsage_ogbn_products_accuracy.yaml"
     "configs/params_graphsage_ogbn_arxiv_throughput_cache.yaml"
     "configs/params_graphsage_ogbn_products_throughput_cache.yaml"
+    "configs/params_gcn_ogbn_arxiv_throughput_nocache.yaml"
+    "configs/params_gcn_ogbn_arxiv_accuracy_nocache.yaml"
 )
 
 usage() {
@@ -106,6 +110,14 @@ parse_args() {
 }
 
 validate_num_workers() {
+    case "${CONFIG_PATH}" in
+        configs/params_graphsage_*)
+            ;;
+        *)
+            return 0
+            ;;
+    esac
+
     "${PROJECT_ROOT}/benchmark_scripts/validate_num_workers.sh" \
         "${CONFIGS_DIR}"
     log_info "Validated GraphSAGE neighbor num_workers=40"
