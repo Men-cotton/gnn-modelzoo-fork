@@ -1,0 +1,642 @@
+{
+  "definition": "Historical nominal batch slots/s, not actual seed nodes/s",
+  "selection": "Eight completed GraphSAGE single-GPU throughput logs; evaluation, GCN and invalid/ excluded",
+  "reference": "step 40 to final logged step; overlapping intervals, not independent repetitions",
+  "recommendation": {
+    "pyg_warmup_steps": 40,
+    "pyg_measure_steps": 400,
+    "pyg_confirm_steps": 800,
+    "repeats": 3
+  },
+  "limitations": [
+    "No per-step seed counts in these logs; tail batches are not corrected",
+    "No minimum warm-up inferred from sparse 20/40-step logs",
+    "January cached arxiv fails the 2 percent half-window screen at 40->440",
+    "Arxiv ends at 500 steps; 800 measured steps is an unvalidated longer confirmation proposal",
+    "New workers, profiler settings, software or GPU hardware require new measurements"
+  ],
+  "runs": [
+    {
+      "source": "raw_logs/2026-01-30/arxiv_1gpu_not.log",
+      "sha256": "c7790f01869592d46f94ddb26935ea4428b45999985494b5730777deecfc8852",
+      "dataset": "arxiv",
+      "cache": "not",
+      "first_step": 20,
+      "last_step": 500,
+      "reference": {
+        "start_step": 40,
+        "end_step": 500,
+        "measured_steps": 460,
+        "training_window_seconds": 15.8809,
+        "count": 1884160,
+        "metric": "nominal_slots_per_second",
+        "throughput": 118643.14994742112
+      },
+      "windows": [
+        {
+          "start_step": 40,
+          "end_step": 240,
+          "measured_steps": 200,
+          "training_window_seconds": 6.951899999999998,
+          "count": 819200,
+          "metric": "nominal_slots_per_second",
+          "throughput": 117838.28881313025,
+          "difference_from_reference_percent": -0.6783882041631162,
+          "half_difference_percent": 2.12603748615481
+        },
+        {
+          "start_step": 40,
+          "end_step": 440,
+          "measured_steps": 400,
+          "training_window_seconds": 13.870000000000001,
+          "count": 1638400,
+          "metric": "nominal_slots_per_second",
+          "throughput": 118125.45061283345,
+          "difference_from_reference_percent": -0.436349957681581,
+          "half_difference_percent": 0.48738284066324683
+        },
+        {
+          "start_step": 80,
+          "end_step": 480,
+          "measured_steps": 400,
+          "training_window_seconds": 13.7258,
+          "count": 1638400,
+          "metric": "nominal_slots_per_second",
+          "throughput": 119366.44858587478,
+          "difference_from_reference_percent": 0.609642140127109,
+          "half_difference_percent": 1.970012676856793
+        },
+        {
+          "start_step": 40,
+          "end_step": 840,
+          "unavailable": "Exact step 40 and 840 timestamps required"
+        },
+        {
+          "start_step": 80,
+          "end_step": 880,
+          "unavailable": "Exact step 80 and 880 timestamps required"
+        }
+      ],
+      "cache_markers": [
+        "[GraphCache] Caching disabled (0 nodes)."
+      ],
+      "provenance_lines": []
+    },
+    {
+      "source": "raw_logs/2026-01-30/arxiv_1gpu_cache.log",
+      "sha256": "ff5aca884dcdadbde0532906e1900937539cd8a24cdb3635cf135b912aec65c7",
+      "dataset": "arxiv",
+      "cache": "cache",
+      "first_step": 20,
+      "last_step": 500,
+      "reference": {
+        "start_step": 40,
+        "end_step": 500,
+        "measured_steps": 460,
+        "training_window_seconds": 10.999600000000004,
+        "count": 1884160,
+        "metric": "nominal_slots_per_second",
+        "throughput": 171293.50158187564
+      },
+      "windows": [
+        {
+          "start_step": 40,
+          "end_step": 240,
+          "measured_steps": 200,
+          "training_window_seconds": 4.875500000000002,
+          "count": 819200,
+          "metric": "nominal_slots_per_second",
+          "throughput": 168023.79243154541,
+          "difference_from_reference_percent": -1.9088343224552218,
+          "half_difference_percent": 3.2037739719002896
+        },
+        {
+          "start_step": 40,
+          "end_step": 440,
+          "measured_steps": 400,
+          "training_window_seconds": 9.6506,
+          "count": 1638400,
+          "metric": "nominal_slots_per_second",
+          "throughput": 169771.82765838393,
+          "difference_from_reference_percent": -0.8883430541376192,
+          "half_difference_percent": 2.0806996456179556
+        },
+        {
+          "start_step": 80,
+          "end_step": 480,
+          "measured_steps": 400,
+          "training_window_seconds": 9.5577,
+          "count": 1638400,
+          "metric": "nominal_slots_per_second",
+          "throughput": 171421.99483139248,
+          "difference_from_reference_percent": 0.07501349924556866,
+          "half_difference_percent": 5.312993711876246
+        },
+        {
+          "start_step": 40,
+          "end_step": 840,
+          "unavailable": "Exact step 40 and 840 timestamps required"
+        },
+        {
+          "start_step": 80,
+          "end_step": 880,
+          "unavailable": "Exact step 80 and 880 timestamps required"
+        }
+      ],
+      "cache_markers": [
+        "[GraphCache] Auto-detected memory. Free: 84.55GB. Target Cache: 100.0%",
+        "[GraphCache] Caching 169343 / 169343 nodes (100.0%) on cuda...",
+        "[GraphCache] Moving features to GPU...",
+        "[GraphCache] Layout complete. Cached features size: torch.Size([169343, 128])"
+      ],
+      "provenance_lines": []
+    },
+    {
+      "source": "raw_logs/2026-01-30/products_1gpu_not.log",
+      "sha256": "c04c98a23b658261135e19751363a2ea45a5ea8c461afab29f426ee1e2b2c85d",
+      "dataset": "products",
+      "cache": "not",
+      "first_step": 40,
+      "last_step": 1000,
+      "reference": {
+        "start_step": 40,
+        "end_step": 1000,
+        "measured_steps": 960,
+        "training_window_seconds": 212.387,
+        "count": 3932160,
+        "metric": "nominal_slots_per_second",
+        "throughput": 18514.127512512536
+      },
+      "windows": [
+        {
+          "start_step": 40,
+          "end_step": 240,
+          "measured_steps": 200,
+          "training_window_seconds": 43.98870000000001,
+          "count": 819200,
+          "metric": "nominal_slots_per_second",
+          "throughput": 18622.96453407352,
+          "difference_from_reference_percent": 0.5878593062915272,
+          "half_difference_percent": null,
+          "half_note": "Exact step 40 and 140 timestamps required"
+        },
+        {
+          "start_step": 40,
+          "end_step": 440,
+          "measured_steps": 400,
+          "training_window_seconds": 88.37780000000001,
+          "count": 1638400,
+          "metric": "nominal_slots_per_second",
+          "throughput": 18538.59227090966,
+          "difference_from_reference_percent": 0.13214102787499904,
+          "half_difference_percent": 0.9061099054287212
+        },
+        {
+          "start_step": 80,
+          "end_step": 480,
+          "measured_steps": 400,
+          "training_window_seconds": 87.84819999999999,
+          "count": 1638400,
+          "metric": "nominal_slots_per_second",
+          "throughput": 18650.353678276846,
+          "difference_from_reference_percent": 0.7357957628424172,
+          "half_difference_percent": 0.1183860340906081
+        },
+        {
+          "start_step": 40,
+          "end_step": 840,
+          "measured_steps": 800,
+          "training_window_seconds": 176.9411,
+          "count": 3276800,
+          "metric": "nominal_slots_per_second",
+          "throughput": 18519.15693979522,
+          "difference_from_reference_percent": 0.027165348619773155,
+          "half_difference_percent": 0.2096742927448277
+        },
+        {
+          "start_step": 80,
+          "end_step": 880,
+          "measured_steps": 800,
+          "training_window_seconds": 175.71189999999999,
+          "count": 3276800,
+          "metric": "nominal_slots_per_second",
+          "throughput": 18648.708482464765,
+          "difference_from_reference_percent": 0.7269095984203,
+          "half_difference_percent": 0.017642515959365834
+        }
+      ],
+      "cache_markers": [
+        "[GraphCache] Caching disabled (0 nodes)."
+      ],
+      "provenance_lines": []
+    },
+    {
+      "source": "raw_logs/2026-01-30/products_1gpu_cache.log",
+      "sha256": "533b5c20aa87a0e06af74d5678812fbf8c87fb7f62c6d333029e0e90d353992b",
+      "dataset": "products",
+      "cache": "cache",
+      "first_step": 40,
+      "last_step": 1000,
+      "reference": {
+        "start_step": 40,
+        "end_step": 1000,
+        "measured_steps": 960,
+        "training_window_seconds": 137.7532,
+        "count": 3932160,
+        "metric": "nominal_slots_per_second",
+        "throughput": 28544.96302082275
+      },
+      "windows": [
+        {
+          "start_step": 40,
+          "end_step": 240,
+          "measured_steps": 200,
+          "training_window_seconds": 28.2483,
+          "count": 819200,
+          "metric": "nominal_slots_per_second",
+          "throughput": 28999.975219747736,
+          "difference_from_reference_percent": 1.594019227115706,
+          "half_difference_percent": null,
+          "half_note": "Exact step 40 and 140 timestamps required"
+        },
+        {
+          "start_step": 40,
+          "end_step": 440,
+          "measured_steps": 400,
+          "training_window_seconds": 56.0231,
+          "count": 1638400,
+          "metric": "nominal_slots_per_second",
+          "throughput": 29245.079261947303,
+          "difference_from_reference_percent": 2.4526787462076483,
+          "half_difference_percent": 1.6903741492348832
+        },
+        {
+          "start_step": 80,
+          "end_step": 480,
+          "measured_steps": 400,
+          "training_window_seconds": 56.082300000000004,
+          "count": 1638400,
+          "metric": "nominal_slots_per_second",
+          "throughput": 29214.208404434197,
+          "difference_from_reference_percent": 2.3445305678737594,
+          "half_difference_percent": 0.15298944586796265
+        },
+        {
+          "start_step": 40,
+          "end_step": 840,
+          "measured_steps": 800,
+          "training_window_seconds": 114.761,
+          "count": 3276800,
+          "metric": "nominal_slots_per_second",
+          "throughput": 28553.254154285863,
+          "difference_from_reference_percent": 0.029045872145871954,
+          "half_difference_percent": 4.7312240220980915
+        },
+        {
+          "start_step": 80,
+          "end_step": 880,
+          "measured_steps": 800,
+          "training_window_seconds": 113.96929999999999,
+          "count": 3276800,
+          "metric": "nominal_slots_per_second",
+          "throughput": 28751.602405209123,
+          "difference_from_reference_percent": 0.7239083975538296,
+          "half_difference_percent": 3.1669932165942645
+        }
+      ],
+      "cache_markers": [
+        "[GraphCache] Auto-detected memory. Free: 84.55GB. Target Cache: 100.0%",
+        "[GraphCache] Caching 2449029 / 2449029 nodes (100.0%) on cuda...",
+        "[GraphCache] Moving features to GPU...",
+        "[GraphCache] Layout complete. Cached features size: torch.Size([2449029, 100])"
+      ],
+      "provenance_lines": []
+    },
+    {
+      "source": "raw_logs/2026-06-22/arxiv_graphsage_1gpu_not.log",
+      "sha256": "e19461310444f85d553fe3f7b507187ef19171f57836cb8da0c7e7a9c9069d39",
+      "dataset": "arxiv",
+      "cache": "not",
+      "first_step": 20,
+      "last_step": 500,
+      "reference": {
+        "start_step": 40,
+        "end_step": 500,
+        "measured_steps": 460,
+        "training_window_seconds": 15.814500000000002,
+        "count": 1884160,
+        "metric": "nominal_slots_per_second",
+        "throughput": 119141.29438173826
+      },
+      "windows": [
+        {
+          "start_step": 40,
+          "end_step": 240,
+          "measured_steps": 200,
+          "training_window_seconds": 6.920400000000001,
+          "count": 819200,
+          "metric": "nominal_slots_per_second",
+          "throughput": 118374.66042425291,
+          "difference_from_reference_percent": -0.6434661982343326,
+          "half_difference_percent": 0.9768221490087147
+        },
+        {
+          "start_step": 40,
+          "end_step": 440,
+          "measured_steps": 400,
+          "training_window_seconds": 13.824800000000003,
+          "count": 1638400,
+          "metric": "nominal_slots_per_second",
+          "throughput": 118511.66020484924,
+          "difference_from_reference_percent": -0.5284768645131832,
+          "half_difference_percent": 0.23146808633757546
+        },
+        {
+          "start_step": 80,
+          "end_step": 480,
+          "measured_steps": 400,
+          "training_window_seconds": 13.7024,
+          "count": 1638400,
+          "metric": "nominal_slots_per_second",
+          "throughput": 119570.29425502101,
+          "difference_from_reference_percent": 0.36007655910486047,
+          "half_difference_percent": 1.3924567958897907
+        },
+        {
+          "start_step": 40,
+          "end_step": 840,
+          "unavailable": "Exact step 40 and 840 timestamps required"
+        },
+        {
+          "start_step": 80,
+          "end_step": 880,
+          "unavailable": "Exact step 80 and 880 timestamps required"
+        }
+      ],
+      "cache_markers": [
+        "[GraphCache] Caching disabled (0 nodes)."
+      ],
+      "provenance_lines": [
+        "2026-06-22 17:51:45 [INFO] Run metadata: git_commit=8d1457914cfb8edfad40734500c663a483d13d90",
+        "cuda_device_0=NVIDIA H100 PCIe",
+        "requested_no_compile=False",
+        "                      'batch_size': 4096,",
+        "                      'num_workers': 40,",
+        "                    'batch_size': 4096,",
+        "                    'num_workers': 40,"
+      ]
+    },
+    {
+      "source": "raw_logs/2026-06-22/arxiv_graphsage_1gpu_cache.log",
+      "sha256": "7e0df45c66e3db5a0349902747d9541fbd2e8681075228b740a861f6da269723",
+      "dataset": "arxiv",
+      "cache": "cache",
+      "first_step": 20,
+      "last_step": 500,
+      "reference": {
+        "start_step": 40,
+        "end_step": 500,
+        "measured_steps": 460,
+        "training_window_seconds": 11.191300000000002,
+        "count": 1884160,
+        "metric": "nominal_slots_per_second",
+        "throughput": 168359.35056695822
+      },
+      "windows": [
+        {
+          "start_step": 40,
+          "end_step": 240,
+          "measured_steps": 200,
+          "training_window_seconds": 4.855699999999999,
+          "count": 819200,
+          "metric": "nominal_slots_per_second",
+          "throughput": 168708.94000864966,
+          "difference_from_reference_percent": 0.2076448029255218,
+          "half_difference_percent": 3.645200486026867
+        },
+        {
+          "start_step": 40,
+          "end_step": 440,
+          "measured_steps": 400,
+          "training_window_seconds": 9.777000000000001,
+          "count": 1638400,
+          "metric": "nominal_slots_per_second",
+          "throughput": 167576.96634959598,
+          "difference_from_reference_percent": -0.46471087868154015,
+          "half_difference_percent": 1.341924925846438
+        },
+        {
+          "start_step": 80,
+          "end_step": 480,
+          "measured_steps": 400,
+          "training_window_seconds": 9.6938,
+          "count": 1638400,
+          "metric": "nominal_slots_per_second",
+          "throughput": 169015.24685881697,
+          "difference_from_reference_percent": 0.3895811486858136,
+          "half_difference_percent": 1.638160473704765
+        },
+        {
+          "start_step": 40,
+          "end_step": 840,
+          "unavailable": "Exact step 40 and 840 timestamps required"
+        },
+        {
+          "start_step": 80,
+          "end_step": 880,
+          "unavailable": "Exact step 80 and 880 timestamps required"
+        }
+      ],
+      "cache_markers": [
+        "[GraphCache] Caching 169343 / 169343 nodes (100.0%) on cuda...",
+        "[GraphCache] Moving features to GPU...",
+        "[GraphCache] Layout complete. Cached features size: torch.Size([169343, 128])"
+      ],
+      "provenance_lines": [
+        "2026-06-22 17:51:45 [INFO] Run metadata: git_commit=8d1457914cfb8edfad40734500c663a483d13d90",
+        "cuda_device_0=NVIDIA H100 PCIe",
+        "requested_no_compile=False",
+        "                      'batch_size': 4096,",
+        "                      'num_workers': 40,",
+        "                    'batch_size': 4096,",
+        "                    'num_workers': 40,"
+      ]
+    },
+    {
+      "source": "raw_logs/2026-06-22/products_graphsage_1gpu_not.log",
+      "sha256": "cd937d727ae0eed18baf6fc48f4b83bf94679329313b13a91605ac751964c5f5",
+      "dataset": "products",
+      "cache": "not",
+      "first_step": 40,
+      "last_step": 1000,
+      "reference": {
+        "start_step": 40,
+        "end_step": 1000,
+        "measured_steps": 960,
+        "training_window_seconds": 209.9085,
+        "count": 3932160,
+        "metric": "nominal_slots_per_second",
+        "throughput": 18732.733548188855
+      },
+      "windows": [
+        {
+          "start_step": 40,
+          "end_step": 240,
+          "measured_steps": 200,
+          "training_window_seconds": 43.311800000000005,
+          "count": 819200,
+          "metric": "nominal_slots_per_second",
+          "throughput": 18914.014194746003,
+          "difference_from_reference_percent": 0.9677212676452829,
+          "half_difference_percent": null,
+          "half_note": "Exact step 40 and 140 timestamps required"
+        },
+        {
+          "start_step": 40,
+          "end_step": 440,
+          "measured_steps": 400,
+          "training_window_seconds": 86.8483,
+          "count": 1638400,
+          "metric": "nominal_slots_per_second",
+          "throughput": 18865.078533488853,
+          "difference_from_reference_percent": 0.7064905127676546,
+          "half_difference_percent": 0.5174539973723967
+        },
+        {
+          "start_step": 80,
+          "end_step": 480,
+          "measured_steps": 400,
+          "training_window_seconds": 87.02359999999999,
+          "count": 1638400,
+          "metric": "nominal_slots_per_second",
+          "throughput": 18827.07679296191,
+          "difference_from_reference_percent": 0.5036277515524601,
+          "half_difference_percent": 1.3440032359038112
+        },
+        {
+          "start_step": 40,
+          "end_step": 840,
+          "measured_steps": 800,
+          "training_window_seconds": 174.53209999999999,
+          "count": 3276800,
+          "metric": "nominal_slots_per_second",
+          "throughput": 18774.769798793463,
+          "difference_from_reference_percent": 0.2243999814360853,
+          "half_difference_percent": 0.9574170023737629
+        },
+        {
+          "start_step": 80,
+          "end_step": 880,
+          "measured_steps": 800,
+          "training_window_seconds": 173.8253,
+          "count": 3276800,
+          "metric": "nominal_slots_per_second",
+          "throughput": 18851.110856704978,
+          "difference_from_reference_percent": 0.6319275732588947,
+          "half_difference_percent": 0.25531381220108473
+        }
+      ],
+      "cache_markers": [
+        "[GraphCache] Caching disabled (0 nodes)."
+      ],
+      "provenance_lines": [
+        "2026-06-22 17:51:45 [INFO] Run metadata: git_commit=8d1457914cfb8edfad40734500c663a483d13d90",
+        "cuda_device_0=NVIDIA H100 PCIe",
+        "requested_no_compile=False",
+        "                      'batch_size': 4096,",
+        "                      'num_workers': 40,",
+        "                    'batch_size': 4096,",
+        "                    'num_workers': 40,"
+      ]
+    },
+    {
+      "source": "raw_logs/2026-06-22/products_graphsage_1gpu_cache.log",
+      "sha256": "6b932bc2fcb08062458734f059b04622c166b857e01e6273b6d9f635f7b1f656",
+      "dataset": "products",
+      "cache": "cache",
+      "first_step": 40,
+      "last_step": 1000,
+      "reference": {
+        "start_step": 40,
+        "end_step": 1000,
+        "measured_steps": 960,
+        "training_window_seconds": 140.5116,
+        "count": 3932160,
+        "metric": "nominal_slots_per_second",
+        "throughput": 27984.593442818958
+      },
+      "windows": [
+        {
+          "start_step": 40,
+          "end_step": 240,
+          "measured_steps": 200,
+          "training_window_seconds": 28.8365,
+          "count": 819200,
+          "metric": "nominal_slots_per_second",
+          "throughput": 28408.44069148475,
+          "difference_from_reference_percent": 1.5145735439460406,
+          "half_difference_percent": null,
+          "half_note": "Exact step 40 and 140 timestamps required"
+        },
+        {
+          "start_step": 40,
+          "end_step": 440,
+          "measured_steps": 400,
+          "training_window_seconds": 57.6895,
+          "count": 1638400,
+          "metric": "nominal_slots_per_second",
+          "throughput": 28400.315482020123,
+          "difference_from_reference_percent": 1.4855389628961824,
+          "half_difference_percent": 0.05720278386881631
+        },
+        {
+          "start_step": 80,
+          "end_step": 480,
+          "measured_steps": 400,
+          "training_window_seconds": 57.225,
+          "count": 1638400,
+          "metric": "nominal_slots_per_second",
+          "throughput": 28630.843162953253,
+          "difference_from_reference_percent": 2.3093053735255387,
+          "half_difference_percent": 1.1386631716907254
+        },
+        {
+          "start_step": 40,
+          "end_step": 840,
+          "measured_steps": 800,
+          "training_window_seconds": 116.8613,
+          "count": 3276800,
+          "metric": "nominal_slots_per_second",
+          "throughput": 28040.078280833775,
+          "difference_from_reference_percent": 0.19826923027554955,
+          "half_difference_percent": 2.5368535178027356
+        },
+        {
+          "start_step": 80,
+          "end_step": 880,
+          "measured_steps": 800,
+          "training_window_seconds": 115.4442,
+          "count": 3276800,
+          "metric": "nominal_slots_per_second",
+          "throughput": 28384.27569336528,
+          "difference_from_reference_percent": 1.428222465918605,
+          "half_difference_percent": 1.7223905575160952
+        }
+      ],
+      "cache_markers": [
+        "[GraphCache] Caching 2449029 / 2449029 nodes (100.0%) on cuda...",
+        "[GraphCache] Moving features to GPU...",
+        "[GraphCache] Layout complete. Cached features size: torch.Size([2449029, 100])"
+      ],
+      "provenance_lines": [
+        "2026-06-22 17:51:45 [INFO] Run metadata: git_commit=8d1457914cfb8edfad40734500c663a483d13d90",
+        "cuda_device_0=NVIDIA H100 PCIe",
+        "requested_no_compile=False",
+        "                      'batch_size': 4096,",
+        "                      'num_workers': 40,",
+        "                    'batch_size': 4096,",
+        "                    'num_workers': 40,"
+      ]
+    }
+  ]
+}

@@ -1,10 +1,68 @@
-# CS-3 input auto tuner
+# CSX and PyG input auto tuner
 
 `tools/autotune.py` uses the configurations and measurement script from
 `cs3_autotune_overrides.zip`. It runs one `uv run --no-sync -- cszoo fit` client
-at a time. No dependency synchronization or dataset downloads are performed.
+at a time with `--backend csx` (the default). `--backend pyg` launches the existing
+`pyg_graphsage.py` path on one CUDA GPU. Search, budgets, resume and finalist
+confirmation share one implementation. No dependency synchronization or dataset
+downloads are performed.
 
-## Prepare and preview
+## PyG on one GPU
+
+Run on an existing GPU allocation with the prepared PyTorch/PyG environment,
+local ModelZoo source installed, and offline datasets present:
+
+```bash
+cd src/cerebras/modelzoo/models/gnn
+uv run --no-sync tools/autotune.py \
+  --backend pyg --dataset arxiv --output autotune_runs/pyg_arxiv \
+  --budget-sec 14400 --trial-timeout-sec 1800 --dry-run
+```
+
+Remove `--dry-run` to run trials. `--backend csx` selects the original CSX path.
+Use a separate output directory per backend/dataset. The PyG backend operates
+inside the allocation; it does not submit PBS jobs and must not itself be
+launched with `torchrun`. The GPU environment check verifies CUDA and PyG sampling
+support and records GPU name/capacity, PyTorch/PyG/CUDA versions and selected
+runtime environment variables. It does not require `cszoo` or load the Cerebras
+SDK. The legacy non-benchmark PyG profiler still uses the SDK RateTracker.
+
+PyG defaults to 40 warm-up + 400 measured steps, then 40+800 for three independent
+finalist runs. See [the historical GPU log study](pyg_windows.md) for the eight
+source logs, comparisons, negative results and limits of these defaults.
+The initial positive-worker baseline uses prefetch 2 and persistent workers on,
+matching the previous PyG setting. Zero workers use None/False. Optional
+`--prefetch-factors 1 2 4` tests both persistence values in the shared search.
+`pin_memory` stays fixed at the inherited value. Compilation follows the existing
+PyG runner: enabled unless `NO_COMPILE` has a nonempty value. To study eager
+execution, set `NO_COMPILE=1` for the whole study; changing it requires new output.
+
+The PyG objective is actual trained seed nodes/s. Each `[Autotune]` JSON progress
+record contains a cumulative seed count, wall time after CUDA synchronization,
+and a finite-loss check covering every step. Endpoint differences include input
+loading, transfer and GPU computation. Tail batches contribute their actual
+number of seeds. The parser requires the exact start/midpoint/end records and
+one completed run, and rejects evaluation or old nominal-only logs. For manual
+measurement use `tools/measure_pyg.py LOG --start-step 40 --end-step 440`.
+
+PyG trials disable validation and checkpoint saving and use `cache_fraction: 0.0`
+(the existing uncached GPU feature-fetch path). PyG interprets `null` as automatic
+GPU caching, unlike CSX; the backend handles this difference explicitly. Shape,
+optimizer, precision and sampling conditions stay fixed within each study.
+CSX nominal slots/s and PyG actual seeds/s are different metrics; rankings store
+`metric`, `median_throughput`, `min_throughput` and `max_throughput` and are separate
+for each backend. Existing study journals from the CSX-only implementation need
+a new output directory after upgrading, because source/settings identity changes.
+
+The timeout kills the local process group, including loader workers. A returned
+PyG failure or timeout is retained and the search can proceed; Ctrl-C/SIGTERM
+pauses it. If the tuner disappears before recording termination, resume still
+requires `--acknowledge-stopped-jobs` after independently checking the old process.
+`job_time_sec` applies only to CSX; the client timeout and total budget apply to both.
+`best.yaml` is a backend-specific bounded benchmark configuration: 840 total steps
+for default PyG, 440 for default CSX.
+
+## CSX: prepare and preview
 
 Use the existing editable ModelZoo environment (Python 3.11, Cerebras 2.10.0),
 with datasets and cluster access already configured. Run from the GNN directory:
@@ -36,7 +94,7 @@ not a measurement of remote input-worker CPU or memory availability: the chosen
 counts must also fit those allocations. Restrict candidates with, for example,
 `--workers 40 8 16`. A selected w40 always runs first.
 
-## Search and measurement
+## CSX search and measurement
 
 1. Each worker count gets one continuous 240-step training run. The first 40
    steps are excluded from measurement; timestamps at steps 40 and 240 measure
@@ -101,11 +159,11 @@ Re-run the same command and output directory to resume. Completed, unstable and
 invalid measurements are retained and skipped. The cumulative budget can be
 increased with `--budget-sec`; search settings, resolved base config, source hash,
 Git commit and environment must match. A changed study needs a new output path.
-The environment snapshot includes the actual package inventory, Python, SDK and
+The environment snapshot includes the actual package inventory, Python, backend dependencies and
 uv versions, Git status, and a hash of the Python sources. The full resolved
 trial configuration is saved and hashed, avoiding inheritance changes mid-study.
 
-A failed client, timeout, Ctrl-C or SIGTERM pauses the entire study. Stopping a
+For CSX, a failed client, timeout, Ctrl-C or SIGTERM pauses the entire study. Stopping a
 local client does not establish that its remote job ended. Inspect its log/job
 ID and confirm remote termination before resuming with
 `--acknowledge-stopped-jobs`. This records the acknowledgement and retains the
@@ -126,7 +184,8 @@ invalid input. Budget exhaustion is resumable, not a winner selection.
   isolated configuration, client output, status/measurement and SDK artifacts.
   Results include discovered `wsjob-*` IDs and paths to `performance.json` files
   when present. Missing IDs remain an empty list; raw logs are retained.
-- `best.yaml`: the winning **440-step benchmark configuration**, still with
+- `best.yaml`: the winning **benchmark configuration** (default CSX: 440 steps;
+  PyG: 840 steps), still with
   validation and checkpointing disabled. Apply its input settings to a separate
   training configuration when evaluating learning quality. To remeasure it, use
   a fresh `--model_dir` on every invocation.
@@ -150,5 +209,13 @@ uv run --no-sync -- python -m unittest discover \
 Tests use synthetic progress logs, mock CSX clients, real local subprocesses and
 real PyTorch DataLoaders on a tiny graph. They cover measurement rejection,
 selection and repeat ordering, budgets, resume, job-stop handling, output
-isolation, locking and DataLoader argument propagation. They do not validate
-CS-3 submission, remote scheduling or device throughput.
+isolation, locking and DataLoader argument propagation. CUDA tests run when a GPU
+is available and otherwise skip. The PyG runner fixture uses a tiny synthetic
+graph, real NeighborLoader and GraphSAGE on CUDA, FP32 and `NO_COMPILE=1`; it
+checks exact seed counts, disabled evaluation and absent checkpoint output. The
+host loop test mocks CUDA timing/placement and executes real CPU autograd.
+
+On September 7 these CUDA smoke tests passed on an RTX 4060 Laptop GPU. They do
+not establish CS-3 submission, remote scheduling, compilation behavior or
+throughput on the full arxiv/products models. The eight historical H100/window
+comparisons are documented separately in [pyg_windows.md](pyg_windows.md).

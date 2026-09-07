@@ -1,10 +1,9 @@
-"""Sequential CS-3 input tuning using the cs3_autotune_overrides measurement windows."""
+"""Sequential CSX/PyG input tuning with budgets, resume and repeated measurements."""
 
 from __future__ import annotations
 
 import argparse
 from contextlib import contextmanager
-from copy import deepcopy
 from datetime import datetime, timezone
 import fcntl
 import hashlib
@@ -26,9 +25,9 @@ from cerebras.modelzoo.models.gnn.worker_validation import get_available_cpu_cor
 
 # Also support direct execution from the documented GNN directory.
 if __package__:
-    from .measure_window import summarize
+    from .autotune_backends import get_backend
 else:
-    from measure_window import summarize
+    from autotune_backends import get_backend
 
 GNN = Path(__file__).resolve().parents[1]
 ROOT = GNN.parents[4]
@@ -74,75 +73,53 @@ def candidate_id(knobs):
     return f"w{knobs['num_workers']:02d}_p{knobs['prefetch_factor'] or 0}_s{int(knobs['persistent_workers'])}"
 
 
-def prepare_config(base, knobs, model_dir, steps, job_time_sec):
-    config = deepcopy(base)
-    trainer = config["trainer"]
-    init = trainer["init"]
-    init["model_dir"] = str(model_dir)
-    init["loop"].update(
-        num_steps=None,
-        max_steps=steps,
-        num_epochs=None,
-        steps_per_epoch=None,
-        eval_frequency=None,
-    )
-    init["checkpoint"].update(
-        steps=None, autoload_last_checkpoint=False, save_initial_checkpoint=False
-    )
-    init["logging"]["log_steps"] = 10
-    init["backend"]["cluster_config"].update(num_csx=1, job_time_sec=job_time_sec)
-    loader = trainer["fit"]["train_dataloader"]
-    loader.update(knobs)
-    loader.update(
-        batch_size=4096,
-        cache_fraction=None,
-        static_batch_cache_size=0,
-        use_fake_data=False,
-    )
-    trainer["fit"].update(ckpt_path=None, val_dataloader=None)
-    trainer.update(validate=None, validate_all=None)
-    return config
-
-
-def command(config, model_dir):
-    return [
-        "uv",
-        "run",
-        "--no-sync",
-        "--",
-        "cszoo",
-        "fit",
-        str(config),
-        "--target_device",
-        "CSX",
-        "--model_dir",
-        str(model_dir),
-    ]
-
-
-def environment():
-    # Inspect the same uv environment that will run cszoo, without syncing it.
-    code = """import importlib.metadata as m, json, sys, shutil
-import cerebras.pytorch
+def environment(backend="csx"):
+    # Inspect the environment used by the child command without syncing it.
+    code = """import importlib.metadata as m, json, sys, os
 import cerebras.modelzoo as mz
-print(json.dumps({"python": sys.version, "executable": sys.executable,
+info = {"python": sys.version, "executable": sys.executable,
     "prefix": sys.prefix, "modelzoo_path": mz.__file__,
-    "cszoo": shutil.which("cszoo"), "sdk": m.version("cerebras-pytorch"),
-    "packages": sorted((d.metadata["Name"], d.version) for d in m.distributions())}))"""
+    "runtime_environment": {k: os.environ.get(k) for k in
+        ("CUDA_VISIBLE_DEVICES", "NO_COMPILE", "OMP_NUM_THREADS", "MKL_NUM_THREADS")},
+    "packages": sorted((d.metadata["Name"], d.version) for d in m.distributions())}
+"""
+    if backend == "csx":
+        code += """import cerebras.pytorch, shutil
+info.update(cszoo=shutil.which("cszoo"), sdk=m.version("cerebras-pytorch"))
+"""
+    else:
+        code += """import torch, torch_geometric
+from cerebras.modelzoo.models.gnn.reference.pyg.data import check_pyg_lib
+from cerebras.modelzoo.models.gnn.reference.pyg.runner import main
+check_pyg_lib()
+if not torch.cuda.is_available():
+    raise RuntimeError("PyG tuning requires an available CUDA GPU")
+if "RANK" in os.environ or "WORLD_SIZE" in os.environ:
+    raise RuntimeError("PyG tuning currently supports one GPU per trial; launch without torchrun")
+p = torch.cuda.get_device_properties(0)
+info.update(torch=torch.__version__, pyg=torch_geometric.__version__, cuda=torch.version.cuda,
+            gpu=p.name, gpu_memory_bytes=p.total_memory,
+            gpu_capability=[p.major, p.minor])
+"""
+    code += "print(json.dumps(info))"
     result = subprocess.run(
         ["uv", "run", "--no-sync", "--", "python", "-c", code],
         cwd=GNN,
         capture_output=True,
         text=True,
-        check=True,
     )
+    if result.returncode:
+        raise ValueError(
+            f"{backend} environment check failed:\n{result.stderr[-3000:]}"
+        )
     info = json.loads(result.stdout.strip().splitlines()[-1])
-    if (
+    if Path(info["modelzoo_path"]).resolve().parent != GNN.parents[1]:
+        raise ValueError("Prepare an editable installation of this checkout")
+    if backend == "csx" and (
         not info["python"].startswith("3.11.")
         or info["sdk"] != "2.10.0"
         or not info["cszoo"]
         or Path(info["cszoo"]).parent != Path(info["prefix"]) / "bin"
-        or Path(info["modelzoo_path"]).resolve().parent != GNN.parents[1]
     ):
         raise ValueError(
             "Prepare Python 3.11, Cerebras 2.10.0 and editable cszoo before tuning"
@@ -166,8 +143,7 @@ print(json.dumps({"python": sys.version, "executable": sys.executable,
 
 
 def stop_process(process):
-    if process.poll() is not None:
-        return
+    # Stop the whole private session, including loader workers left by a failed client.
     try:
         os.killpg(process.pid, signal.SIGTERM)
     except ProcessLookupError:
@@ -176,6 +152,8 @@ def stop_process(process):
     try:
         process.wait(timeout=10)
     except subprocess.TimeoutExpired:
+        pass
+    finally:
         try:
             os.killpg(process.pid, signal.SIGKILL)
         except ProcessLookupError:
@@ -200,7 +178,7 @@ def execute(cmd, log, timeout):
         return {
             "status": "completed" if code == 0 else "failed",
             "returncode": code,
-            "failure_reason": None if code == 0 else f"cszoo exited with {code}",
+            "failure_reason": None if code == 0 else f"Client exited with {code}",
         }
     except subprocess.TimeoutExpired:
         return {"status": "timeout", "failure_reason": "Client wall-time limit reached"}
@@ -224,25 +202,25 @@ def rank(records, phase, repeats=1):
         # A failed or unstable repeat disqualifies the candidate; never cherry-pick it away.
         if len(rows) != repeats or any(r["status"] != "completed" for r in rows):
             continue
-        rates = [r["measurement"]["nominal_slots_per_second"] for r in rows]
+        rates = [r["measurement"]["throughput"] for r in rows]
         ranked.append(
             {
                 "candidate_id": key,
                 "knobs": rows[0]["knobs"],
-                "median_nominal_slots_per_second": statistics.median(rates),
-                "min_nominal_slots_per_second": min(rates),
-                "max_nominal_slots_per_second": max(rates),
+                "median_throughput": statistics.median(rates),
+                "min_throughput": min(rates),
+                "max_throughput": max(rates),
                 "repeats": len(rates),
+                "metric": rows[0]["measurement"]["metric"],
             }
         )
-    return sorted(
-        ranked, key=lambda r: (-r["median_nominal_slots_per_second"], r["candidate_id"])
-    )
+    return sorted(ranked, key=lambda r: (-r["median_throughput"], r["candidate_id"]))
 
 
 class Study:
     def __init__(self, args, base, output, provenance):
         self.args, self.base, self.output = args, base, output
+        self.backend = get_backend(args.backend)
         settings = {
             k: v
             for k, v in vars(args).items()
@@ -309,12 +287,13 @@ class Study:
             raise StopIteration
         folder = self.output / trial_id
         folder.mkdir(exist_ok=False)
-        config = prepare_config(
+        config = self.backend.prepare_config(
             self.base,
             knobs,
             folder / "model",
             self.args.warmup_steps + measured_steps,
             self.args.job_time_sec,
+            self.args.warmup_steps,
         )
         config_path = folder / "params.yaml"
         config_path.write_text(yaml.safe_dump(config, sort_keys=False))
@@ -326,7 +305,7 @@ class Study:
             "knobs": knobs,
             "status": "running",
             "started_at": timestamp(),
-            "command": command(config_path, folder / "model"),
+            "command": self.backend.command(config_path, folder / "model"),
             "config_sha256": digest(config),
         }
         self.state["trials"].append(row)
@@ -350,11 +329,10 @@ class Study:
         ]
         if row["status"] == "completed":
             try:
-                row["measurement"] = summarize(
+                row["measurement"] = self.backend.measure(
                     log,
                     self.args.warmup_steps,
                     self.args.warmup_steps + measured_steps,
-                    4096,
                     self.args.stability_tolerance_percent,
                 )
                 check = row["measurement"]["half_window_check"]
@@ -365,10 +343,16 @@ class Study:
                     )
             except (ValueError, OSError) as exc:
                 row.update(status="invalid_measurement", failure_reason=str(exc))
+        if row["status"] in UNCERTAIN and not self.backend.remote:
+            row["job_stop_acknowledged_at"] = timestamp()
         write_json(folder / "result.json", row)
         self.save()
-        if row["status"] in UNCERTAIN:
+        if row["status"] in UNCERTAIN and self.backend.remote:
             self.state["status"] = "job_stop_unconfirmed"
+            self.save()
+            raise StopIteration
+        if row["status"] == "interrupted":
+            self.state["status"] = "interrupted"
             self.save()
             raise StopIteration
         return row
@@ -379,11 +363,16 @@ class Study:
             for r in self.state["trials"]
         ):
             raise ValueError(
-                "Previous client failed/stopped. Confirm its CSX job has ended, then use --acknowledge-stopped-jobs"
+                "Previous client failed/stopped. Confirm its job/process has ended, then use --acknowledge-stopped-jobs"
             )
         try:
             for workers in self.args.workers:
-                self.trial(candidate(workers), "workers", 1, self.args.measure_steps)
+                self.trial(
+                    candidate(workers, persistent=self.backend.persistent_workers),
+                    "workers",
+                    1,
+                    self.args.measure_steps,
+                )
             coarse = rank(self.state["trials"], "workers")
             pool = coarse[: self.args.top_k]
             if self.args.prefetch_factors:
@@ -411,7 +400,7 @@ class Study:
                 )
                 pool = sorted(
                     combined.values(),
-                    key=lambda r: -r["median_nominal_slots_per_second"],
+                    key=lambda r: -r["median_throughput"],
                 )[: self.args.top_k]
             self.state["finalists"] = pool
             self.save()
@@ -425,12 +414,13 @@ class Study:
             if self.state["ranking"]:
                 best = self.state["ranking"][0]
                 # Emit a reproducible benchmark config, not an unbounded production training config.
-                config = prepare_config(
+                config = self.backend.prepare_config(
                     self.base,
                     best["knobs"],
                     self.output / "best_model",
                     self.args.warmup_steps + self.args.confirm_steps,
                     self.args.job_time_sec,
+                    self.args.warmup_steps,
                 )
                 (self.output / "best.yaml").write_text(
                     yaml.safe_dump(config, sort_keys=False)
@@ -452,14 +442,15 @@ class Study:
 
 def parse_args(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--backend", choices=("csx", "pyg"), default="csx")
     parser.add_argument("--dataset", choices=("arxiv", "products"), required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--workers", type=int, nargs="+", default=[40, 0, 4, 8, 16, 32])
     parser.add_argument("--prefetch-factors", type=int, nargs="+", default=[])
     parser.add_argument("--top-k", type=int, default=2)
     parser.add_argument("--warmup-steps", type=int, default=40)
-    parser.add_argument("--measure-steps", type=int, default=200)
-    parser.add_argument("--confirm-steps", type=int, default=400)
+    parser.add_argument("--measure-steps", type=int)
+    parser.add_argument("--confirm-steps", type=int)
     parser.add_argument("--repeats", type=int, default=3)
     parser.add_argument("--stability-tolerance-percent", type=float, default=2.0)
     parser.add_argument("--job-time-sec", type=int, default=7200)
@@ -478,14 +469,19 @@ def parse_args(argv=None):
     parser.add_argument(
         "--dry-run",
         action="store_true",
-        help="Write the resolved plan without launching uv/cszoo",
+        help="Write the resolved plan without launching a training client",
     )
     parser.add_argument(
         "--acknowledge-stopped-jobs",
         action="store_true",
-        help="Resume after independently verifying all previous failed/stopped CSX jobs have ended",
+        help="Resume after independently verifying all previous unconfirmed jobs/processes have ended",
     )
     args = parser.parse_args(argv)
+    backend = get_backend(args.backend)
+    if args.measure_steps is None:
+        args.measure_steps = backend.measure_steps
+    if args.confirm_steps is None:
+        args.confirm_steps = backend.confirm_steps
     positive = (
         "top_k",
         "warmup_steps",
@@ -506,11 +502,10 @@ def parse_args(argv=None):
     if args.confirm_steps < args.measure_steps:
         parser.error("confirm-steps must be at least measure-steps")
     if (
-        args.trial_timeout_sec < args.job_time_sec
-        or args.budget_sec < args.trial_timeout_sec + 10
-    ):
+        args.backend == "csx" and args.trial_timeout_sec < args.job_time_sec
+    ) or args.budget_sec < args.trial_timeout_sec + 10:
         parser.error(
-            "Require budget-sec >= trial-timeout-sec + 10 (cleanup reserve), and trial-timeout-sec >= job-time-sec"
+            "Require budget-sec >= trial-timeout-sec + 10 (cleanup reserve); CSX also requires trial-timeout-sec >= job-time-sec"
         )
     if any(w < 0 for w in args.workers) or any(p < 1 for p in args.prefetch_factors):
         parser.error("Workers must be non-negative and prefetch factors positive")
@@ -530,6 +525,7 @@ def parse_args(argv=None):
 def main(argv=None):
     args = parse_args(argv)
     output = args.output.resolve()
+    backend = get_backend(args.backend)
     base = load_params_file(GNN / "configs/autotune" / f"{args.dataset}_w40.yaml")
     cores = get_available_cpu_cores()
     eligible = [w for w in args.workers if cores is None or w <= cores]
@@ -538,7 +534,7 @@ def main(argv=None):
         raise ValueError("No worker candidates fit this process's CPU allocation")
     if skipped:
         print(
-            f"CPU affinity allows {cores} cores; skipping workers {skipped}. Remote worker memory/CPU allocation still needs to fit."
+            f"CPU affinity allows {cores} cores; skipping workers {skipped}. Execution worker memory/CPU allocation still needs to fit."
         )
     args.workers = eligible
     with study_lock(output):
@@ -548,6 +544,7 @@ def main(argv=None):
                     "Use a separate output directory for a dry run of an existing study"
                 )
             plan = {
+                "backend": args.backend,
                 "dataset": args.dataset,
                 "workers": eligible,
                 "skipped_workers": skipped,
@@ -562,26 +559,27 @@ def main(argv=None):
                 "commands": [],
             }
             for workers in eligible:
-                knobs = candidate(workers)
+                knobs = candidate(workers, persistent=backend.persistent_workers)
                 folder = output / f"workers_{candidate_id(knobs)}_r1"
                 path = output / f"preview_w{workers:02d}.yaml"
                 path.write_text(
                     yaml.safe_dump(
-                        prepare_config(
+                        backend.prepare_config(
                             base,
                             knobs,
                             folder / "model",
                             args.warmup_steps + args.measure_steps,
                             args.job_time_sec,
+                            args.warmup_steps,
                         ),
                         sort_keys=False,
                     )
                 )
-                plan["commands"].append(command(path, folder / "model"))
+                plan["commands"].append(backend.command(path, folder / "model"))
             write_json(output / "plan.json", plan)
             print(f"Plan saved to {output / 'plan.json'}; no jobs submitted")
             return 0
-        provenance = environment()
+        provenance = environment(args.backend)
         provenance["available_cpu_cores"] = cores
         return Study(args, base, output, provenance).run()
 

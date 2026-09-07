@@ -1,11 +1,11 @@
 import os
 import time
+import json
 from typing import Dict, Any, Tuple, Optional
 import torch
 import torch.nn.functional as F
 from torch.optim import AdamW
 import torch.distributed as dist
-from cerebras.pytorch.utils.tracker import RateTracker
 from cerebras.modelzoo.models.gnn.reference.pyg.eval import evaluate
 
 
@@ -57,11 +57,13 @@ def train_model(
     log_steps = train_cfg["logging"]["log_steps"]
 
     max_steps = int(loop_cfg["max_steps"])
-    steps_per_epoch = int(loop_cfg["steps_per_epoch"])
-    eval_frequency = int(
-        loop_cfg.get("eval_frequency", steps_per_epoch)
-    )  # Default to steps_per_epoch if not set
+    steps_per_epoch = loop_cfg.get("steps_per_epoch")
+    eval_frequency = loop_cfg.get("eval_frequency", steps_per_epoch)
+    eval_frequency = int(eval_frequency) if eval_frequency else None
     grad_accum_steps = int(loop_cfg.get("grad_accum_steps", 1))
+    benchmark = train_cfg.get("benchmark")
+    if benchmark is not None and (world_size != 1 or grad_accum_steps != 1):
+        raise ValueError("PyG input tuning requires one GPU and grad_accum_steps=1")
 
     # --- Optimizer & AMP ---
     opt_conf = train_cfg["optimizer"]["AdamW"]
@@ -76,6 +78,8 @@ def train_model(
     scaler = torch.amp.GradScaler("cuda", enabled=use_amp)
     disable_log_softmax = task_cfg.get("disable_log_softmax", False)
     compute_eval_metrics = bool(task_cfg.get("compute_eval_metrics", True))
+    if benchmark is not None and (compute_eval_metrics or eval_frequency is not None):
+        raise ValueError("PyG input tuning requires evaluation disabled")
 
     # --- Profiling Setup ---
     # Pre-allocate CUDA events to avoid allocation overhead during the loop
@@ -112,9 +116,18 @@ def train_model(
     step = 0
 
     # Rate tracker for throughput (samples/sec and edges/sec)
-    rate_tracker = RateTracker()
-    edge_rate_tracker = RateTracker()
-    WARMUP_STEPS = 10
+    # Benchmark measurements use synchronized wall time and actual seed counts.
+    # Keep the legacy profiler's SDK tracker out of the GPU tuner import path.
+    if benchmark is None:
+        from cerebras.pytorch.utils.tracker import RateTracker
+
+        rate_tracker = RateTracker()
+        edge_rate_tracker = RateTracker()
+    else:
+        rate_tracker = edge_rate_tracker = None
+    warmup_steps = int(benchmark["warmup_steps"]) if benchmark is not None else 10
+    seed_nodes = 0
+    all_losses_finite = torch.ones((), dtype=torch.bool, device=device)
 
     # --- Helper: Flush Profiler Buffer ---
     def flush_profiler_buffer():
@@ -202,21 +215,26 @@ def train_model(
         events_buffer.append((t_prep, ev_current))
 
         running_loss_tensor += loss.detach()
-        rate_tracker.add(batch.batch_size)
-        if hasattr(batch, "num_edges"):
-            edge_rate_tracker.add(batch.num_edges)
+        if benchmark is not None:
+            seed_nodes += int(y.numel())
+            all_losses_finite.logical_and_(torch.isfinite(loss.detach()))
+        else:
+            rate_tracker.add(batch.batch_size)
+            if hasattr(batch, "num_edges"):
+                edge_rate_tracker.add(batch.num_edges)
         step += 1
 
         # Reset profiler after warmup to exclude compilation/allocation overhead
-        if step == WARMUP_STEPS:
-            rate_tracker.reset()
-            edge_rate_tracker.reset()
+        if step == warmup_steps:
+            if rate_tracker is not None:
+                rate_tracker.reset()
+                edge_rate_tracker.reset()
             # Reset accumulated metrics
             metrics = {k: 0.0 for k in metrics}
             events_buffer.clear()  # Discard warmup events
 
         # --- Logging ---
-        if step % log_steps == 0:
+        if step % log_steps == 0 or (benchmark is not None and step == max_steps):
             flush_profiler_buffer()
 
             if dist.is_initialized():
@@ -230,7 +248,7 @@ def train_model(
             if rank == 0:
                 wall_time = time.perf_counter() - total_wall_start
                 # Calculate denominator considering warmup
-                denom = max(1, step - WARMUP_STEPS if step > WARMUP_STEPS else step)
+                denom = max(1, step - warmup_steps if step > warmup_steps else step)
 
                 avg_m = {k: v / denom for k, v in metrics.items()}
                 avg_load = avg_m["prep_cpu"] + avg_m["h2d_struc"] + avg_m["h2d_fetch"]
@@ -244,15 +262,35 @@ def train_model(
                     f"Fwd: {avg_m['fwd']:.3f} | Bwd: {avg_m['bwd']:.3f} | Opt: {avg_m['opt']:.3f} | "
                     f"GPU_Tot: {avg_m['gpu_total']:.3f}"
                 )
-                print(
-                    f"[Throughput] Samples: {rate_tracker.global_rate():.2f} samples/s ({rate_tracker.rate():.2f}) | "
-                    f"Edges: {edge_rate_tracker.global_rate():.2f} edges/s ({edge_rate_tracker.rate():.2f})"
-                )
+                if benchmark is not None:
+                    finite = bool(all_losses_finite.item())
+                    print(
+                        "[Autotune] "
+                        + json.dumps(
+                            {
+                                "version": 1,
+                                "step": step,
+                                "wall_seconds": wall_time,
+                                "seed_nodes": seed_nodes,
+                                "loss": world_avg_loss if finite else None,
+                                "all_losses_finite": finite,
+                            },
+                            allow_nan=False,
+                        ),
+                        flush=True,
+                    )
+                    if not finite:
+                        raise ValueError(f"Nonfinite loss through step {step}")
+                else:
+                    print(
+                        f"[Throughput] Samples: {rate_tracker.global_rate():.2f} samples/s ({rate_tracker.rate():.2f}) | "
+                        f"Edges: {edge_rate_tracker.global_rate():.2f} edges/s ({edge_rate_tracker.rate():.2f})"
+                    )
 
             running_loss_tensor = torch.zeros(1, device=device)
 
         # --- Evaluation ---
-        if compute_eval_metrics and step % eval_frequency == 0:
+        if compute_eval_metrics and eval_frequency and step % eval_frequency == 0:
             # Note: evaluate is likely synchronous
             val_acc = evaluate(model, val_loader, device, cache=cache)
             model.train()
@@ -267,19 +305,21 @@ def train_model(
     flush_profiler_buffer()
 
     if rank == 0:
-        denom = max(1, step - WARMUP_STEPS if step > WARMUP_STEPS else step)
+        denom = max(1, step - warmup_steps if step > warmup_steps else step)
         avg_m = {k: v / denom for k, v in metrics.items()}
 
         print("-" * 60)
         print(f"Training Completed. Total Steps: {step} (Active: {denom})")
         print(
-            f"Avg Breakdown (ms): Load={avg_m['prep_cpu']+avg_m['h2d_struc']+avg_m['h2d_fetch']:.3f} "
+            f"Avg Breakdown (ms): Load={avg_m['prep_cpu'] + avg_m['h2d_struc'] + avg_m['h2d_fetch']:.3f} "
             f"[Prep:{avg_m['prep_cpu']:.3f}, Struc:{avg_m['h2d_struc']:.3f}, Fetch:{avg_m['h2d_fetch']:.3f}], "
             f"Fwd={avg_m['fwd']:.3f}, Bwd={avg_m['bwd']:.3f}, Opt={avg_m['opt']:.3f}"
         )
         print("-" * 60)
 
-        # Save Checkpoint
-        ckpt_path = os.path.join(model_dir, "last.pt")
-        torch.save({"model_state": model.state_dict(), "cfg": cfg}, ckpt_path)
-        print(f"Checkpoint saved: {ckpt_path}")
+        # Autotune trials explicitly disable checkpoint saving.
+        checkpoint = train_cfg.get("checkpoint", {})
+        if "steps" not in checkpoint or checkpoint["steps"] is not None:
+            ckpt_path = os.path.join(model_dir, "last.pt")
+            torch.save({"model_state": model.state_dict(), "cfg": cfg}, ckpt_path)
+            print(f"Checkpoint saved: {ckpt_path}")

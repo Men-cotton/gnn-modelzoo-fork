@@ -372,13 +372,18 @@ def make_loaders(data, split_idx, cfg, rank=0, world_size=1):
     # 参照するブロック
     fit = cfg["trainer"]["fit"]
     train_c = fit["train_dataloader"]
-    val_c = cfg["trainer"]["validate"]["val_dataloader"]
+    validate = cfg["trainer"].get("validate") or {}
+    val_c = validate.get("val_dataloader")
 
     train_profile = _resolve_dataset_profile(train_c)
-    val_profile = _resolve_dataset_profile(val_c)
+    val_profile = _resolve_dataset_profile(val_c) if val_c else None
 
     train_sampling_mode = train_c.get("sampling_mode", "neighbor")
-    val_sampling_mode = val_c.get("sampling_mode", train_sampling_mode)
+    val_sampling_mode = (
+        val_c.get("sampling_mode", train_sampling_mode)
+        if val_c
+        else train_sampling_mode
+    )
     if train_sampling_mode != val_sampling_mode:
         raise ValueError(
             "PyG train and validation loaders must use the same sampling_mode; "
@@ -391,16 +396,19 @@ def make_loaders(data, split_idx, cfg, rank=0, world_size=1):
         if world_size != 1:
             raise ValueError("full_graph PyG loader currently supports one GPU only.")
         train_nodes = _resolve_split(split_idx, train_c.get("split", "train"))
-        val_nodes = _resolve_split(split_idx, val_c.get("split", "val"))
+        val_nodes = (
+            _resolve_split(split_idx, val_c.get("split", "val")) if val_c else None
+        )
         return (
             _make_full_graph_loader(data, train_nodes, train_c),
-            _make_full_graph_loader(data, val_nodes, val_c),
+            _make_full_graph_loader(data, val_nodes, val_c) if val_c else None,
         )
     if train_sampling_mode != "neighbor":
         raise ValueError(f"Unsupported PyG sampling_mode '{train_sampling_mode}'.")
 
     _require_sampler_seed(train_c, "train_dataloader")
-    _require_sampler_seed(val_c, "val_dataloader")
+    if val_c:
+        _require_sampler_seed(val_c, "val_dataloader")
 
     is_dist = (
         isinstance(data, tuple)
@@ -431,10 +439,6 @@ def make_loaders(data, split_idx, cfg, rank=0, world_size=1):
     # Common dataloader kwargs
     def _get_loader_kwargs(loader_cfg, loader_cls):
         num_workers = loader_cfg.get("num_workers", 0)
-        if num_workers <= 0:
-            raise ValueError(
-                f"num_workers must be > 0 for HPC performance. Got {num_workers}."
-            )
         validate_num_workers(
             num_workers,
             context=f"{loader_cls.__name__}.num_workers",
@@ -443,7 +447,9 @@ def make_loaders(data, split_idx, cfg, rank=0, world_size=1):
         kwargs = {
             "batch_size": loader_cfg["batch_size"],
             "num_workers": num_workers,
-            "persistent_workers": loader_cfg.get("persistent_workers", True),
+            "persistent_workers": loader_cfg.get("persistent_workers", True)
+            if num_workers
+            else False,
             "pin_memory": loader_cfg.get("pin_memory", True),
         }
 
@@ -471,7 +477,7 @@ def make_loaders(data, split_idx, cfg, rank=0, world_size=1):
         # prefetch_factor validation
         prefetch_factor = loader_cfg.get("prefetch_factor", 10)
         if "prefetch_factor" in sig.parameters or "kwargs" in sig.parameters:
-            kwargs["prefetch_factor"] = prefetch_factor
+            kwargs["prefetch_factor"] = prefetch_factor if num_workers else None
         else:
             raise RuntimeError(
                 f"prefetch_factor not supported by {loader_cls.__name__}"
@@ -513,6 +519,9 @@ def make_loaders(data, split_idx, cfg, rank=0, world_size=1):
             **loader_kwargs,
         )
 
+        if not val_c:
+            return train_loader, None
+
         try:
             val_nodes = _resolve_split(split_idx, val_c.get("split", "val"))
         except KeyError:
@@ -549,6 +558,9 @@ def make_loaders(data, split_idx, cfg, rank=0, world_size=1):
         generator=_build_generator(train_c, "train_dataloader"),
         **train_kwargs,
     )
+
+    if not val_c:
+        return train_loader, None
 
     val_kwargs = _get_loader_kwargs(val_c, NeighborLoader)
     val_loader = NeighborLoader(

@@ -91,7 +91,7 @@ class AutotuneTests(unittest.TestCase):
         self.assertEqual(len(paths), 12)
         for path in paths:
             base = tune.load_params_file(path)
-            config = tune.prepare_config(
+            config = tune.get_backend("csx").prepare_config(
                 base, tune.candidate(0), self.output / "model", 240, 7200
             )
             init = config["trainer"]["init"]
@@ -150,7 +150,7 @@ class AutotuneTests(unittest.TestCase):
         ) as execute:
             self.assertEqual(self.study().run(), 2)
             self.assertEqual(execute.call_count, 1)
-            with self.assertRaisesRegex(ValueError, "Confirm its CSX job"):
+            with self.assertRaisesRegex(ValueError, "Confirm its job/process"):
                 self.study().run()
         args = deepcopy(self.args)
         args.acknowledge_stopped_jobs = True

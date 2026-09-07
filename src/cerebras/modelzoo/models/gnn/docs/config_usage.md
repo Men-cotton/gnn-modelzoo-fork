@@ -243,6 +243,6 @@ This section highlights the key differences between the standard `cszoo` flow (i
 | **Model Implementation** | Custom architecture modules | PyG modules such as `GraphSAGE` and `GCNConv` |
 | **Data Loader** | Custom architecture-specific data processors | PyG `NeighborLoader` for GraphSAGE, full-graph `Data` batch for GCN |
 
-## CS-3 input auto tuning
+## CSX and PyG input auto tuning
 
-See [autotune.md](autotune.md) for sequential worker exploration, confirmation measurements, budgets and resume using the supplied ZIP configurations.
+See [autotune.md](autotune.md) for `--backend csx` / `--backend pyg`, sequential worker exploration, repeated confirmation, budgets and resume. [pyg_windows.md](pyg_windows.md) records the GPU log study used to choose the initial measurement windows.
