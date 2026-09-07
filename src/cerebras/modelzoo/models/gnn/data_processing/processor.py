@@ -46,7 +46,7 @@ class GNNDataProcessorConfig(DataConfig):
     drop_last: bool = Field(True, validation_alias="drop_last_batch")
     num_workers: int = 0
     shuffle: bool = False
-    prefetch_factor: Optional[int] = 10
+    prefetch_factor: Optional[int] = Field(10, ge=1)
     persistent_workers: bool = True
     pin_memory: bool = True
     static_batch_cache_size: int = 0
@@ -202,6 +202,8 @@ class GNNDataProcessor:
                 shuffle=self.config.shuffle,
                 sampler_seed=self.config.sampler_seed,
                 num_workers=self.config.num_workers,
+                prefetch_factor=self.config.prefetch_factor,
+                persistent_workers=self.config.persistent_workers,
                 pad_id=self.config.pad_node_id,
                 cache_fraction=self.config.cache_fraction,
                 static_batch_cache_size=self.config.static_batch_cache_size,

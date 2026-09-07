@@ -120,7 +120,7 @@ validate_num_workers() {
 
     "${PROJECT_ROOT}/benchmark_scripts/validate_num_workers.sh" \
         "${CONFIGS_DIR}"
-    log_info "Validated GraphSAGE neighbor num_workers=40"
+    log_info "Validated GraphSAGE neighbor num_workers (runtime checks CPU availability)"
 }
 
 main() {

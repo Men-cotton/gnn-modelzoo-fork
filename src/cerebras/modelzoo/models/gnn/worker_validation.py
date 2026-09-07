@@ -14,6 +14,12 @@ def get_available_cpu_cores() -> Optional[int]:
 
 def validate_num_workers(num_workers: int, *, context: str) -> int:
     """Reject worker counts that exceed the CPUs available to the runtime."""
+    if (
+        isinstance(num_workers, bool)
+        or not isinstance(num_workers, int)
+        or num_workers < 0
+    ):
+        raise ValueError(f"{context}: num_workers must be a non-negative integer")
     available_cpu_cores = get_available_cpu_cores()
     if available_cpu_cores is not None and num_workers > available_cpu_cores:
         raise ValueError(

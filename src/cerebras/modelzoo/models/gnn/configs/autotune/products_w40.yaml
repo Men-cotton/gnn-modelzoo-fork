@@ -1,0 +1,43 @@
+# Target source: 3dbe09aa22b8e10d7f6348190807d987b43bfbca
+# Place in src/cerebras/modelzoo/models/gnn/configs/autotune/.
+# Run ONE continuous training loop: 40 warm-up steps + 200 measured steps.
+# Warm-up exclusion is performed by tools/measure_window.py, NOT by Trainer.
+extends: ../params_graphsage_ogbn_products_throughput_nocache.yaml
+
+trainer:
+  init:
+    model_dir: "$MODELZOO_ROOT/../../../model_dirs/autotune/products_w40"
+    backend:
+      backend_type: CSX
+      cluster_config:
+        num_csx: 1
+        job_time_sec: 7200
+    loop:
+      num_steps: null
+      max_steps: 240
+      num_epochs: null
+      steps_per_epoch: null
+      eval_frequency: null
+    checkpoint:
+      steps: null
+      autoload_last_checkpoint: false
+      save_initial_checkpoint: false
+    logging:
+      log_steps: 10
+
+  fit:
+    ckpt_path: null
+    train_dataloader:
+      batch_size: 4096
+      num_workers: 40
+      prefetch_factor: 2
+      persistent_workers: false
+      # null bypasses GraphCache; 0.0 still constructs the wrapper.
+      cache_fraction: null
+      # Do not replay a small subset of precomputed batches.
+      static_batch_cache_size: 0
+      use_fake_data: false
+    val_dataloader: null
+
+  validate: null
+  validate_all: null

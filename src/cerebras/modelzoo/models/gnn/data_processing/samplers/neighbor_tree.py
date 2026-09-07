@@ -355,6 +355,8 @@ class NeighborSamplingDataProcessor(BaseGraphDataSource):
         sampler_seed: int,
         num_workers: int,
         pad_id: int,
+        prefetch_factor: Optional[int] = 2,
+        persistent_workers: bool = False,
         cache_fraction: Optional[float] = None,
         static_batch_cache_size: int = 0,
     ):
@@ -376,6 +378,10 @@ class NeighborSamplingDataProcessor(BaseGraphDataSource):
         )
         self.pad_id = pad_id
         self.cache_fraction = cache_fraction
+        if prefetch_factor is not None and prefetch_factor < 1:
+            raise ValueError("prefetch_factor must be positive or None")
+        self.prefetch_factor = prefetch_factor if self.num_workers else None
+        self.persistent_workers = persistent_workers if self.num_workers else False
         self.static_batch_cache_size = static_batch_cache_size
         self.graph_cache = None
 
@@ -444,6 +450,8 @@ class NeighborSamplingDataProcessor(BaseGraphDataSource):
                 shuffle=False,
                 drop_last=False,
                 num_workers=self.num_workers,
+                prefetch_factor=self.prefetch_factor,
+                persistent_workers=self.persistent_workers,
                 pin_memory=(self.num_workers > 0 and torch.cuda.is_available()),
                 collate_fn=lambda batch: batch[0],
             )
