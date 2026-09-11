@@ -16,6 +16,7 @@ import yaml
 
 from cerebras.modelzoo.common.utils.run.config_loader import load_params_file
 from cerebras.modelzoo.models.gnn.data_processing.batches import GraphSAGEBatch
+from cerebras.modelzoo.models.gnn.data_processing.padding import NeighborPaddingStats
 from cerebras.modelzoo.models.gnn.data_processing.processor import (
     GNNDataProcessorConfig,
 )
@@ -95,7 +96,16 @@ def evaluate(model, loader, device, dtype):
     return {"accuracy": int(correct) / targets, "targets": targets}
 
 
-def train(cfg, output_dir, *, device, dtype, compile_model=False, warmup_steps=40):
+def train(
+    cfg,
+    output_dir,
+    *,
+    device,
+    dtype,
+    compile_model=False,
+    warmup_steps=40,
+    measure_neighbor_padding=False,
+):
     """Run synchronized training windows; exclude setup, warmup and evaluation."""
     if int(os.environ.get("WORLD_SIZE", "1")) != 1:
         raise ValueError("fixed_shape_gpu supports one process and one GPU")
@@ -177,6 +187,8 @@ def train(cfg, output_dir, *, device, dtype, compile_model=False, warmup_steps=4
     measured_seconds = 0.0
     measured_targets = measured_slots = measured_steps = 0
     window_targets = window_slots = window_steps = 0
+    window_padding = NeighborPaddingStats() if measure_neighbor_padding else None
+    measured_padding = NeighborPaddingStats() if measure_neighbor_padding else None
     loss_sum = torch.zeros((), device=device)
     all_finite = torch.ones((), device=device, dtype=torch.bool)
     with (output_dir / "metrics.jsonl").open("x") as metrics:
@@ -194,6 +206,7 @@ def train(cfg, output_dir, *, device, dtype, compile_model=False, warmup_steps=4
                 "precision": str(dtype),
                 "compile": compile_model,
                 "warmup_steps": warmup_steps,
+                "measure_neighbor_padding": measure_neighbor_padding,
                 "cache_device": "cpu",
                 "static_batch_cache_size": fit["train_dataloader"].get(
                     "static_batch_cache_size", 0
@@ -211,6 +224,8 @@ def train(cfg, output_dir, *, device, dtype, compile_model=False, warmup_steps=4
             window_targets += int(payload["target_mask"].sum())
             window_slots += payload["target_mask"].numel()
             window_steps += 1
+            if measure_neighbor_padding:
+                window_padding.update(payload)
             batch = GraphSAGEBatch.from_payload(payload).to(device, non_blocking=True)
             optimizer.zero_grad(set_to_none=True)
             with torch.autocast(
@@ -236,6 +251,8 @@ def train(cfg, output_dir, *, device, dtype, compile_model=False, warmup_steps=4
                     measured_targets += window_targets
                     measured_slots += window_slots
                     measured_steps += window_steps
+                    if measure_neighbor_padding:
+                        measured_padding.merge(window_padding)
                 emit(
                     {
                         "event": "train",
@@ -248,6 +265,11 @@ def train(cfg, output_dir, *, device, dtype, compile_model=False, warmup_steps=4
                         "nominal_slots": window_slots,
                         "seed_nodes_per_second": window_targets / elapsed,
                         "nominal_slots_per_second": window_slots / elapsed,
+                        **(
+                            {"neighbor_padding": window_padding.summary()}
+                            if measure_neighbor_padding
+                            else {}
+                        ),
                     }
                 )
                 if do_eval:
@@ -259,6 +281,8 @@ def train(cfg, output_dir, *, device, dtype, compile_model=False, warmup_steps=4
                         }
                     )
                 window_targets = window_slots = window_steps = 0
+                if measure_neighbor_padding:
+                    window_padding = NeighborPaddingStats()
                 loss_sum.zero_()
                 synchronize()
                 window_start = time.perf_counter()
@@ -271,6 +295,8 @@ def train(cfg, output_dir, *, device, dtype, compile_model=False, warmup_steps=4
             "seed_nodes_per_second": measured_targets / measured_seconds,
             "nominal_slots_per_second": measured_slots / measured_seconds,
         }
+        if measure_neighbor_padding:
+            summary["neighbor_padding"] = measured_padding.summary()
         emit(summary)
     torch.save(
         {
@@ -296,6 +322,11 @@ def main():
     )
     parser.add_argument("--precision", choices=("fp32", "fp16", "bf16"))
     parser.add_argument("--compile", action="store_true")
+    parser.add_argument(
+        "--measure-neighbor-padding",
+        action="store_true",
+        help="count neighbor padding on the CPU and include it in metrics (default: off)",
+    )
     parser.add_argument("--warmup-steps", type=int, default=40)
     parser.add_argument("--max-steps", type=int)
     parser.add_argument("--num-workers", type=int)
@@ -320,6 +351,7 @@ def main():
         dtype=dtype,
         compile_model=args.compile,
         warmup_steps=args.warmup_steps,
+        measure_neighbor_padding=args.measure_neighbor_padding,
     )
 
 

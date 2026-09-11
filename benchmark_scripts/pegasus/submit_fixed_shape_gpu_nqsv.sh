@@ -5,9 +5,10 @@ script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 project_root="$(cd "${script_dir}/../.." && pwd -P)"
 config=""
 compile=0
+measure_neighbor_padding=0
 dry_run=0
 usage() {
-    echo "Usage: $0 --config PATH [--compile] [--dry-run]"
+    echo "Usage: $0 --config PATH [--compile] [--measure-neighbor-padding] [--dry-run]"
 }
 while (( $# )); do
     case "$1" in
@@ -15,6 +16,7 @@ while (( $# )); do
             [[ -n "${2:-}" ]] || { usage >&2; exit 2; }
             config="$2"; shift 2 ;;
         --compile) compile=1; shift ;;
+        --measure-neighbor-padding) measure_neighbor_padding=1; shift ;;
         --dry-run) dry_run=1; shift ;;
         -h|--help) usage; exit 0 ;;
         *) usage >&2; exit 2 ;;
@@ -27,7 +29,7 @@ if [[ "$config" == *','* || "$config" == *$'\n'* ]]; then
     echo 'Config paths must not contain commas or newlines.' >&2
     exit 2
 fi
-command=(qsub -v "FIXED_SHAPE_CONFIG=${config},FIXED_SHAPE_COMPILE=${compile}"
+command=(qsub -v "FIXED_SHAPE_CONFIG=${config},FIXED_SHAPE_COMPILE=${compile},FIXED_SHAPE_MEASURE_NEIGHBOR_PADDING=${measure_neighbor_padding}"
     "${script_dir}/run_fixed_shape_gpu_nqsv.pbs")
 cd "${project_root}"
 if (( dry_run )); then

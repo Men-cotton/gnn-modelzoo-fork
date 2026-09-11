@@ -13,4 +13,9 @@ case "${FIXED_SHAPE_COMPILE:-0}" in
     1) args+=(--compile) ;;
     *) echo 'FIXED_SHAPE_COMPILE must be 0 or 1' >&2; exit 2 ;;
 esac
+case "${FIXED_SHAPE_MEASURE_NEIGHBOR_PADDING:-0}" in
+    0) ;;
+    1) args+=(--measure-neighbor-padding) ;;
+    *) echo 'FIXED_SHAPE_MEASURE_NEIGHBOR_PADDING must be 0 or 1' >&2; exit 2 ;;
+esac
 exec ./benchmark_scripts/pegasus/run_fixed_shape_gpu.sh "${args[@]}"

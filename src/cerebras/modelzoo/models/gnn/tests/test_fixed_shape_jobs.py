@@ -8,7 +8,6 @@ import sys
 import tempfile
 import unittest
 
-
 ROOT = Path(__file__).resolve().parents[6]
 SCRIPTS = ROOT / "benchmark_scripts/pegasus"
 
@@ -32,6 +31,7 @@ class FixedShapeJobTests(unittest.TestCase):
                 "--config",
                 config.name,
                 "--compile",
+                "--measure-neighbor-padding",
             ]
             result = subprocess.run(
                 command, cwd=temp, env=env, check=True, capture_output=True, text=True
@@ -42,7 +42,8 @@ class FixedShapeJobTests(unittest.TestCase):
                 submission["args"],
                 [
                     "-v",
-                    f"FIXED_SHAPE_CONFIG={config},FIXED_SHAPE_COMPILE=1",
+                    f"FIXED_SHAPE_CONFIG={config},FIXED_SHAPE_COMPILE=1,"
+                    "FIXED_SHAPE_MEASURE_NEIGHBOR_PADDING=1",
                     str(SCRIPTS / "run_fixed_shape_gpu_nqsv.pbs"),
                 ],
             )

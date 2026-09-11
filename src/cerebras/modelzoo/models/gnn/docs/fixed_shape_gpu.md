@@ -86,6 +86,38 @@ sampling latency. Compilation after warmup, if any, remains part of the timing.
 with PyG or CSX. Representation reuse does not imply identical kernels,
 precision behavior, training schedules, or throughput across devices.
 
+Neighbor padding measurement is disabled by default: no neighbor masks are
+scanned for statistics, and no `neighbor_padding` results are emitted.
+Add `--measure-neighbor-padding` to the Python command, interactive wrapper, or
+NQSV submitter to enable it. The `run` record stores this setting as
+`measure_neighbor_padding`. When enabled, every `train` and final `summary`
+record also includes `neighbor_padding`.
+`by_hop` reports each hop (1 is the direct neighbors of targets); `overall`
+sums slots across all hops, excluding root target slots. Each reports:
+
+- `slots`, `valid_slots`, `padded_slots`, and `padding_percent` (0–100).
+- `slots_from_padded_parents`: slots invalid because their parent is padded.
+- `slots_from_valid_parents` and `padded_slots_from_valid_parents`: capacity
+  under real parents and the unfilled part of that capacity.
+- `padding_percent_from_valid_parents`: the unfilled percentage under real
+  parents, or `null` when there are no real parents at that hop.
+
+The two padding causes sum to `padded_slots`. Counts come from CPU validity
+masks of batches actually consumed by training, including repeated static
+batches; prefetched but unused batches are not counted. Feature values are not
+inspected, so natural zeros do not inflate padding. The summary excludes warmup
+and validation, uses the same windows as throughput, and divides summed counts
+instead of averaging percentages. CPU counting is included in window timing.
+With the current common input feature width, overall neighbor slot padding
+also equals padding of neighbor feature elements. It is not a FLOP savings or
+hardware utilization measurement; the dense model still processes fixed shapes.
+
+Inspect the final counts with:
+
+```bash
+jq 'select(.event == "summary") | .neighbor_padding' OUTPUT_DIR/metrics.jsonl
+```
+
 ## Validation
 
 ```bash

@@ -18,7 +18,7 @@ while (( $# )); do
             [[ -n "${2:-}" ]] || { echo '--output-dir requires a value' >&2; exit 2; }
             output_dir="$2"; shift 2 ;;
         -h|--help)
-            echo "Usage: $0 --config PATH [--output-dir DIR] [--compile] [--precision fp32|fp16|bf16] [--num-workers N] [--max-steps N] [--warmup-steps N] [--dry-run]"
+            echo "Usage: $0 --config PATH [--output-dir DIR] [--compile] [--measure-neighbor-padding] [--precision fp32|fp16|bf16] [--num-workers N] [--max-steps N] [--warmup-steps N] [--dry-run]"
             exit 0 ;;
         *) args+=("$1"); shift ;;
     esac

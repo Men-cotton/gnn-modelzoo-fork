@@ -12,6 +12,7 @@ from torch_geometric.data import Data
 
 from cerebras.modelzoo.models.gnn import fixed_shape_gpu as runner
 from cerebras.modelzoo.models.gnn.data_processing.batches import GraphSAGEBatch
+from cerebras.modelzoo.models.gnn.data_processing.padding import NeighborPaddingStats
 from cerebras.modelzoo.models.gnn.data_processing.samplers import neighbor_tree
 from cerebras.modelzoo.models.gnn.data_processing.sources.base import (
     BaseGraphDataSource,
@@ -158,6 +159,42 @@ class FixedShapeTests(unittest.TestCase):
             for a, b in zip(padded_model.parameters(), single_model.parameters()):
                 torch.testing.assert_close(a.grad, b.grad)
 
+    def test_neighbor_padding_counts_slots_and_valid_parent_shortages(self):
+        loader = runner.make_loader(
+            tiny_config()["trainer"]["fit"]["train_dataloader"],
+            num_layers=2,
+            float_dtype=torch.float32,
+        )
+        full, tail = list(loader)
+        # Natural feature zeros must not be counted as padding.
+        for features in full["node_features"]:
+            features.zero_()
+        stats = NeighborPaddingStats()
+        stats.update(full)
+        result = stats.summary()
+        self.assertEqual([r["padding_percent"] for r in result["by_hop"]], [50, 75])
+        # Weight by slots: (2 + 6) / (4 + 8), not the mean of hop percentages.
+        self.assertAlmostEqual(result["overall"]["padding_percent"], 100 * 8 / 12)
+        self.assertEqual(result["overall"]["slots_from_padded_parents"], 4)
+        self.assertEqual(result["overall"]["padded_slots_from_valid_parents"], 4)
+
+        tail_stats = NeighborPaddingStats()
+        tail_stats.update(tail)
+        result = tail_stats.summary()
+        self.assertEqual(result["overall"]["padding_percent"], 100)
+        self.assertEqual(result["by_hop"][0]["padding_percent_from_valid_parents"], 100)
+        self.assertIsNone(result["by_hop"][1]["padding_percent_from_valid_parents"])
+        stats.merge(tail_stats)
+        result = stats.summary()["overall"]
+        self.assertEqual(result["slots"], 24)
+        self.assertEqual(result["valid_slots"], 4)
+        self.assertEqual(result["padded_slots"], 20)
+        self.assertEqual(result["slots_from_padded_parents"], 14)
+        self.assertEqual(result["padded_slots_from_valid_parents"], 6)
+        # Cached/repeated batches count every consumed occurrence.
+        stats.update(full)
+        self.assertEqual(stats.summary()["overall"]["valid_slots"], 8)
+
     def run_training(self, device, dtype=torch.float32, compile_model=False):
         with tempfile.TemporaryDirectory() as output:
             result = runner.train(
@@ -167,15 +204,28 @@ class FixedShapeTests(unittest.TestCase):
                 dtype=dtype,
                 warmup_steps=1,
                 compile_model=compile_model,
+                measure_neighbor_padding=True,
             )
             self.assertEqual(result["steps"], 4)
             self.assertEqual(result["seed_nodes"], 6)
             self.assertEqual(result["nominal_slots"], 8)
+            padding = result["neighbor_padding"]
+            self.assertEqual(padding["overall"]["slots"], 48)
+            self.assertEqual(padding["overall"]["valid_slots"], 8)
+            self.assertEqual(padding["overall"]["padded_slots"], 40)
+            self.assertEqual(padding["overall"]["slots_from_padded_parents"], 28)
+            self.assertEqual(padding["overall"]["padded_slots_from_valid_parents"], 12)
+            self.assertAlmostEqual(padding["overall"]["padding_percent"], 100 * 40 / 48)
             records = [
                 json.loads(line)
                 for line in (Path(output) / "metrics.jsonl").read_text().splitlines()
             ]
             evals = [r for r in records if r["event"] == "eval"]
+            windows = [r for r in records if r["event"] == "train" and r["measured"]]
+            self.assertEqual(
+                sum(r["neighbor_padding"]["overall"]["valid_slots"] for r in windows),
+                padding["overall"]["valid_slots"],
+            )
             self.assertEqual([r["step"] for r in evals], [2, 4, 5])
             self.assertTrue(all(r["targets"] == 3 for r in evals))
             checkpoint = torch.load(
@@ -196,6 +246,26 @@ class FixedShapeTests(unittest.TestCase):
 
     def test_cpu_training(self):
         self.run_training("cpu")
+
+    def test_neighbor_padding_disabled_by_default(self):
+        with (
+            tempfile.TemporaryDirectory() as output,
+            patch.object(runner, "NeighborPaddingStats", side_effect=AssertionError),
+        ):
+            result = runner.train(
+                tiny_config(),
+                output,
+                device=torch.device("cpu"),
+                dtype=torch.float32,
+                warmup_steps=1,
+            )
+            self.assertEqual(result["seed_nodes"], 6)
+            records = [
+                json.loads(line)
+                for line in (Path(output) / "metrics.jsonl").read_text().splitlines()
+            ]
+            self.assertFalse(records[0]["measure_neighbor_padding"])
+            self.assertTrue(all("neighbor_padding" not in r for r in records))
 
     @unittest.skipUnless(torch.cuda.is_available(), "CUDA unavailable")
     def test_cuda_training(self):
