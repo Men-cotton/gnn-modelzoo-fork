@@ -1,0 +1,246 @@
+"""Exercise shared fixed batches and native training without downloading a graph."""
+
+import copy
+import json
+import tempfile
+import unittest
+from pathlib import Path
+from unittest.mock import patch
+
+import torch
+from torch_geometric.data import Data
+
+from cerebras.modelzoo.models.gnn import fixed_shape_gpu as runner
+from cerebras.modelzoo.models.gnn.data_processing.batches import GraphSAGEBatch
+from cerebras.modelzoo.models.gnn.data_processing.samplers import neighbor_tree
+from cerebras.modelzoo.models.gnn.data_processing.sources.base import (
+    BaseGraphDataSource,
+)
+from cerebras.modelzoo.models.gnn.model import GNNModel
+
+
+def tiny_graph():
+    # Node 2 is isolated. Three targets leave a padded tail with batch_size=2.
+    return Data(
+        x=torch.tensor([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]),
+        edge_index=torch.tensor([[0, 1], [1, 0]]),
+        y=torch.tensor([0, 1, 0]),
+        train_mask=torch.ones(3, dtype=torch.bool),
+        val_mask=torch.ones(3, dtype=torch.bool),
+        test_mask=torch.ones(3, dtype=torch.bool),
+    )
+
+
+def tiny_config():
+    loader = dict(
+        data_processor="GNNDataProcessor",
+        dataset_name="ogbn-arxiv",
+        sampling_mode="neighbor",
+        fanouts=[2, 2],
+        batch_size=2,
+        num_workers=0,
+        shuffle=False,
+        sampler_seed=42,
+        cache_fraction=1.0,
+    )
+    return {
+        "trainer": {
+            "init": {
+                "seed": 42,
+                "model": {
+                    "name": "gnn",
+                    "architecture": {
+                        "type": "graphsage",
+                        "n_feat": 2,
+                        "n_class": 2,
+                        "hidden_dim": 4,
+                        "num_layers": 2,
+                        "dropout": 0.0,
+                        "aggregator": "mean",
+                    },
+                    "task": {"compute_eval_metrics": True},
+                },
+                "optimizer": {"AdamW": {"learning_rate": 0.01, "weight_decay": 0.0005}},
+                "loop": {"max_steps": 5, "eval_frequency": 2},
+                "logging": {"log_steps": 3},
+            },
+            "fit": {
+                "train_dataloader": {**loader, "split": "train"},
+                "val_dataloader": {**loader, "split": "valid"},
+            },
+        }
+    }
+
+
+class FixedShapeTests(unittest.TestCase):
+    def setUp(self):
+        torch.set_num_threads(1)
+        self.graph_patch = patch.object(
+            BaseGraphDataSource, "load_graph", side_effect=tiny_graph
+        )
+        self.graph_patch.start()
+        self.addCleanup(self.graph_patch.stop)
+
+    def test_native_payload_matches_modelzoo_with_workers_and_host_cache(self):
+        for workers in (0, 1):
+            with self.subTest(workers=workers):
+                config = tiny_config()["trainer"]["fit"]["train_dataloader"]
+                config["num_workers"] = workers
+                # The native path must never consult or wrap a Cerebras backend.
+                with patch.object(
+                    neighbor_tree.cstorch, "backend", side_effect=AssertionError
+                ):
+                    native = runner.make_loader(
+                        config, num_layers=2, float_dtype=torch.float32
+                    )
+                processor = neighbor_tree.NeighborSamplingDataProcessor(
+                    dataset_name="ogbn-arxiv",
+                    data_dir=".",
+                    current_split="train",
+                    float_dtype=torch.float32,
+                    label_dtype=torch.long,
+                    adj_normalization_fn=None,
+                    fanouts=[2, 2],
+                    batch_size=2,
+                    shuffle=False,
+                    sampler_seed=42,
+                    num_workers=workers,
+                    pad_id=0,
+                    cache_fraction=1.0,
+                )
+                with (
+                    patch.object(neighbor_tree.cstorch, "use_cs", return_value=True),
+                    patch.object(
+                        neighbor_tree.cstorch.utils.data,
+                        "DataLoader",
+                        side_effect=lambda factory: factory(),
+                    ),
+                ):
+                    modelzoo = processor.create_dataloader()
+                batches = list(native)
+                for actual, expected in zip(batches, modelzoo):
+                    for key in actual:
+                        a, b = actual[key], expected[key]
+                        if torch.is_tensor(a):
+                            a, b = [a], [b]
+                        for x, y in zip(a, b):
+                            self.assertEqual(x.device.type, "cpu")
+                            torch.testing.assert_close(x, y, rtol=0, atol=0)
+                self.assertEqual(
+                    [b["node_features"][2].shape for b in batches],
+                    [torch.Size([2, 4, 2])] * 2,
+                )
+                self.assertEqual(int(batches[-1]["target_mask"].sum()), 1)
+                self.assertFalse(batches[-1]["neighbor_masks"][0].any())
+                del native, modelzoo
+
+    def test_padding_does_not_change_loss_or_gradients(self):
+        loader = runner.make_loader(
+            tiny_config()["trainer"]["fit"]["train_dataloader"],
+            num_layers=2,
+            float_dtype=torch.float32,
+        )
+        payload = list(loader)[-1]
+        single = {
+            key: value[:1] if torch.is_tensor(value) else [v[:1] for v in value]
+            for key, value in payload.items()
+        }
+        cfg = tiny_config()["trainer"]["init"]["model"]
+        cfg["task"]["compute_eval_metrics"] = False
+        for aggregator in ("mean", "sum", "max"):
+            cfg["architecture"]["aggregator"] = aggregator
+            padded_model = GNNModel(cfg)
+            single_model = copy.deepcopy(padded_model)
+            padded_loss, single_loss = padded_model(payload), single_model(single)
+            torch.testing.assert_close(padded_loss, single_loss)
+            padded_loss.backward()
+            single_loss.backward()
+            for a, b in zip(padded_model.parameters(), single_model.parameters()):
+                torch.testing.assert_close(a.grad, b.grad)
+
+    def run_training(self, device, dtype=torch.float32, compile_model=False):
+        with tempfile.TemporaryDirectory() as output:
+            result = runner.train(
+                tiny_config(),
+                output,
+                device=torch.device(device),
+                dtype=dtype,
+                warmup_steps=1,
+                compile_model=compile_model,
+            )
+            self.assertEqual(result["steps"], 4)
+            self.assertEqual(result["seed_nodes"], 6)
+            self.assertEqual(result["nominal_slots"], 8)
+            records = [
+                json.loads(line)
+                for line in (Path(output) / "metrics.jsonl").read_text().splitlines()
+            ]
+            evals = [r for r in records if r["event"] == "eval"]
+            self.assertEqual([r["step"] for r in evals], [2, 4, 5])
+            self.assertTrue(all(r["targets"] == 3 for r in evals))
+            checkpoint = torch.load(
+                Path(output) / "checkpoint.pt", weights_only=True, map_location="cpu"
+            )
+            self.assertEqual(checkpoint["step"], 5)
+            self.assertTrue(
+                all(torch.isfinite(t).all() for t in checkpoint["model"].values())
+            )
+            torch.manual_seed(42)
+            initial = GNNModel(tiny_config()["trainer"]["init"]["model"])
+            self.assertTrue(
+                any(
+                    not torch.equal(v, checkpoint["model"][k])
+                    for k, v in initial.state_dict().items()
+                )
+            )
+
+    def test_cpu_training(self):
+        self.run_training("cpu")
+
+    @unittest.skipUnless(torch.cuda.is_available(), "CUDA unavailable")
+    def test_cuda_training(self):
+        self.run_training("cuda")
+        self.run_training("cuda", torch.float16)
+
+    @unittest.skipUnless(torch.cuda.is_available(), "CUDA unavailable")
+    def test_cpu_cuda_forward_backward_parity(self):
+        config = tiny_config()["trainer"]["init"]["model"]
+        config["task"]["compute_eval_metrics"] = False
+        cpu = GNNModel(config)
+        gpu = copy.deepcopy(cpu).cuda()
+        loader = runner.make_loader(
+            tiny_config()["trainer"]["fit"]["train_dataloader"],
+            num_layers=2,
+            float_dtype=torch.float32,
+        )
+        for payload in loader:
+            batch = GraphSAGEBatch.from_payload(payload)
+            torch.testing.assert_close(
+                cpu.model(batch), gpu.model(batch.to("cuda")).cpu()
+            )
+            cpu_loss, gpu_loss = cpu(batch), gpu(batch.to("cuda"))
+            torch.testing.assert_close(cpu_loss, gpu_loss.cpu())
+            cpu_loss.backward()
+            gpu_loss.backward()
+        for a, b in zip(cpu.parameters(), gpu.parameters()):
+            torch.testing.assert_close(a.grad, b.grad.cpu(), atol=1e-6, rtol=1e-5)
+
+    def test_invalid_fanouts_and_architecture(self):
+        config = tiny_config()["trainer"]["fit"]["train_dataloader"]
+        for fanouts in ([2], [2, 0]):
+            with self.assertRaisesRegex(ValueError, "fanouts"):
+                runner.make_loader(
+                    {**config, "fanouts": fanouts},
+                    num_layers=2,
+                    float_dtype=torch.float32,
+                )
+        with self.assertRaisesRegex(ValueError, "neighbor-sampled"):
+            runner.make_loader(
+                {**config, "sampling_mode": "full_graph"},
+                num_layers=2,
+                float_dtype=torch.float32,
+            )
+
+
+if __name__ == "__main__":
+    unittest.main()

@@ -1,0 +1,16 @@
+#!/bin/bash
+#PBS -A AC2
+#PBS -q gpu
+#PBS -b 1
+#PBS -l elapstim_req=02:00:00
+
+set -euo pipefail
+cd "${PBS_O_WORKDIR:?Submit with submit_fixed_shape_gpu_nqsv.sh}"
+: "${FIXED_SHAPE_CONFIG:?Missing FIXED_SHAPE_CONFIG}"
+args=(--config "${FIXED_SHAPE_CONFIG}")
+case "${FIXED_SHAPE_COMPILE:-0}" in
+    0) ;;
+    1) args+=(--compile) ;;
+    *) echo 'FIXED_SHAPE_COMPILE must be 0 or 1' >&2; exit 2 ;;
+esac
+exec ./benchmark_scripts/pegasus/run_fixed_shape_gpu.sh "${args[@]}"

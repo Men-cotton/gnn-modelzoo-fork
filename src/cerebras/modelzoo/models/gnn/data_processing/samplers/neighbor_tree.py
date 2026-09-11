@@ -386,6 +386,17 @@ class NeighborSamplingDataProcessor(BaseGraphDataSource):
         self.graph_cache = None
 
     def create_dataloader(self) -> DataLoader:
+        return self._create_dataloader(wrap_cstorch=True)
+
+    def create_torch_dataloader(self) -> DataLoader:
+        """Build the same fixed batches on the host for native PyTorch training.
+
+        Keep GraphCache on CPU, as in the CSX input pipeline. In particular,
+        DataLoader workers must not create or return CUDA tensors.
+        """
+        return self._create_dataloader(wrap_cstorch=False)
+
+    def _create_dataloader(self, *, wrap_cstorch: bool) -> DataLoader:
         features, edge_index, labels, split_masks = self.prepare_graph_components()
         split_key = self.current_split or "train"
         if split_key not in split_masks:
@@ -395,7 +406,7 @@ class NeighborSamplingDataProcessor(BaseGraphDataSource):
         # Initialize GraphCache if enabled
         if self.cache_fraction is not None and self.graph_cache is None:
             # Determine target caching device
-            if cstorch.use_cs():
+            if not wrap_cstorch or cstorch.use_cs():
                 cache_device = torch.device("cpu")
             else:
                 # Try to get device from cstorch backend, fallback to auto-detect
@@ -456,7 +467,9 @@ class NeighborSamplingDataProcessor(BaseGraphDataSource):
                 collate_fn=lambda batch: batch[0],
             )
 
-        return cstorch.utils.data.DataLoader(_build_torch_dataloader)
+        if wrap_cstorch:
+            return cstorch.utils.data.DataLoader(_build_torch_dataloader)
+        return _build_torch_dataloader()
 
 
 __all__ = [
