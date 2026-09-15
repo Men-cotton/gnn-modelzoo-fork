@@ -1,5 +1,7 @@
 # CSX and PyG input auto tuner
 
+For HPC Asia R04, use the [worker sensitivity workflow](worker_sensitivity.md): every worker count receives the same independent repeats and a mean/sample-standard-deviation report. The defaults below describe the original winner-selection mode.
+
 `tools/autotune.py` uses the configurations and measurement script from
 `cs3_autotune_overrides.zip`. It runs one `uv run --no-sync -- cszoo fit` client
 at a time with `--backend csx` (the default). `--backend pyg` launches the existing

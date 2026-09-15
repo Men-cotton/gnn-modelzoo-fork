@@ -22,7 +22,9 @@ class LoaderSettingsTests(unittest.TestCase):
                     workers=workers, prefetch=prefetch, persistent=persistent
                 ):
                     with (
-                        patch.object(facade.cstorch, "use_cs", return_value=False),
+                        patch.object(
+                            facade.cstorch, "use_cs", return_value=False
+                        ),
                         patch.object(
                             facade.cstorch.amp,
                             "get_floating_point_dtype",
@@ -67,19 +69,41 @@ class LoaderSettingsTests(unittest.TestCase):
                         loader.prefetch_factor, prefetch if workers else None
                     )
                     self.assertEqual(
-                        loader.persistent_workers, persistent if workers else False
+                        loader.persistent_workers,
+                        persistent if workers else False,
                     )
                     first = list(loader)
+                    worker_pids = (
+                        [p.pid for p in loader._iterator._workers]
+                        if loader.persistent_workers
+                        else []
+                    )
                     second = list(loader)
+                    if loader.persistent_workers:
+                        self.assertEqual(
+                            worker_pids,
+                            [p.pid for p in loader._iterator._workers],
+                        )
                     self.assertEqual(len(first), 2)
                     # A padded tail still contains only one valid seed in the second batch.
                     self.assertEqual(int(first[-1]["target_mask"].sum()), 1)
                     for a, b in zip(first, second):
-                        self.assertTrue(torch.equal(a["target_mask"], b["target_mask"]))
+                        for key in a:
+                            left = (
+                                a[key] if isinstance(a[key], list) else [a[key]]
+                            )
+                            right = (
+                                b[key] if isinstance(b[key], list) else [b[key]]
+                            )
+                            self.assertEqual(len(left), len(right))
+                            for x, y in zip(left, right):
+                                self.assertTrue(torch.equal(x, y), key)
                     del loader
 
     def test_invalid_values(self):
-        config = dict(data_processor="GNNDataProcessor", dataset_name="ogbn-arxiv")
+        config = dict(
+            data_processor="GNNDataProcessor", dataset_name="ogbn-arxiv"
+        )
         for knobs in ({"num_workers": -1}, {"prefetch_factor": 0}):
             with self.assertRaises(ValueError):
                 facade.GNNDataProcessorConfig(**config, **knobs)
