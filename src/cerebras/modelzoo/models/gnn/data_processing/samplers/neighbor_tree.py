@@ -15,6 +15,11 @@ from cerebras.modelzoo.models.gnn.worker_validation import validate_num_workers
 
 from .caching import GraphCache
 from ..sources.base import BaseGraphDataSource
+from ..worker_diagnostics_config import WorkerDiagnosticsConfig
+
+
+def _first_batch(batch):
+    return batch[0]
 
 
 @dataclass(frozen=True)
@@ -359,6 +364,7 @@ class NeighborSamplingDataProcessor(BaseGraphDataSource):
         persistent_workers: bool = False,
         cache_fraction: Optional[float] = None,
         static_batch_cache_size: int = 0,
+        worker_diagnostics: Optional[WorkerDiagnosticsConfig] = None,
     ):
         super().__init__(
             dataset_name=dataset_name,
@@ -383,6 +389,7 @@ class NeighborSamplingDataProcessor(BaseGraphDataSource):
         self.prefetch_factor = prefetch_factor if self.num_workers else None
         self.persistent_workers = persistent_workers if self.num_workers else False
         self.static_batch_cache_size = static_batch_cache_size
+        self.worker_diagnostics = worker_diagnostics
         self.graph_cache = None
 
     def create_dataloader(self) -> DataLoader:
@@ -427,7 +434,12 @@ class NeighborSamplingDataProcessor(BaseGraphDataSource):
                 data, cache_device, cache_fraction=self.cache_fraction
             )
 
-        dataset = GraphSAGENeighborSamplerDataset(
+        dataset_type = GraphSAGENeighborSamplerDataset
+        if self.worker_diagnostics is not None and self.worker_diagnostics.enabled:
+            from ..worker_diagnostics import ObservedNeighborDataset
+
+            dataset_type = ObservedNeighborDataset
+        dataset = dataset_type(
             features=features,
             edge_index=edge_index,
             labels=labels,
@@ -455,7 +467,14 @@ class NeighborSamplingDataProcessor(BaseGraphDataSource):
             )
 
         def _build_torch_dataloader() -> DataLoader:
-            return DataLoader(
+            loader_type = DataLoader
+            diagnostic_kwargs = {}
+            if self.worker_diagnostics is not None and self.worker_diagnostics.enabled:
+                from ..worker_diagnostics import ObservedDataLoader
+
+                loader_type = ObservedDataLoader
+                diagnostic_kwargs["diagnostics"] = self.worker_diagnostics
+            return loader_type(
                 dataloader_dataset,
                 batch_size=1,
                 shuffle=False,
@@ -464,7 +483,8 @@ class NeighborSamplingDataProcessor(BaseGraphDataSource):
                 prefetch_factor=self.prefetch_factor,
                 persistent_workers=self.persistent_workers,
                 pin_memory=(self.num_workers > 0 and torch.cuda.is_available()),
-                collate_fn=lambda batch: batch[0],
+                collate_fn=_first_batch,
+                **diagnostic_kwargs,
             )
 
         if wrap_cstorch:

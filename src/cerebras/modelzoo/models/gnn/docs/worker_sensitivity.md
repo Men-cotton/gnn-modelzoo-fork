@@ -97,3 +97,10 @@ R04のための学習中の追加計時やログ出力は加えていない。
 元ログを集計できることと、旧runを新studyの独立反復に含められることは別の確認事項である。
 WSCの実際の割当、旧コードの挙動、設定、測定区間が一致する場合に限って旧runを採用する。
 CPUのsampling/gathering/packing個別計時（R05）はこの集計の対象外である。
+
+## Workerの実効設定とCPU活動を調べる
+
+[Worker診断](worker_diagnostics.md) の `worker_diagnostics` を対象の入力設定で有効にすると、
+実際の子PID、反復開始時のnum_workers、CPU quota、スレッド別CPUカウンタ、
+sampling/gatherと親の取得時間を記録できる。既定は無効で、通常のR04測定には
+診断処理を追加しない。診断runは出力先を分けて実行する。

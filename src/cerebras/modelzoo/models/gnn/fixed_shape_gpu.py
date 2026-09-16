@@ -56,6 +56,7 @@ def make_loader(config, *, num_layers, float_dtype):
         pad_id=config.pad_node_id,
         cache_fraction=config.cache_fraction,
         static_batch_cache_size=config.static_batch_cache_size,
+        worker_diagnostics=config.worker_diagnostics,
     )
     return processor.create_torch_dataloader()
 

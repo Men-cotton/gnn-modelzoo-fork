@@ -16,6 +16,7 @@ from cerebras.modelzoo.common.pytorch_utils import SampleGenerator
 from cerebras.modelzoo.models.gnn.worker_validation import validate_num_workers
 
 from .batches import FullGraphBatch, GraphSAGEBatch
+from .worker_diagnostics_config import WorkerDiagnosticsConfig
 from .samplers import (
     FullGraphDataProcessor,
     GraphSAGENeighborSamplerDataset,
@@ -50,6 +51,9 @@ class GNNDataProcessorConfig(DataConfig):
     persistent_workers: bool = True
     pin_memory: bool = True
     static_batch_cache_size: int = 0
+    worker_diagnostics: WorkerDiagnosticsConfig = Field(
+        default_factory=WorkerDiagnosticsConfig
+    )
 
     split: Optional[Literal["train", "val", "valid", "test"]] = None
     adj_normalization: Optional[str] = (
@@ -96,6 +100,12 @@ class GNNDataProcessorConfig(DataConfig):
                 "GNNDataProcessorConfig requires 'dataset_name' to be specified "
                 "either directly or via a dataset profile."
             )
+        return self
+
+    @model_validator(mode="after")
+    def _validate_worker_diagnostics(self):
+        if self.worker_diagnostics.enabled and self.sampling_mode != "neighbor":
+            raise ValueError("worker_diagnostics requires neighbor sampling")
         return self
 
     @field_validator("data_dir", mode="after")
@@ -207,6 +217,7 @@ class GNNDataProcessor:
                 pad_id=self.config.pad_node_id,
                 cache_fraction=self.config.cache_fraction,
                 static_batch_cache_size=self.config.static_batch_cache_size,
+                worker_diagnostics=self.config.worker_diagnostics,
             )
         else:
             self._processor = FullGraphDataProcessor(
