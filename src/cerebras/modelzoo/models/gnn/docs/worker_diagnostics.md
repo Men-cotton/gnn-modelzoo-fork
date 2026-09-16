@@ -5,6 +5,36 @@ ModelZoo / Cerebras PyTorchのneighbor入力経路で、実効worker数、親子
 管理者権限や追加パッケージは不要。Linuxの`/proc`とcgroupを読み取る。
 CSL SDK、Cerebras PyTorch本体、クラスタ設定には変更を加えない。
 
+## R04の診断を一つのコマンドで実行する
+
+診断コードを反映したALCF側のリポジトリ直下で実行する。
+
+```bash
+bash benchmark_scripts/cerebras/run_worker_diagnostics.sh
+```
+
+既定では `model_dirs/hpcasia_r04/arxiv_none/sensitivity_w02_p2_s1_r1/params.yaml`
+を読み、2 workerと40 workerを各80 step、逐次実行する。ほかの場所に保存した設定を
+使う場合は `--base /path/to/params.yaml` を付ける。相対パスは呼び出し元を基準にする。
+`--dry-run` を付けると設定生成とコマンド表示まで行い、ジョブは投入しない。
+dry-runでは投入元のCPU数による拒否も省略する。実行時は40 worker設定を事前検査する。
+
+毎回新しい `model_dirs/hpcasia_r04/worker_diag_<UTC>_<unique>/` を作る。
+設定の継承を解決した `base.yaml`、元設定のパス、コードrevision、投入元hostnameと、
+`w02/params.yaml`、`w40/params.yaml` を保存する。変更する設定はmodel_dir、max_steps、
+num_workers、worker_diagnosticsのみ。診断は各プロセスの最初の80バッチを計時し、
+5秒以上の間隔で最大80回のスナップショットを採る。
+
+各 `w*/` に `train.log`、SDK出力の `model/`、`worker_diagnostics/`、
+step40から80のnominal slots/sを集計した `throughput.json` が残る。
+診断有効時のthroughputは追加の計測コストを含むため、原稿の主性能値とは分けて扱う。
+起動直後を除く分析にはstep40以降の時刻に対応する記録を使う。
+CSXでの診断出力には、既存の共有領域とコードがWorkerから見えることが必要である。
+
+クライアントまたは集計が失敗すると、その場で停止する。自動再開・再試行は行わない。
+中断時は保存ログのjob IDでリモートジョブの状態を確認してから再実行する。
+再実行では新しい出力先を作り、2 workerから始める。
+
 ## 有効化
 
 既存の `trainer.fit.train_dataloader` に次を追加する。既定は無効。
