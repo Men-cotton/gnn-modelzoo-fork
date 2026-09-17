@@ -183,39 +183,6 @@ class WorkerDiagnosticsTests(unittest.TestCase):
         other = make_loader(self.directory, 0, True)
         self.assertNotEqual(loader.recorder.directory, other.recorder.directory)
 
-    def test_cerebras_inspection_settings_and_serialized_remote_factory(self):
-        from cerebras.appliance.appliance_client import (
-            fw_user_serialize,
-            fw_user_deserialize,
-        )
-
-        processor = make_processor(self.directory, 2, True, max_snapshots=0)
-        with patch.object(
-            processor._processor, "prepare_graph_components", return_value=graph()
-        ):
-            wrapped = processor.create_dataloader()
-        local = wrapped.dataloader
-        # Cerebras PyTorch's local inspection intentionally changes this loader.
-        self.assertEqual(local.num_workers, 0)
-        list(local)
-        factory = fw_user_deserialize(fw_user_serialize(wrapped.input_fn))
-        worker_loader = factory()
-        self.addCleanup(shutdown, worker_loader)
-        self.assertEqual(worker_loader.num_workers, 2)
-        list(worker_loader)
-        events = records(self.directory)
-        self.assertEqual(
-            {
-                e["settings"]["num_workers"]
-                for e in events
-                if e["event"] == "iterator_started"
-            },
-            {0, 2},
-        )
-        self.assertEqual(
-            len([e for e in events if e["event"] == "worker_initialized"]), 2
-        )
-
     def test_cached_dataset_and_zero_workers_are_observed(self):
         processor = make_processor(self.directory, 0, True, max_snapshots=0)
         processor._processor.static_batch_cache_size = 1

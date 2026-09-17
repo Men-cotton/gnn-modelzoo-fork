@@ -7,7 +7,6 @@ from unittest.mock import patch
 import torch
 
 from cerebras.modelzoo.models.gnn.data_processing import processor as facade
-from cerebras.modelzoo.models.gnn.data_processing.samplers import neighbor_tree
 
 
 class LoaderSettingsTests(unittest.TestCase):
@@ -22,9 +21,7 @@ class LoaderSettingsTests(unittest.TestCase):
                     workers=workers, prefetch=prefetch, persistent=persistent
                 ):
                     with (
-                        patch.object(
-                            facade.cstorch, "use_cs", return_value=False
-                        ),
+                        patch.object(facade.cstorch, "use_cs", return_value=False),
                         patch.object(
                             facade.cstorch.amp,
                             "get_floating_point_dtype",
@@ -57,11 +54,6 @@ class LoaderSettingsTests(unittest.TestCase):
                             "prepare_graph_components",
                             return_value=graph,
                         ),
-                        patch.object(
-                            neighbor_tree.cstorch.utils.data,
-                            "DataLoader",
-                            side_effect=lambda factory: factory(),
-                        ),
                     ):
                         loader = processor.create_dataloader()
                     self.assertEqual(loader.num_workers, workers)
@@ -89,21 +81,15 @@ class LoaderSettingsTests(unittest.TestCase):
                     self.assertEqual(int(first[-1]["target_mask"].sum()), 1)
                     for a, b in zip(first, second):
                         for key in a:
-                            left = (
-                                a[key] if isinstance(a[key], list) else [a[key]]
-                            )
-                            right = (
-                                b[key] if isinstance(b[key], list) else [b[key]]
-                            )
+                            left = a[key] if isinstance(a[key], list) else [a[key]]
+                            right = b[key] if isinstance(b[key], list) else [b[key]]
                             self.assertEqual(len(left), len(right))
                             for x, y in zip(left, right):
                                 self.assertTrue(torch.equal(x, y), key)
                     del loader
 
     def test_invalid_values(self):
-        config = dict(
-            data_processor="GNNDataProcessor", dataset_name="ogbn-arxiv"
-        )
+        config = dict(data_processor="GNNDataProcessor", dataset_name="ogbn-arxiv")
         for knobs in ({"num_workers": -1}, {"prefetch_factor": 0}):
             with self.assertRaises(ValueError):
                 facade.GNNDataProcessorConfig(**config, **knobs)

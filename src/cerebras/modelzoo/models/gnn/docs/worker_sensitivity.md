@@ -51,7 +51,7 @@ R04モードは `persistent_workers=True`、`prefetch_factor=2` を既定にす�
 既存のautotuneモードとインポート済みの過去設定は従来の既定値を保持する。
 
 根拠となるコードは `data_processing/samplers/neighbor_tree.py` の
-`_order_targets`、`_deterministic_choice`、`_build_torch_dataloader`。
+`_order_targets`、`_deterministic_choice`、`_create_dataloader`。
 対象頂点順と近傍選択はseedと頂点・hopから決まり、workerの可変乱数状態を使わない。
 Datasetの一巡後もworkerとそのDatasetを保持し、再反復時のプロセス生成を避ける設定にする。
 ローカルSDKの `streamer/data_pipe.py` は入力を使い切ると再び `iter(source)` を呼び、
@@ -104,3 +104,25 @@ CPUのsampling/gathering/packing個別計時（R05）はこの集計の対象外
 実際の子PID、反復開始時のnum_workers、CPU quota、スレッド別CPUカウンタ、
 sampling/gatherと親の取得時間を記録できる。既定は無効で、通常のR04測定には
 診断処理を追加しない。診断runは出力先を分けて実行する。
+
+## 二重DataLoaderラッパー修正後の再測定
+
+2026-09-16の診断では、GNNが返すCerebrasラッパーをTrainerがさらに包むため、
+遠隔の実効num_workersが0になっていた。修正後はTrainerがラッパーを管理する。
+まず `bash benchmark_scripts/cerebras/run_worker_diagnostics.sh` を再実行し、
+遠隔の実効2／40と子PIDを確認する。診断は毎回新しい出力先へ保存される。
+
+通常の感度測定も同じスクリプト・測定条件を使えるが、`--output` は新しくする。
+既存studyはコードrevisionを含むfingerprintが変わるため再開できない。過去の結果を
+消さず、修正前後を別studyとして保存する。旧30 runと同じ指定値で測る例:
+
+```bash
+bash benchmark_scripts/cerebras/run_worker_sensitivity.sh \
+  --dataset arxiv --wsc-workers 1 --cache none \
+  --workers 40 2 4 6 8 10 12 16 20 24 --repeats 3 \
+  --warmup-steps 40 --measure-steps 400 --budget-sec 270010 \
+  --output model_dirs/hpcasia_r04/arxiv_none_loader_fix
+```
+
+通常runでは診断は無効。実効40プロセスとprefetchが有効になるので、修正前と比べて
+Workerのメモリ使用や処理速度が変わり得る。短い診断の結果を確認して本測定へ進む。

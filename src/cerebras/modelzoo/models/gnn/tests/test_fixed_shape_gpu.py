@@ -111,11 +111,6 @@ class FixedShapeTests(unittest.TestCase):
                 )
                 with (
                     patch.object(neighbor_tree.cstorch, "use_cs", return_value=True),
-                    patch.object(
-                        neighbor_tree.cstorch.utils.data,
-                        "DataLoader",
-                        side_effect=lambda factory: factory(),
-                    ),
                 ):
                     modelzoo = processor.create_dataloader()
                 batches = list(native)

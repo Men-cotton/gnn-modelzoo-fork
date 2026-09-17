@@ -66,7 +66,12 @@ Cerebras PyTorch 2.10.0は、投入元で入力仕様を調べるDataLoaderを
 そのため、`loader_created` の設定と `iterator_started` の設定を照合し、
 hostname、PID、実際の `worker_initialized` を使って遠隔Workerの記録を選ぶ。
 投入元の0-worker記録だけで遠隔の実効値を判断しない。
-factoryのシリアライズと別インスタンス生成はローカルで検証済みだが、実CSXでの取得は未検証。
+2026-09-16の実CSX診断では、GNNとTrainerの二重ラッパーにより遠隔側も0 workerへ
+変更される問題を確認した。修正後はGNNが通常のPyTorch DataLoaderを返し、Trainerが
+Cerebrasラッパーを管理する。Trainer factoryのSDKシリアライズと実子プロセス生成を
+ローカルで検証した。修正後の実CSX確認には、上記と同じ診断コマンドを再実行する。
+毎回新しい出力先を作るので、以前の結果は保持される。遠隔の `iterator_started` と
+`worker_initialized` で、指定2／40に対応する子PIDが実際に起動したことを確認する。
 
 ## 記録の読み方
 
@@ -134,6 +139,7 @@ GNNディレクトリで次を実行する。グラフのダウンロードやCS
 ```bash
 OUTDATED_IGNORE=1 uv run --no-sync python -m unittest discover -s tests -p 'test_worker_diagnostics.py' -v
 OUTDATED_IGNORE=1 uv run --no-sync python -m unittest discover -s tests -p 'test_loader_settings.py' -v
+OUTDATED_IGNORE=1 uv run --no-sync python -m unittest discover -s tests -p 'test_trainer_loader.py' -v
 OUTDATED_IGNORE=1 uv run --no-sync python -m unittest discover -s tests -p 'test_fixed_shape_gpu.py' -v
 ```
 
