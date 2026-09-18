@@ -2,7 +2,7 @@
 
 Use this reference when extending loaders, changing training semantics, or upgrading the SDK. Paths below are relative to `src/cerebras/modelzoo/models/gnn/`. Runtime versions come from `pyproject.toml` and the active environment; historical experiment versions come from their saved metadata.
 
-Implementation status: these contracts describe the local GNN patch audited on 2026-09-18. That runtime patch is still uncommitted and is excluded from this documentation commit. In particular, `task/loss.py`, `gpu_policy.py` and the new regression tests are pending source additions. Verify that the runtime patch is present before relying on the behavior and test commands below; update this note with its source revision when it is committed.
+Implementation revision: `327b56a` contains the GNN runtime fixes and regression tests audited on 2026-09-18, including `task/loss.py` and `gpu_policy.py`. Use that revision or a descendant when applying these contracts. The physical CSX validation boundary remains as described below.
 
 ## Loader ownership and data
 
