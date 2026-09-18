@@ -180,11 +180,15 @@ def build_config(args):
     init["backend"] = {"backend_type": args.backend}
     init["callbacks"] = []
     if args.backend == "CSX":
-        init["backend"]["cluster_config"] = {"num_csx": 1}
-        if args.mount_dir:
-            init["backend"]["cluster_config"]["mount_dirs"] = [
-                str(path.resolve()) for path in args.mount_dir
-            ]
+        # Workers also need the checkout when image building falls back to
+        # mounting the client venv; the client's PYTHONPATH is not sufficient.
+        init["backend"]["cluster_config"] = {
+            "num_csx": 1,
+            "mount_dirs": list(
+                dict.fromkeys(str(path.resolve()) for path in [ROOT, *args.mount_dir])
+            ),
+            "python_paths": [str(ROOT / "src")],
+        }
         init["callbacks"] = [
             {"ScopedTrainFlags": {"csx.performance.micro_batch_size": csx_micro}}
         ]

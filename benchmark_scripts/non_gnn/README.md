@@ -119,8 +119,13 @@ toolkit を確認する。一括実行では以下のデータを自動生成す
   前処理例: `src/cerebras/modelzoo/data_preparation/README.md`。
 
 同じ条件の両環境には，同じ前処理済みデータと語彙を配置する。CS-3 側のデータと
-語彙は Worker コンテナからも参照できるパスを使う。必要な追加 mount は
+語彙は Worker コンテナからも参照できるパスを使う。CSX の生成設定には，
+リポジトリの絶対パスを `cluster_config.mount_dirs`，その `src` を
+`cluster_config.python_paths` として含める。入力ワーカー用イメージの構築が失敗して
+仮想環境のマウントへ切り替わった場合も，ワーカーがソースを import できるようにする。
+リポジトリ外のデータや語彙に必要な追加マウントは
 `--mount-dir /absolute/path` で指定する。環境間のデータ転送は自動では行わない。
+既存の `params.yaml` は自動更新しないため，修正後に新しい実行ディレクトリへ設定を生成する。
 
 `./setup.sh` は [requirements.txt](requirements.txt) の NLP 依存も導入する。
 以前作成した `.venv` は，両環境とも次のコマンドで更新する。仮想環境の再作成や
