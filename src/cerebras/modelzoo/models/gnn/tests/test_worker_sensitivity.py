@@ -114,11 +114,11 @@ class WorkerSensitivityTests(unittest.TestCase):
         self.assertIsNone(report["summary"][1]["mean"])
 
     def test_cpu_preflight_does_not_silently_drop_baseline(self):
-        with patch.object(
-            tune, "get_available_cpu_cores", return_value=20
-        ), patch.object(tune, "environment") as env, patch.object(
-            tune, "execute"
-        ) as execute:
+        with (
+            patch.object(tune, "get_available_cpu_cores", return_value=20),
+            patch.object(tune, "environment") as env,
+            patch.object(tune, "execute") as execute,
+        ):
             with self.assertRaisesRegex(ValueError, "No jobs submitted"):
                 tune.main(self.cli)
             self.assertEqual(
@@ -169,6 +169,49 @@ class WorkerSensitivityTests(unittest.TestCase):
         )
         self.assertEqual(report["summary"][0]["failed_or_invalid_runs"], 1)
         self.assertEqual(report["summary"][0]["measured_runs"], 2)
+
+    def test_failures_and_timeouts_continue_without_retry_or_acknowledgement(
+        self,
+    ):
+        args = tune.parse_args(self.cli + ["--continue-on-failure"])
+        args.workers = [4, 8]
+        calls = []
+
+        def execute(cmd, log, timeout):
+            calls.append(cmd)
+            if len(calls) <= 2:
+                return {"status": "failed" if len(calls) == 1 else "timeout"}
+            write_log(log, end=440)
+            return {"status": "completed", "returncode": 0}
+
+        with patch.object(tune, "execute", side_effect=execute):
+            study = self.study(args)
+            self.assertEqual(study.run(), 2)
+            self.assertEqual(len(calls), 6)
+            self.assertEqual(self.study(args).run(), 2)
+            self.assertEqual(len(calls), 6)
+        self.assertEqual(
+            study.state["status"], "completed_with_missing_measurements"
+        )
+        for row in study.state["trials"][:2]:
+            self.assertTrue(row["remote_stop_unconfirmed"])
+            self.assertIn("continued_after_failure_at", row)
+            self.assertNotIn("job_stop_acknowledged_at", row)
+        report = json.loads((self.output / "sensitivity.json").read_text())
+        self.assertEqual(
+            sum(r["failed_or_invalid_runs"] for r in report["summary"]), 2
+        )
+        self.assertEqual(sum(r["measured_runs"] for r in report["summary"]), 4)
+
+    def test_continue_policy_does_not_ignore_user_interrupt(self):
+        args = tune.parse_args(self.cli + ["--continue-on-failure"])
+        with patch.object(
+            tune, "execute", return_value={"status": "interrupted"}
+        ) as run:
+            self.assertEqual(self.study(args).run(), 2)
+            self.assertEqual(run.call_count, 1)
+            with self.assertRaisesRegex(ValueError, "Confirm its job"):
+                self.study(args).run()
 
     def test_rejects_confounded_or_ambiguous_settings(self):
         for extra in (

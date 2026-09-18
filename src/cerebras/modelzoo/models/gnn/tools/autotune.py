@@ -101,7 +101,8 @@ def sensitivity_report(state, output):
                 measured_runs=len(rates),
                 unstable_runs=sum(r["status"] == "unstable" for r in group),
                 failed_or_invalid_runs=sum(
-                    r["status"] not in {"completed", "unstable", "not_run", "running"}
+                    r["status"]
+                    not in {"completed", "unstable", "not_run", "running"}
                     for r in group
                 ),
                 not_run=sum(r["status"] == "not_run" for r in group),
@@ -224,7 +225,9 @@ info.update(torch=torch.__version__, pyg=torch_geometric.__version__, cuda=torch
         raise ValueError(
             "Prepare Python 3.11, Cerebras 2.10.0 and editable cszoo before tuning"
         )
-    info["uv"] = subprocess.check_output(["uv", "--version"], text=True).strip()
+    info["uv"] = subprocess.check_output(
+        ["uv", "--version"], text=True
+    ).strip()
     info["git_commit"] = subprocess.check_output(
         ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True
     ).strip()
@@ -235,7 +238,9 @@ info.update(torch=torch.__version__, pyg=torch_geometric.__version__, cuda=torch
     sources = list((ROOT / "src").rglob("*.py"))
     info["source_sha256"] = digest(
         {
-            str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest()
+            str(p.relative_to(ROOT)): hashlib.sha256(
+                p.read_bytes()
+            ).hexdigest()
             for p in sorted(sources)
         }
     )
@@ -397,7 +402,8 @@ class Study:
         key = candidate_id(knobs)
         trial_id = f"{phase}_{key}_r{repeat}"
         prior = next(
-            (r for r in self.state["trials"] if r["trial_id"] == trial_id), None
+            (r for r in self.state["trials"] if r["trial_id"] == trial_id),
+            None,
         )
         if prior:
             return prior
@@ -477,9 +483,20 @@ class Study:
                 )
         if row["status"] in UNCERTAIN and not self.backend.remote:
             row["job_stop_acknowledged_at"] = timestamp()
+        continuing = self.args.continue_on_failure and row["status"] in {
+            "failed",
+            "timeout",
+        }
+        if continuing:
+            row["continued_after_failure_at"] = timestamp()
+            row["remote_stop_unconfirmed"] = self.backend.remote
         write_json(folder / "result.json", row)
         self.save()
-        if row["status"] in UNCERTAIN and self.backend.remote:
+        if (
+            row["status"] in UNCERTAIN
+            and self.backend.remote
+            and not continuing
+        ):
             self.state["status"] = "job_stop_unconfirmed"
             self.save()
             raise StopIteration
@@ -491,7 +508,12 @@ class Study:
 
     def run(self):
         if any(
-            r["status"] in UNCERTAIN and not r.get("job_stop_acknowledged_at")
+            r["status"] in UNCERTAIN
+            and not r.get("job_stop_acknowledged_at")
+            and not (
+                self.args.continue_on_failure
+                and r["status"] in {"failed", "timeout"}
+            )
             for r in self.state["trials"]
         ):
             raise ValueError(
@@ -509,7 +531,8 @@ class Study:
                     for workers in order:
                         self.trial(
                             candidate(
-                                workers, persistent=self.args.persistent_workers
+                                workers,
+                                persistent=self.args.persistent_workers,
                             ),
                             "sensitivity",
                             repeat,
@@ -539,7 +562,9 @@ class Study:
         try:
             for workers in self.args.workers:
                 self.trial(
-                    candidate(workers, persistent=self.args.persistent_workers),
+                    candidate(
+                        workers, persistent=self.args.persistent_workers
+                    ),
                     "workers",
                     1,
                     self.args.measure_steps,
@@ -582,7 +607,10 @@ class Study:
             for repeat in range(1, self.args.repeats + 1):
                 for row in pool if repeat % 2 else list(reversed(pool)):
                     self.trial(
-                        row["knobs"], "confirm", repeat, self.args.confirm_steps
+                        row["knobs"],
+                        "confirm",
+                        repeat,
+                        self.args.confirm_steps,
                     )
             self.state["ranking"] = rank(
                 self.state["trials"], "confirm", self.args.repeats
@@ -669,11 +697,18 @@ def parse_args(argv=None):
         help="Write the resolved plan without launching a training client",
     )
     parser.add_argument(
+        "--continue-on-failure",
+        action="store_true",
+        help="Sensitivity only: skip failed/timed-out trials and continue; remote termination is not asserted",
+    )
+    parser.add_argument(
         "--acknowledge-stopped-jobs",
         action="store_true",
         help="Resume after independently verifying all previous unconfirmed jobs/processes have ended",
     )
     args = parser.parse_args(argv)
+    if args.continue_on_failure and args.mode != "sensitivity":
+        parser.error("--continue-on-failure requires --mode sensitivity")
     backend = get_backend(args.backend)
     if args.workers is None:
         args.workers = (
@@ -801,6 +836,7 @@ def main(argv=None):
                 "backend": args.backend,
                 "dataset": args.dataset,
                 "mode": args.mode,
+                "continue_on_failure": args.continue_on_failure,
                 "workers": args.workers,
                 "skipped_workers": skipped if args.mode == "autotune" else [],
                 "blocked_workers": (
@@ -842,7 +878,9 @@ def main(argv=None):
                         sort_keys=False,
                     )
                 )
-                plan["commands"].append(backend.command(path, folder / "model"))
+                plan["commands"].append(
+                    backend.command(path, folder / "model")
+                )
             write_json(output / "plan.json", plan)
             print(f"Plan saved to {output / 'plan.json'}; no jobs submitted")
             return 0

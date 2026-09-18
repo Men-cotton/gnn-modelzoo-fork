@@ -31,6 +31,10 @@ step40から80のnominal slots/sを集計した `throughput.json` が残る。
 起動直後を除く分析にはstep40以降の時刻に対応する記録を使う。
 CSXでの診断出力には、既存の共有領域とコードがWorkerから見えることが必要である。
 
+修正後に多数の条件とメモリ観測を一度に集める場合は
+[一括調査](worker_campaign.md) を使う。40 workerでのOOMが観測されており、
+一括調査の既定は4／8／12／16で、既知の低worker条件を先に実行する。
+
 クライアントまたは集計が失敗すると、その場で停止する。自動再開・再試行は行わない。
 中断時は保存ログのjob IDでリモートジョブの状態を確認してから再実行する。
 再実行では新しい出力先を作り、2 workerから始める。
@@ -47,6 +51,8 @@ worker_diagnostics:
   max_batches: 16
   snapshot_interval_seconds: 1.0
   max_snapshots: 30
+  resource_monitor: false
+  resource_monitor_pss: false
 ```
 
 `output_dir` は投入元とWorkerの双方から書ける既存の共有領域に置く。
@@ -83,6 +89,8 @@ Cerebrasラッパーを管理する。Trainer factoryのSDKシリアライズと
 | `batch_generated` | Datasetのバッチindex、プロセス内の計測番号、生成開始・終了、wall/CPU時間。通常入力ではsampling/gatherの内訳も記録 |
 | `batch_received` | 親の`next(iterator)`の開始・終了、wall/CPU時間、反復内の取得番号 |
 | `snapshot` | 親と直接のDataLoader子のプロセス／スレッドCPUカウンタ、スレッド名・状態・待機先、cgroup、収集時間 |
+| `batch_layout` | 各生成プロセスの最初のバッチのshape・dtype・論理bytes。テンソル値は保存しない |
+| `resource_monitor_started` | 任意の独立観測プロセスのPID、出力先、実行ソースのSHA-256 |
 
 各行にはhostname、PID、PPID、UNIX時刻ns、単調時計nsがある。
 単調時計は同じホスト内で比較する。異なるホスト間では単純に差を取らない。
@@ -122,17 +130,26 @@ quota_cores自体を省略する。親階層、affinity、競合も実際のCPU�
 子の所属cgroupは各process記録にあり、親と異なる場合は親の制約だけでは評価できない。
 nr_throttled等は区間差分で評価し、throttled時間を学習時間の損失率へ直接換算しない。
 
+`resource_monitor: true` は、DataLoader iterator生成後にstdlibだけの独立プロセスを起動する。
+親と子孫のCPUカウンタ・page fault・RSS、メモリcgroupの使用量・上限・OOMカウンタ、
+`/dev/shm` の空き、pressureを `resources-<parent-pid>.jsonl` へ保存する。
+`resource_monitor_pss: true` を併用すると `smaps_rollup` のPSSも読む。
+バッチ取得が停止中でも観測できる。間隔はsnapshot_interval_seconds（最大60秒）、
+回数はmax_snapshots（最小1回）で制限し、親終了・PID再利用・loader解放でも終了する。
+PSS読み取りの負荷を含むので、通常の主性能測定ではこの機能を無効にする。
+
 ## オーバーヘッドと検証
 
 無効時は従来のDataLoaderとDatasetをそのまま使う。診断実装のimport、ラッパー、
-タイマー、`/proc`走査、ファイル出力、サンプリングスレッドは反復経路に入らない。
+タイマー、`/proc`走査、ファイル出力、観測プロセスは反復経路に入らない。
 設定解析とfactory内の有効化判定のみが増える。
 テストでは無効のloader生成と2 epochの反復をPythonの関数呼出しフックで観測し、
 診断モジュール内の関数呼び出しが0回であることを確認する。
 
 有効時はファイル読み取り・JSON出力・計時のコストがある。ほぼ無視できるという性能保証は
 置かず、回数制限のある診断runとして扱う。通常の性能測定は無効にして行う。
-計時予算終了後も有効なラッパーの分岐は残る。背景スレッド・終了フックは作らない。
+計時予算終了後も有効なラッパーの分岐は残る。resource_monitor無効時は追加プロセスを作らない。
+有効時はloader解放時のfinalizerで観測プロセスを回収する。
 
 GNNディレクトリで次を実行する。グラフのダウンロードやCSXジョブ投入は不要。
 

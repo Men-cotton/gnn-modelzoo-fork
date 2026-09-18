@@ -1,7 +1,8 @@
 """Bounded, opt-in observations of the actual host-side DataLoader.
 
 Only the enabled factory imports this module. JSONL contains metadata/counters,
-never batch contents. No SDK mutation, PMU access or background threads are used.
+never batch contents. An optional bounded subprocess observes resources during
+stalls. No SDK mutation, PMU access or background threads are used.
 """
 
 from __future__ import annotations
@@ -13,9 +14,11 @@ import logging
 import os
 from pathlib import Path, PurePosixPath
 import socket
+import subprocess
 import sys
 import time
 import uuid
+import weakref
 from typing import Any
 
 import torch
@@ -27,6 +30,20 @@ from .samplers.neighbor_tree import GraphSAGENeighborSamplerDataset
 logger = logging.getLogger(__name__)
 MAX_PROCESSES = 128
 MAX_THREADS_PER_PROCESS = 256
+
+
+def _finish_resource_monitor(process: subprocess.Popen) -> None:
+    """Reap our observer when its loader is released; never signal other PIDs."""
+    if process.poll() is None:
+        try:
+            process.terminate()
+        except ProcessLookupError:
+            pass
+    try:
+        process.wait(timeout=1)
+    except subprocess.TimeoutExpired:
+        process.kill()
+        process.wait()
 
 
 def _read(path: Path) -> dict[str, Any]:
@@ -316,6 +333,34 @@ class ObservedDataset(Dataset):
             wall_ns=end - start,
             process_cpu_ns=cpu_end - cpu_start,
         )
+        if ordinal == 0:
+            tensors = []
+
+            def layout(value, name):
+                if isinstance(value, torch.Tensor):
+                    tensors.append(
+                        dict(
+                            name=name,
+                            shape=list(value.shape),
+                            dtype=str(value.dtype),
+                            device=str(value.device),
+                            logical_bytes=value.numel() * value.element_size(),
+                        )
+                    )
+                elif isinstance(value, dict):
+                    for key, item in value.items():
+                        layout(item, f"{name}.{key}")
+                elif isinstance(value, (list, tuple)):
+                    for index, item in enumerate(value):
+                        layout(item, f"{name}[{index}]")
+
+            layout(batch, "batch")
+            self.recorder.emit(
+                "batch_layout",
+                tensors=tensors,
+                logical_bytes=sum(t["logical_bytes"] for t in tensors),
+                note="Logical tensor sizes, not resident memory; shared storage may be counted more than once.",
+            )
         return batch
 
 
@@ -353,6 +398,7 @@ class ObservedDataLoader(DataLoader):
         self.diagnostics = diagnostics
         self.observed_batches = self.snapshots = self.iterations = 0
         self.last_snapshot_ns = None
+        self.resource_monitor_started = False
         original_class = type(dataset)
         super().__init__(
             ObservedDataset(dataset, self.recorder, diagnostics.max_batches),
@@ -412,6 +458,49 @@ class ObservedDataLoader(DataLoader):
 
     def __iter__(self):
         iterator = super().__iter__()
+        if self.diagnostics.resource_monitor and not self.resource_monitor_started:
+            self.resource_monitor_started = True
+            from . import worker_resources
+
+            try:
+                self.recorder.directory.mkdir(parents=True, exist_ok=True)
+                output = self.recorder.directory / f"resources-{os.getpid()}.jsonl"
+                command = [
+                    sys.executable,
+                    worker_resources.__file__,
+                    "--parent",
+                    str(os.getpid()),
+                    "--start-ticks",
+                    str(
+                        worker_resources.task_stat(Path("/proc/self/stat"))[
+                            "start_ticks"
+                        ]
+                    ),
+                    "--output",
+                    str(output),
+                    "--interval",
+                    str(min(60, self.diagnostics.snapshot_interval_seconds)),
+                    "--samples",
+                    str(max(1, self.diagnostics.max_snapshots)),
+                ]
+                if self.diagnostics.resource_monitor_pss:
+                    command.append("--pss")
+                with (self.recorder.directory / "resources.stderr").open("a") as errors:
+                    observer = subprocess.Popen(
+                        command,
+                        stdin=subprocess.DEVNULL,
+                        stdout=subprocess.DEVNULL,
+                        stderr=errors,
+                    )
+                weakref.finalize(self, _finish_resource_monitor, observer)
+                self.recorder.emit(
+                    "resource_monitor_started",
+                    observer_pid=observer.pid,
+                    output=str(output),
+                    source=_source(worker_resources),
+                )
+            except (OSError, KeyError) as exc:
+                self.recorder.emit("resource_monitor_error", error=type(exc).__name__)
         self.iterations += 1
         if (
             self.observed_batches >= self.diagnostics.max_batches

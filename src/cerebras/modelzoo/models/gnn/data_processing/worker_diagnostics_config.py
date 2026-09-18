@@ -13,6 +13,8 @@ class WorkerDiagnosticsConfig(BaseModel):
     max_batches: int = Field(16, ge=0, le=10000)
     snapshot_interval_seconds: float = Field(1.0, ge=0.1, allow_inf_nan=False)
     max_snapshots: int = Field(30, ge=0, le=1000)
+    resource_monitor: bool = False
+    resource_monitor_pss: bool = False
 
     @model_validator(mode="after")
     def require_output_directory(self):
