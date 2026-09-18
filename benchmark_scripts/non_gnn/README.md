@@ -2,26 +2,26 @@
 
 CS-3 は Model Zoo 2.10.0 の `cszoo fit` 相当の CLI，Pegasus は既存例と同じ
 NQSV の `AC2` / `gpu` / 1ノード / 2時間の PBS 設定を使う。
-引数なしで，公開 WikiText の取得・前処理から下表の4条件の実行・投入まで行う。
+引数なしで，公開 WikiText の取得・前処理から下表の4条件×3反復の実行・集計まで行う。
 前処理済みデータを検証できた場合は，取得・整形をスキップして実行・投入へ進む。
 `--dry-run` は予定を表示し，取得，ファイル作成，ジョブ投入を行わない。
 
-CSXのデータ準備から起動までを端末・SSH切断後も継続するには，
-[共通launcherでの起動例](../README.md#別のbenchmarkをtmuxで実行する)を使う。
-launcherの保存先と，新規作成する実験出力先は別々に指定する。
+CSXはGNNと同じ[共通launcher](../README.md)で既定でtmux起動する。
+データ準備から全runの完了・集計まで，端末・SSH切断後も継続する。
+`--foreground` で前景実行を選べる。tmuxは起動ホストが動作している間の継続を担う。
 
 ## 一括実行
 
 環境をセットアップした後，リポジトリのルートで実行する。
 
 ```bash
-# Cerebras user node: 前処理またはキャッシュ再利用 → 4条件のCSXクライアント起動
+# Cerebras user node: 入力準備 → 全設定の検証 → 4条件×3反復を逐次測定 → 集計
 ./benchmark_scripts/cerebras/run_non_gnn.sh
 
-# Pegasus login node: 前処理またはキャッシュ再利用 → 4条件をqsub
+# Pegasus login node: 前処理またはキャッシュ再利用 → 4条件×3反復をqsub
 ./benchmark_scripts/pegasus/submit_non_gnn_nqsv.sh
 
-# native / Model Zooを両方比較する場合は計8ジョブ
+# native / Model Zooを両方比較する場合は計24ジョブ
 ./benchmark_scripts/pegasus/submit_non_gnn_nqsv.sh --gpu-implementation both
 ```
 
@@ -63,18 +63,36 @@ launcherの保存先と，新規作成する実験出力先は別々に指定す
 `--data-root` はキャッシュの置き場所，`--max-documents` は使用段落数を変更する。
 `--output-dir` はその実行の新しい出力先を指定する。再実行ではデータを再利用し，
 学習ジョブは新しく投入する。既存の出力先への重複投入は拒否する。
+生成設定がsourceの内容hashを変えないよう，出力先は `src/` と `benchmark_scripts/` の外に置く。
 `--only` で選ぶモデル群が変わると，必要な前処理条件も変わるため別キャッシュになる。
+`--repeats N` で反復数を変える。各反復は同じseedから新しいモデル・optimizerを作り，
+性能の実行間変動を測る。奇数反復はprofileの指定順，偶数反復は逆順で実行する。
+初回の動作確認を各条件1回にする場合は `--repeats 1` を指定する。
 
 BERT は段落を文書として句読点で文分割し，WordPiece と NSP の文対をCSVにする。
 MLM は既存 processor が学習時に生成する。Llama は文書ごとの BOS/text/EOS を
 1次元HDF5に保存し，loader が文書境界をまたいで1024／2048に切り出す。
 これはスループット測定用の入力であり，元論文の事前学習データ処理の完全再現ではない。
 
-全設定の生成・検証に成功してから投入を始める。`campaign.json` に各条件の起動状況を保存する。
-GPU は既存の PBS に順次 `qsub` し，応答を各条件の `qsub.log` に保存する。
-CSX はバックグラウンドで各クライアントを起動し，`client.log`, `console.log`,
-`client_status.json` に進行と終了コードを保存する。クライアント起動表示はCSXキュー受理の保証ではない。
-投入途中で失敗した場合，既に起動したジョブはそのまま残るため，`campaign.json` と各ログで確認する。
+全設定の生成・検証に成功してから投入を始める。`campaign.json` に全条件と反復を保存する。
+CSXは各クライアントの終了を待ち，結果を集計して次のrunへ進む。
+失敗・タイムアウト・測定欠落も保存して後続を実行し，campaignの終了コードを非ゼロにする。
+明示的な中断では後続を起動しない。既定のクライアント上限は `--trial-timeout-sec 9000`，
+CSX側のjob上限は `--job-time-sec 7200`。クライアント時間はキュー待ち・コンパイルも含む。
+ローカルクライアント終了後の遠隔job状態は保存したjob IDで確認する。
+
+GPUは既存のPBSに `qsub` し，応答を各runの `qsub.log` に保存する。
+各PBS jobは同じprepared-run実行処理で結果を保存し，終了のたびにcampaignの集計を更新する。
+投入済み・実行完了・測定成立は区別して記録する。
+GPU module等の起動前検査で失敗した場合も，実行用Pythonが利用可能なら同じ失敗記録を保存する。
+元の診断出力はPBSのstdout/stderrに残る。
+
+起動時に表示する `Attach:` のコマンドで専用tmuxへ接続する。`Ctrl-b d` でdetach，
+`Ctrl-C` で中断する。起動成功でシェルへ戻った時点では実験は進行中である。
+実験出力を `--output-dir /path/to/campaign` と指定した場合，監視記録は隣の
+`/path/to/campaign.launcher/driver.log` と `launcher.json` に保存する。
+実験ディレクトリを新規にする規則と，共通launcherの重複起動防止を両立するための分離である。
+前景実行ではドライバの終了コードを直接受け取る。
 
 ## 比較条件
 
@@ -163,7 +181,7 @@ GPU 実装は Transformers 4.57.3 と PyTorch 2.4 の API を使用する。
 ./benchmark_scripts/cerebras/run_non_gnn.sh --profile llama3p2_1b_msl2048 --data-dir /data/llama/train_msl2048
 ```
 
-この1条件モードは foreground のクライアントを保持する既存例と同じ方式。設定だけを保存・検証する場合は
+この `--profile` モードは1条件・1runを実行し，既定でtmuxを使う。設定だけを保存・検証する場合は
 `--prepare-only --output-dir /path/to/new/run` を付ける。
 
 ## 既存データで1条件のみ：Pegasus
@@ -187,7 +205,8 @@ GPU のモデル計算と学習ループは Model Zoo Trainer を経由しない
 - `--effective-batch-size N`: 有効バッチを変更。対応する CS-3 実行にも同じ値を指定する。
 - `--csx-micro-batch-size N`: CS-3 の内部マイクロバッチを指定。既定は `auto`。
 - `--max-steps N`, `--num-workers N`, `--seed N`: 両環境に適用。
-- `--warmup-steps N`: native GPU の計時から除く先頭更新数。既定20，`max-steps` 未満。
+- `--warmup-steps N`: 両環境の計時から除く先頭更新数。既定20，`max-steps` 未満。
+  CSX／Model Zoo GPUはログ端点が必要なため1以上。native GPUは0も指定できる。
 
 `--compile` や大きいマイクロバッチによる速度改善は実測で判断する。
 再実行は新しい出力ディレクトリを用い，同じディレクトリへの上書き・自動再開は行わない。
@@ -202,24 +221,58 @@ Llama の HDF5 の `attention_mask` は損失マスクで，モデルへの atte
 native GPU では累積対象全体の有効トークン数で損失を正規化する。
 初期化の乱数列や異なる実装の演算順序は一致を保証しない。同じ seed は同じ重みを保証しない。
 
-実行ごとに `model_dirs/non_gnn/` 以下へ次を保存する。
+campaignでは `r01/<profile>/` のように反復ごとの新しいディレクトリを作る。
+各runには次を保存する。
 
-- `params.yaml`, `launch.json`: 完全な設定，元設定の SHA256，revision，dirty 状態，起動引数。
+- `params.yaml`, `launch.json`: 完全な設定，元設定と実行設定のSHA256，revision，dirty source内容hash，
+  入力データと語彙の内容hash，準備manifest，起動引数。
+- `environment.json`, `client_status.json`: 実行ホスト・パッケージ・CPU割当，開始・終了時刻，
+  準備確認時間・クライアント時間・全体時間，終了コード，失敗・タイムアウト・中断。
 - `console.log`: 学習ログ。Pegasus の投入結果は `qsub.log`。
 - native GPU の `gpu_environment.json`: ソフトウェア版，GPU，パラメータ数，実装設定。
-- native GPU の `metrics.jsonl`: 更新ごとの損失と時間，ウォームアップ後の平均処理速度とメモリ使用量。
+- native GPU の `metrics.jsonl`: 更新ごとの損失・消費数・時間，ウォームアップ後の処理速度とメモリ使用量。
+- `result.json`, `step_metrics.csv`: 全更新の損失・時刻，job ID，測定成立の判定と理由，
+  正確な計測区間・分子・秒数・処理速度，ローカルSDK成果物の一覧。
+
+prepared runの実行直前に設定・source・入力・語彙の内容を再確認する。
+キュー待ちの間に変更された場合は，準備時の条件による測定として集計せず，失敗理由と観測した差を保存する。
+
+campaign直下の `summary.json` と `runs.csv` には全予定runを残し，条件ごとに独立した値，
+測定成立数，失敗・中断・欠測・不安定件数，平均と標本標準偏差を保存する。
+1runだけの標準偏差と未測定値は `null` にする。前半・後半の速度差は安定性の参考値として
+記録し，不安定でも完全な有限測定は集計に残す。
+GPUジョブの結果は完了時に自動反映する。保存済みデータから再集計する場合は次を使う。
+
+```bash
+uv run --no-sync -- python benchmark_scripts/non_gnn/measurements.py \
+  --campaign /path/to/campaign
+```
+
+CSX jobはGNNと同じ `run`・`study` の2つのlabelで識別する。
+例えば `run=bert-large-s128-b256-w4-r1` はBERT Large，系列長128，有効バッチ256，
+DataLoader worker 4，反復1を表す。Llamaは `llama3.2-1b-s1024-...` と表示する。
+`run` の値は60文字以内，`study` は出力先から決まる10桁の識別子で，同一campaign内で共通。
+`csctl get jobs -a -l study=<識別子>` でcampaignを絞り込める。
+完全な条件は `params.yaml` と `launch.json` に保持する。
 
 GPU 計時はデータ取得，転送，forward/backward，optimizer を含み，初期化とウォームアップを除く。
 予約トークン位置数による `nominal_tokens_per_second` と，マスクによる有効数を区別する。
-BERT の有効数は入力の非 padding 位置，Llama は損失対象位置であり，両モデル間では意味が異なる。
-CS-3 側は progress log の同じ更新区間から `更新差 × 有効バッチ / 経過秒` を算出する。
+BERTは非padding入力位置，MLM対象位置，NSP例数を分け，Llamaは損失対象位置を記録する。
+CSXで実測していない有効token数は欠測とする。
+CS-3 側はprogress logの厳密な端点 `(warmup_steps, max_steps]` から
+`更新差 × 有効バッチ / 経過秒` を算出する。既定はstep20→200の180更新である。
+同じ分子・区間からupdates/s，sequences/s，予約token位置/sを保存する。
+native GPUはウォームアップ終了後に同期した計時開始点を明示し，summaryの時計を採用する。
 比較時は両側の区間を揃え，native GPU の区間平均と CS-3 の単発 `Rate` を混在させない。
 短い実行のウォームアップ不足，実行間のばらつき，GPU のメモリ適合性は実機で確認する。
+保存した学習損失は有限性と経過を示す。精度・収束の判断は別の検証実験で行う。
+既存のSDK成果物は保持して一覧化し，compilerの見積もりと実機カウンタを区別する。
+詳細profilingは通常の反復測定と別に実行する。
 
 ## ローカル検証
 
 ```bash
-PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m unittest discover -s benchmark_scripts/non_gnn/tests -v
+PYTHONDONTWRITEBYTECODE=1 uv run --no-sync -- python -m unittest discover -s benchmark_scripts/non_gnn/tests -v
 ```
 
 テストは小さい CPU モデルと一時データで，損失の値と勾配，入力契約，設定，

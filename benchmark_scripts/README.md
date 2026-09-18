@@ -12,7 +12,7 @@ tmuxが必要な実行では、外側の一箇所で
 | `cerebras/run_worker_campaign.sh` | 感度測定・入力条件の比較・診断を逐次実行。既定でtmux起動 |
 | `cerebras/run_modelzoo.sh` | 選択した設定で一つの学習を前景実行 |
 | `cerebras/run_worker_diagnostics.sh` | 保存した設定から診断を逐次実行 |
-| `cerebras/run_non_gnn.sh` | 単一profileまたは複数profileの実験。複数CSX profileは準備後に並行起動 |
+| `cerebras/run_non_gnn.sh` | 入力準備・条件ごとの反復測定・集計まで逐次実行。既定でtmux起動 |
 | `pegasus/submit_*` | `qsub`で実行をスケジューラへ渡す |
 
 Worker実験の既存コマンド、監視、CSX job labelは
@@ -21,18 +21,16 @@ Worker実験の既存コマンド、監視、CSX job labelは
 ## 別のbenchmarkをtmuxで実行する
 
 任意のコマンドを `--` の後へ渡せる。新しい実験名を使う際にlauncherへの登録は不要である。
-例えば、non-GNNのデータ準備からジョブ起動までをtmux内で実行するには次を使う。
+例えば、前景実行の単一Model Zoo設定をtmux内で実行するには次を使う。
 
 ```bash
 uv run --no-sync -- python -m cerebras.modelzoo.tools.benchmark_launcher \
-  --name non-gnn --output model_dirs/launches/non_gnn_01 \
-  -- bash benchmark_scripts/cerebras/run_non_gnn.sh \
-     --output-dir model_dirs/non_gnn/campaign_01
+  --name modelzoo --output model_dirs/launches/modelzoo_01 \
+  -- bash benchmark_scripts/cerebras/run_modelzoo.sh --config-index 1
 ```
 
 launcherの `--output` はログ・起動状態の保存先である。
-コマンド側の実験出力先とは独立して選べる。上の例では新規の実験ディレクトリを要求する
-non-GNNドライバのため、二つの保存先を分けている。
+コマンド側の実験出力先とは独立して選べる。
 `--` より後の引数はそのままコマンドへ渡し、呼出元の作業ディレクトリと環境を引き継ぐ。
 
 起動時に表示される `Attach:` のコマンドで専用tmuxへ接続する。
@@ -42,9 +40,14 @@ launcherは渡されたコマンドの終了を記録するので、コマンド
 各ジョブの結果を実験側の記録で確認する。non-GNNでは `client_status.json`、
 Pegasusではスケジューラのjob状態が該当する。
 
-既存のWorkerシェル入口は自動でtmuxを使う。通常はそのまま呼び出す。
-外側から監視する必要がある場合は、Worker入口に `--foreground` を渡して前景で完了を待つ。
+GNN campaign・Worker実験・non-GNNのCSXシェル入口は自動でtmuxを使う。通常はそのまま呼び出す。
+外側から監視する必要がある場合は、入口に `--foreground` を渡して前景で完了を待つ。
 PBSの実行はスケジューラが管理するため、PBS payloadは前景で実行する。
+
+non-GNNの全条件は[一括実験](non_gnn/README.md)で準備・検証・反復・集計する。
+一つのprepared runの実行処理をCSXとGPUで共用し、GPUは各PBS jobの終了時にも
+campaignの集計を更新する。新規出力先を要求するnon-GNNでは、共通launcherの記録を
+`<output-dir>.launcher/` に置いて実験データと分ける。
 
 ## 新しい測定項目を追加する
 

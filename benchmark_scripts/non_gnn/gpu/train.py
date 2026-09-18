@@ -4,6 +4,7 @@
 import argparse
 import hashlib
 import json
+import math
 import os
 from pathlib import Path
 import random
@@ -41,6 +42,19 @@ def batches_forever(loader):
             raise ValueError(
                 "DataLoader produced no batches; check dataset size and workers"
             )
+
+
+def token_counts(window, model_name):
+    """Count host masks without changing either model's loss normalization."""
+    valid = sum(int(batch["attention_mask"].sum()) for batch in window)
+    # BERT attention masks count input positions; its loss mask selects only MLM
+    # targets. NSP contributes a separate sample-level loss, not target tokens.
+    targets = (
+        sum(int(batch["masked_lm_mask"].sum()) for batch in window)
+        if model_name == "bert"
+        else valid
+    )
+    return valid, targets
 
 
 def main():
@@ -111,16 +125,41 @@ def main():
     length = launch["sequence_length"]
     warmup = launch["warmup_steps"]
     max_steps = init["loop"]["max_steps"]
+    is_bert = init["model"]["name"] == "bert"
+    token_definitions = {
+        "valid_tokens_definition": (
+            "nonpadding_input_positions" if is_bert else "loss_target_positions"
+        ),
+        "loss_target_tokens_definition": (
+            "masked_language_model_positions"
+            if is_bert
+            else "causal_language_model_positions"
+        ),
+    }
+    if is_bert:
+        token_definitions["nsp_examples_definition"] = (
+            "next_sentence_prediction_examples"
+        )
+    device_properties = torch.cuda.get_device_properties(device)
     run_info = {
         "torch": torch.__version__,
         "transformers": transformers.__version__,
         "cuda": torch.version.cuda,
         "device": torch.cuda.get_device_name(0),
+        "device_total_memory_bytes": device_properties.total_memory,
+        "device_compute_capability": [
+            device_properties.major,
+            device_properties.minor,
+        ],
+        "compute_dtype": "bfloat16",
+        "compute_dtype_scope": "CUDA autocast; some operators use float32",
+        "parameter_dtypes": sorted({str(p.dtype) for p in model.parameters()}),
         "parameter_count": sum(p.numel() for p in model.parameters()),
         "attention": "sdpa",
         "optimizer": "torch.optim.AdamW(fused=True)",
         "pbs_job_id": os.environ.get("PBS_JOBID"),
         **launch,
+        **token_definitions,
     }
     (out / "gpu_environment.json").write_text(json.dumps(run_info, indent=2) + "\n")
     metrics = out / "metrics.jsonl"
@@ -136,6 +175,8 @@ def main():
         torch.cuda.synchronize()
         start = measured_start = time.perf_counter()
         valid_tokens = measured_valid_tokens = 0
+        loss_target_tokens = measured_loss_target_tokens = 0
+        loss_nonfinite_steps = measurement_loss_nonfinite_steps = 0
         for step in range(1, max_steps + 1):
             if step == warmup + 1:
                 torch.cuda.synchronize()
@@ -148,8 +189,8 @@ def main():
                 raise ValueError("Incomplete effective batch")
             if any(batch["input_ids"].shape[1] != length for batch in window):
                 raise ValueError("DataLoader sequence length differs from the profile")
-            count = sum(int(batch["attention_mask"].sum()) for batch in window)
-            denominator = effective if init["model"]["name"] == "bert" else count
+            count, target_count = token_counts(window, init["model"]["name"])
+            denominator = effective if is_bert else count
             if denominator <= 0:
                 raise ValueError("Effective batch has no valid loss tokens")
             optimizer.zero_grad(set_to_none=True)
@@ -169,17 +210,38 @@ def main():
             optimizer.step()
             torch.cuda.synchronize()
             now = time.perf_counter()
+            loss_value = total_loss.item()
+            loss_is_finite = math.isfinite(loss_value)
             valid_tokens += count
+            loss_target_tokens += target_count
+            loss_nonfinite_steps += not loss_is_finite
             if step > warmup:
                 measured_valid_tokens += count
+                measured_loss_target_tokens += target_count
+                measurement_loss_nonfinite_steps += not loss_is_finite
             record(
                 {
                     "event": "train",
                     "step": step,
-                    "loss": total_loss.item(),
+                    "loss": loss_value,
+                    "loss_is_finite": loss_is_finite,
                     "elapsed_seconds": now - start,
                     "samples": step * effective,
+                    "nominal_tokens": step * effective * length,
                     "valid_tokens": valid_tokens,
+                    "loss_target_tokens": loss_target_tokens,
+                    "update_samples": effective,
+                    "update_nominal_tokens": effective * length,
+                    "update_valid_tokens": count,
+                    "update_loss_target_tokens": target_count,
+                    **(
+                        {
+                            "nsp_examples": step * effective,
+                            "update_nsp_examples": effective,
+                        }
+                        if is_bert
+                        else {}
+                    ),
                     "warmup": step <= warmup,
                 }
             )
@@ -189,12 +251,28 @@ def main():
             {
                 "event": "summary",
                 "warmup_steps": warmup,
+                "window_start_step": warmup,
+                "window_end_step": max_steps,
                 "measured_optimizer_steps": max_steps - warmup,
+                "measurement_start_elapsed_seconds": measured_start - start,
+                "measurement_end_elapsed_seconds": now - start,
+                "measurement_window_seconds": elapsed,
                 "elapsed_seconds": elapsed,
                 "samples": samples,
+                "nominal_tokens": samples * length,
+                "measured_valid_tokens": measured_valid_tokens,
+                "measured_loss_target_tokens": measured_loss_target_tokens,
+                **({"measured_nsp_examples": samples} if is_bert else {}),
                 "samples_per_second": samples / elapsed,
                 "nominal_tokens_per_second": samples * length / elapsed,
                 "valid_tokens_per_second": measured_valid_tokens / elapsed,
+                "loss_target_tokens_per_second": measured_loss_target_tokens / elapsed,
+                "loss_nonfinite_steps": loss_nonfinite_steps,
+                "measurement_loss_nonfinite_steps": measurement_loss_nonfinite_steps,
+                "loss_is_finite": loss_nonfinite_steps == 0,
+                "measurement_loss_is_finite": measurement_loss_nonfinite_steps == 0,
+                **token_definitions,
+                "peak_memory_scope": "measurement_window",
                 "peak_allocated_bytes": torch.cuda.max_memory_allocated(),
                 "peak_reserved_bytes": torch.cuda.max_memory_reserved(),
             }

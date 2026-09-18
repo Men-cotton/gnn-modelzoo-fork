@@ -19,13 +19,26 @@ done
 config="$(realpath -- "$config")"
 output_dir="$(dirname "$config")"
 export PYTHONPATH="${project_root}/src${PYTHONPATH:+:${PYTHONPATH}}"
-command=(uv run --no-sync --project "${project_root}" python "${project_root}/benchmark_scripts/non_gnn/gpu/train.py"
-    --config "$config")
+command=(uv run --no-sync --project "${project_root}" python -u "${project_root}/benchmark_scripts/non_gnn/run.py"
+    --backend GPU --execute-config "$config")
 if (( dry_run )); then
     printf '%q ' "${command[@]}"
     printf '\n'
     exit 0
 fi
+# The scheduler owns this shell. Preserve failures before the Python client can
+# start, using the same trial status and measurement records as ordinary runs.
+record_preflight_failure() {
+    local status=$?
+    trap - EXIT
+    if (( status != 0 )); then
+        "${command[@]}" \
+            --preflight-error "GPU shell preflight failed with status ${status}; see PBS stdout/stderr for job ${PBS_JOBID:-local}" \
+            --preflight-exit-code "$status" || true
+    fi
+    exit "$status"
+}
+trap record_preflight_failure EXIT
 source "${project_root}/common.sh"
 source "${script_dir}/gpu_env.sh"
 load_cuda_module
@@ -39,5 +52,6 @@ cd "$project_root"
     echo "[non_gnn] hostname=$(hostname) job=${PBS_JOBID:-local} config=${config}"
     echo "[non_gnn] commit=$(git rev-parse HEAD)"
     nvidia-smi
-    "${command[@]}"
-} 2>&1 | tee "${output_dir}/console.log"
+} 2>&1 | tee "${output_dir}/hardware.log"
+trap - EXIT
+exec "${command[@]}"

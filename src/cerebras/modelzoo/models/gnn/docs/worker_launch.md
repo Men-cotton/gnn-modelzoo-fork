@@ -72,33 +72,42 @@ campaign配下の感度測定は各段階の `driver.log` と `study.json` に�
 
 ## csctlのlabelで識別する
 
-各trialの `trainer.init.backend.cluster_config.job_labels` に以下を付与する。
-SDKがそのtrialのcompile／execute jobへ渡すため、投入後にjob IDを調べて
-手動でlabelを付け直す操作は不要である。以下の8項目を実験条件に合わせて更新し、
-それ以外の既存の独自labelは保持する。
+各trialの `trainer.init.backend.cluster_config.job_labels` に `run` と `study` を付与する。
+SDKがそのtrialのcompile／execute jobへ渡すため、投入後の手動操作は不要である。
+以前の8つの `gnn-*` labelは置き換え、それ以外の独自labelは保持する。
 
-| Label | 内容 |
+例えば通常の感度測定は次のように表示する。
+
+```text
+run=sage-arxiv-sens-w4-pf2-persist-r1,study=0123456789
+```
+
+| 表記 | 意味 |
 | --- | --- |
-| `gnn-model` | モデル名 |
-| `gnn-dataset` | `ogbn-arxiv`／`ogbn-products`等のdataset名 |
-| `gnn-cache` | `none`／`zero`／`partial-N`／`full`。GraphCacheを作らない条件と割合0の条件も区別する |
-| `gnn-mode` | sensitivity／intervention／diagnostic等の実験種別 |
-| `gnn-workers` | PyTorch DataLoader子worker数 |
-| `gnn-repeat` | 反復番号 |
-| `gnn-trial` | study内のtrial識別子。campaignでは段階も区別する |
-| `gnn-study` | study／campaignの出力先から決める識別子 |
+| `sage` | GraphSAGE |
+| `arxiv` / `products` | ogbn-arxiv / ogbn-products |
+| `sens` / `diag` | 感度測定 / 診断 |
+| `workers` / `loader` / `confirm` | worker探索 / loader設定探索 / 確認測定 |
+| `w4` / `pf2` / `persist` | worker数4 / prefetch factor 2 / workerを維持 |
+| `nopersist` / `pf0` | workerを維持しない / prefetchなし |
+| `r1` | 反復1 |
+| `cache0` / `cache0.5` / `cache1` | GraphCacheの割合。省略時はGraphCache自体を作らない |
+| `vs16` / `static1` | worker 16との比較組 / static batchを1個再利用 |
 
-SDKのlabelはkey/valueとも1–63文字で、英数字で始まり終わる必要がある。
-長い値や利用できない文字を含む値は、hash付きの安定した表現に変換する。
-完全な出力パスや元の設定はローカルの計画・状態・YAMLへ保持する。
-campaign配下は共通の `gnn-study` でまとめて追える。
+比較対象のworker数、baseline／selected、入力条件の介入も `run` に残す。
+異なる段階の参照runを同じ条件名にまとめない。
+`run` の値は60文字以内で、通常の条件は意味を読める短縮形で表す。
+未知の長い名前やSDKで使えない文字だけ、末尾に識別hashを付けて収める。
+完全な出力パスと設定は計画・状態・YAMLに保持する。
+`study` は出力先の絶対パスから決める10桁の識別子で、campaign配下で共通である。
 
 ```bash
 csctl get jobs
-csctl get jobs -a -l gnn-dataset=ogbn-arxiv,gnn-mode=sensitivity,gnn-workers=4
+csctl get jobs -a -l study=0123456789
+csctl get jobs -a -l run=sage-arxiv-sens-w4-pf2-persist-r1
 ```
 
-`gnn-study` は生成された `params.yaml`／`preview_w*.yaml` の値を使って絞り込める。
+実際の `study` は生成された `params.yaml`／`preview_w*.yaml` の値を使う。
 LABELS列と `-l key=value` による絞り込みは
 [Cerebrasのcsctl仕様](https://training-docs.cerebras.ai/rel-2.10.0/cluster-monitoring/cerebras-job-scheduling-and-monitoring/cli-for-job-monitoring-csctl)
 に従う。compile cache再利用時は新しいcompile jobを作らない場合があるため、

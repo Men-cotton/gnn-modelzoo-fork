@@ -17,6 +17,7 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[3]
 BENCH = ROOT / "benchmark_scripts/non_gnn"
+sys.path.insert(0, str(BENCH))
 
 
 def load_module(name, path):

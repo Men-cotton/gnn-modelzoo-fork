@@ -160,6 +160,22 @@ class LearningCampaignTests(unittest.TestCase):
                 "selected_learning.yaml",
             )
         }
+        labels = {
+            name: dict(
+                item.split("=", 1)
+                for item in config["trainer"]["init"]["backend"]["cluster_config"][
+                    "job_labels"
+                ]
+            )
+            for name, config in configs.items()
+            if "backend" in config["trainer"]["init"]
+        }
+        self.assertIn("-handoff-selected-", labels["selected_csx.yaml"]["run"])
+        self.assertIn("-handoff-diag-", labels["selected_csx_diagnostics.yaml"]["run"])
+        self.assertIn("-handoff-learning-", labels["selected_learning.yaml"]["run"])
+        self.assertEqual(len({label["study"] for label in labels.values()}), 1)
+        self.assertEqual(len({label["run"] for label in labels.values()}), 3)
+        self.assertTrue(all(len(label["run"]) <= 60 for label in labels.values()))
         fixed = configs["selected_fixed_shape_gpu.yaml"]
         pyg = configs["pyg_reference.yaml"]
         self.assertNotIn("backend", fixed["trainer"]["init"])

@@ -171,6 +171,13 @@ def handoff(args, config: dict, state: dict) -> None:
     folder.mkdir(exist_ok=True)
     csx = deepcopy(config)
     csx["trainer"]["init"]["model_dir"] = str(folder / "csx_model")
+    apply_job_labels(
+        csx,
+        mode="selected",
+        repeat=1,
+        trial_dir=folder / "selected_csx",
+        study_dir=args.output,
+    )
     write_config(folder / "selected_csx.yaml", csx)
     fixed = deepcopy(csx)
     fixed["trainer"]["init"].pop("backend", None)
