@@ -14,6 +14,7 @@ import cerebras.pytorch as cstorch
 from cerebras.modelzoo.models.gnn.worker_validation import validate_num_workers
 
 from .caching import GraphCache
+from ..runtime.csx import validate_single_streamer
 from ..sources.base import BaseGraphDataSource
 from ..worker_diagnostics_config import WorkerDiagnosticsConfig
 
@@ -79,6 +80,10 @@ class GraphSAGENeighborSamplerDataset(Dataset):
         seed: int,
         edge_index_is_undirected: bool,
         graph_cache: Optional[GraphCache] = None,
+        drop_last: bool = False,
+        neighbor_indexes: Optional[
+            Tuple[NeighborSliceIndex, Optional[NeighborSliceIndex]]
+        ] = None,
     ):
         if batch_size <= 0:
             raise ValueError("batch_size must be > 0 for GraphSAGE neighbor sampling.")
@@ -98,18 +103,21 @@ class GraphSAGENeighborSamplerDataset(Dataset):
         self.num_nodes = features.size(0)
         self.graph_cache = graph_cache
 
-        self._forward_index = NeighborSliceIndex.from_edge_index(
-            edge_index[0],
-            edge_index[1],
-            self.num_nodes,
-        )
-        self._reverse_index = None
-        if not edge_index_is_undirected:
-            self._reverse_index = NeighborSliceIndex.from_edge_index(
-                edge_index[1],
+        if neighbor_indexes is not None:
+            self._forward_index, self._reverse_index = neighbor_indexes
+        else:
+            self._forward_index = NeighborSliceIndex.from_edge_index(
                 edge_index[0],
+                edge_index[1],
                 self.num_nodes,
             )
+            self._reverse_index = None
+            if not edge_index_is_undirected:
+                self._reverse_index = NeighborSliceIndex.from_edge_index(
+                    edge_index[1],
+                    edge_index[0],
+                    self.num_nodes,
+                )
         self._target_nodes = (
             torch.nonzero(self.mask, as_tuple=False).squeeze(1).cpu().numpy()
         )
@@ -117,7 +125,16 @@ class GraphSAGENeighborSamplerDataset(Dataset):
             raise ValueError("Split has no target nodes; cannot construct batches.")
 
         self._ordered_targets = self._order_targets(self._target_nodes)
-        self._num_batches = math.ceil(self._ordered_targets.size / self.batch_size)
+        self._num_batches = (
+            self._ordered_targets.size // self.batch_size
+            if drop_last
+            else math.ceil(self._ordered_targets.size / self.batch_size)
+        )
+        if self._num_batches == 0:
+            raise ValueError(
+                "drop_last_batch=True would discard all target nodes; reduce "
+                "batch_size or set drop_last_batch=False."
+            )
 
     def __len__(self) -> int:
         return self._num_batches
@@ -194,7 +211,12 @@ class GraphSAGENeighborSamplerDataset(Dataset):
         in_start = int(self._reverse_index.row_offsets[node_id])
         in_end = int(self._reverse_index.row_offsets[node_id + 1])
         in_neighbors = self._reverse_index.neighbors[in_start:in_end]
-        return out_neighbors, in_neighbors
+        # Match a materialized undirected graph even when the source already
+        # contains reciprocal edges, duplicate edges, or self-loops. Restrict
+        # the allocation to this sampled node instead of expanding the graph.
+        neighbors = np.concatenate((out_neighbors, in_neighbors))
+        _, first_positions = np.unique(neighbors, return_index=True)
+        return neighbors[np.sort(first_positions)], None
 
     def _sample_layers(
         self, target_nodes: np.ndarray, target_mask: np.ndarray
@@ -362,6 +384,8 @@ class NeighborSamplingDataProcessor(BaseGraphDataSource):
         pad_id: int,
         prefetch_factor: Optional[int] = 2,
         persistent_workers: bool = False,
+        pin_memory: bool = True,
+        drop_last: bool = False,
         cache_fraction: Optional[float] = None,
         static_batch_cache_size: int = 0,
         worker_diagnostics: Optional[WorkerDiagnosticsConfig] = None,
@@ -388,13 +412,19 @@ class NeighborSamplingDataProcessor(BaseGraphDataSource):
             raise ValueError("prefetch_factor must be positive or None")
         self.prefetch_factor = prefetch_factor if self.num_workers else None
         self.persistent_workers = persistent_workers if self.num_workers else False
+        self.pin_memory = pin_memory
+        self.drop_last = drop_last
         self.static_batch_cache_size = static_batch_cache_size
         self.worker_diagnostics = worker_diagnostics
         self.graph_cache = None
+        self._neighbor_indexes = None
 
     def create_dataloader(self) -> DataLoader:
         """Return a PyTorch loader; ModelZoo Trainer owns the Cerebras wrapper."""
-        return self._create_dataloader(cache_on_cpu=False)
+        validate_single_streamer()
+        # The SDK may force workers to zero for local inspection, but the same
+        # configured loader must remain safe when constructed on a worker host.
+        return self._create_dataloader(cache_on_cpu=self.num_workers > 0)
 
     def create_torch_dataloader(self) -> DataLoader:
         """Build the same fixed batches on the host for native PyTorch training.
@@ -412,7 +442,7 @@ class NeighborSamplingDataProcessor(BaseGraphDataSource):
         split_mask = split_masks[split_key]
 
         # Initialize GraphCache if enabled
-        if self.cache_fraction is not None and self.graph_cache is None:
+        if self.cache_fraction is not None:
             # Determine target caching device
             if cache_on_cpu or cstorch.use_cs():
                 cache_device = torch.device("cpu")
@@ -429,11 +459,15 @@ class NeighborSamplingDataProcessor(BaseGraphDataSource):
                 cache_device = cache_device or torch.device(
                     "cuda" if torch.cuda.is_available() else "cpu"
                 )
+            cache_device = torch.device(cache_device)
             # Construct a minimal Data object for initialization
-            data = Data(x=features, edge_index=edge_index, num_nodes=features.size(0))
-            self.graph_cache = GraphCache(
-                data, cache_device, cache_fraction=self.cache_fraction
-            )
+            if self.graph_cache is None or self.graph_cache.device != cache_device:
+                data = Data(
+                    x=features, edge_index=edge_index, num_nodes=features.size(0)
+                )
+                self.graph_cache = GraphCache(
+                    data, cache_device, cache_fraction=self.cache_fraction
+                )
 
         dataset_type = GraphSAGENeighborSamplerDataset
         if self.worker_diagnostics is not None and self.worker_diagnostics.enabled:
@@ -452,11 +486,17 @@ class NeighborSamplingDataProcessor(BaseGraphDataSource):
             seed=self.sampler_seed,
             edge_index_is_undirected=self._requires_materialized_undirected_edges(),
             graph_cache=self.graph_cache,
+            drop_last=self.drop_last,
+            neighbor_indexes=self._neighbor_indexes,
         )
         if (
             not self._requires_materialized_undirected_edges()
             and self._graph_data_cache is not None
         ):
+            # Preserve the compact sampling indexes for subsequent loaders
+            # before releasing papers100M's much larger edge tensor. Sharing
+            # these arrays does not duplicate the graph in memory.
+            self._neighbor_indexes = (dataset._forward_index, dataset._reverse_index)
             self._graph_data_cache.edge_index = None
         del edge_index
 
@@ -482,7 +522,11 @@ class NeighborSamplingDataProcessor(BaseGraphDataSource):
             num_workers=self.num_workers,
             prefetch_factor=self.prefetch_factor,
             persistent_workers=self.persistent_workers,
-            pin_memory=(self.num_workers > 0 and torch.cuda.is_available()),
+            pin_memory=(
+                self.pin_memory
+                and torch.cuda.is_available()
+                and (self.graph_cache is None or self.graph_cache.device.type == "cpu")
+            ),
             collate_fn=_first_batch,
             **diagnostic_kwargs,
         )

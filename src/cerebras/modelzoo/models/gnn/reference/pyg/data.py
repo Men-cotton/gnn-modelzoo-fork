@@ -1,5 +1,6 @@
 import os
-import sys
+import copy
+import json
 import torch
 from torch.utils.data import DataLoader
 from torch_geometric.loader import NeighborLoader
@@ -124,6 +125,14 @@ def load_dist_partition(partition_dir, partition_idx):
             "torch_geometric.distributed is required for partition loading"
         )
 
+    with open(osp.join(partition_dir, "META.json")) as stream:
+        metadata = json.load(stream)
+    if metadata.get("is_hetero", False):
+        raise ValueError(
+            "Heterogeneous partitions (including ogbn-mag) are unsupported by "
+            "the homogeneous PyG models; use the non-partitioned paper graph."
+        )
+
     print(f"[loader] Loading partition {partition_idx} from {partition_dir}")
     feat_store = LocalFeatureStore.from_partition(partition_dir, partition_idx)
     graph_store = LocalGraphStore.from_partition(partition_dir, partition_idx)
@@ -135,18 +144,24 @@ def load_dist_partition(partition_dir, partition_idx):
     dataset_partitions_name = osp.basename(part_path)  # {dataset_name}-partitions
     dataset_name = dataset_partitions_name.replace("-partitions", "")
 
+    label_path = osp.join(parts_root, f"{dataset_name}-label", "label.pt")
+    if not osp.isfile(label_path):
+        raise FileNotFoundError(f"Partition labels are required: {label_path}")
+    # DistNeighborSampler indexes this tensor by global seed-node IDs.
+    feat_store.labels = torch.load(
+        label_path, map_location="cpu", weights_only=True
+    ).view(-1)
+
     # Load node map to filter indices by ownership
     # node_map.pt is inside the partition_dir (e.g. .../ogbn-arxiv-partitions/node_map.pt)
     node_map_path = osp.join(partition_dir, "node_map.pt")
     if osp.exists(node_map_path):
         print(f"[loader] Loading node map from {node_map_path}")
-        node_map = torch.load(node_map_path)
+        node_map = torch.load(node_map_path, map_location="cpu", weights_only=True)
     else:
-        print(
-            f"[warn] node_map.pt not found at {node_map_path}. Indices might not be filtered by ownership.",
-            file=sys.stderr,
-        )
-        node_map = None
+        raise FileNotFoundError(f"Partition ownership map is required: {node_map_path}")
+    if feat_store.labels.numel() != node_map.numel():
+        raise ValueError("Partition labels must contain one label per global node")
 
     # Load split indices from side-car directories
     # Structure: .../{num_parts}-parts/{dataset_name}-{split}-partitions/partition{idx}.pt
@@ -160,7 +175,7 @@ def load_dist_partition(partition_dir, partition_idx):
 
         if osp.exists(split_file):
             print(f"[loader] Loading {split} indices from {split_file}")
-            idx = torch.load(split_file)
+            idx = torch.load(split_file, map_location="cpu", weights_only=True)
 
             # Filter by ownership if node_map is available
             if node_map is not None:
@@ -345,9 +360,7 @@ def _resolve_split(split_idx, split_name):
 
 def _make_full_graph_loader(data, node_idx, loader_cfg):
     if loader_cfg.get("drop_last_batch", False):
-        print(
-            "[loader] full_graph PyG loader overrides drop_last_batch=True to False."
-        )
+        print("[loader] full_graph PyG loader overrides drop_last_batch=True to False.")
         loader_cfg["drop_last_batch"] = False
 
     graph = Data(
@@ -372,8 +385,7 @@ def make_loaders(data, split_idx, cfg, rank=0, world_size=1):
     # 参照するブロック
     fit = cfg["trainer"]["fit"]
     train_c = fit["train_dataloader"]
-    validate = cfg["trainer"].get("validate") or {}
-    val_c = validate.get("val_dataloader")
+    val_c = fit.get("val_dataloader")
 
     train_profile = _resolve_dataset_profile(train_c)
     val_profile = _resolve_dataset_profile(val_c) if val_c else None
@@ -395,9 +407,9 @@ def make_loaders(data, split_idx, cfg, rank=0, world_size=1):
             raise ValueError("full_graph PyG loader does not support partitions.")
         if world_size != 1:
             raise ValueError("full_graph PyG loader currently supports one GPU only.")
-        train_nodes = _resolve_split(split_idx, train_c.get("split", "train"))
+        train_nodes = _resolve_split(split_idx, train_c.get("split") or "train")
         val_nodes = (
-            _resolve_split(split_idx, val_c.get("split", "val")) if val_c else None
+            _resolve_split(split_idx, val_c.get("split") or "val") if val_c else None
         )
         return (
             _make_full_graph_loader(data, train_nodes, train_c),
@@ -418,7 +430,7 @@ def make_loaders(data, split_idx, cfg, rank=0, world_size=1):
     )
 
     # Shard training indices for DDP
-    train_input_nodes = _resolve_split(split_idx, train_c.get("split", "train"))
+    train_input_nodes = _resolve_split(split_idx, train_c.get("split") or "train")
 
     if world_size > 1 and not is_dist:
         num_nodes = train_input_nodes.size(0)
@@ -447,9 +459,9 @@ def make_loaders(data, split_idx, cfg, rank=0, world_size=1):
         kwargs = {
             "batch_size": loader_cfg["batch_size"],
             "num_workers": num_workers,
-            "persistent_workers": loader_cfg.get("persistent_workers", True)
-            if num_workers
-            else False,
+            "persistent_workers": (
+                loader_cfg.get("persistent_workers", True) if num_workers else False
+            ),
             "pin_memory": loader_cfg.get("pin_memory", True),
         }
 
@@ -523,7 +535,7 @@ def make_loaders(data, split_idx, cfg, rank=0, world_size=1):
             return train_loader, None
 
         try:
-            val_nodes = _resolve_split(split_idx, val_c.get("split", "val"))
+            val_nodes = _resolve_split(split_idx, val_c.get("split") or "val")
         except KeyError:
             val_nodes = None
 
@@ -565,7 +577,7 @@ def make_loaders(data, split_idx, cfg, rank=0, world_size=1):
     val_kwargs = _get_loader_kwargs(val_c, NeighborLoader)
     val_loader = NeighborLoader(
         data,
-        input_nodes=_resolve_split(split_idx, val_c.get("split", "val")),
+        input_nodes=_resolve_split(split_idx, val_c.get("split") or "val"),
         num_neighbors=_get_fanouts(val_c, val_profile),
         shuffle=val_c["shuffle"],
         drop_last=val_c["drop_last_batch"],
@@ -573,3 +585,16 @@ def make_loaders(data, split_idx, cfg, rank=0, world_size=1):
         **val_kwargs,
     )
     return train_loader, val_loader
+
+
+def make_validation_loader(data, split_idx, cfg):
+    """Build only the standalone validation loader, without requiring fit."""
+    loader_cfg = copy.deepcopy(cfg)
+    val_c = loader_cfg["trainer"]["validate"]["val_dataloader"]
+    val_c["split"] = val_c.get("split") or "val"
+    loader_cfg["trainer"]["fit"] = {
+        "train_dataloader": val_c,
+        "val_dataloader": None,
+    }
+    loader, _ = make_loaders(data, split_idx, loader_cfg)
+    return loader

@@ -154,6 +154,33 @@ class FixedShapeTests(unittest.TestCase):
             for a, b in zip(padded_model.parameters(), single_model.parameters()):
                 torch.testing.assert_close(a.grad, b.grad)
 
+    def test_evaluation_excludes_ignored_labels_and_padding(self):
+        cfg = tiny_config()
+        cfg["trainer"]["init"]["model"]["task"]["compute_eval_metrics"] = False
+        model = GNNModel(cfg["trainer"]["init"]["model"])
+        with torch.no_grad():
+            for parameter in model.parameters():
+                parameter.zero_()
+        for labels, expected in (
+            ([0, -100, 0], {"accuracy": 1.0, "targets": 2}),
+            ([-100, -100, -100], {"accuracy": 0.0, "targets": 0}),
+        ):
+            graph = tiny_graph()
+            graph.y = torch.tensor(labels)
+            with (
+                self.subTest(labels=labels),
+                patch.object(BaseGraphDataSource, "load_graph", return_value=graph),
+            ):
+                loader = runner.make_loader(
+                    cfg["trainer"]["fit"]["val_dataloader"],
+                    num_layers=2,
+                    float_dtype=torch.float32,
+                )
+                actual = runner.evaluate(
+                    model, loader, torch.device("cpu"), torch.float32
+                )
+                self.assertEqual(actual, expected)
+
     def test_neighbor_padding_counts_slots_and_valid_parent_shortages(self):
         loader = runner.make_loader(
             tiny_config()["trainer"]["fit"]["train_dataloader"],

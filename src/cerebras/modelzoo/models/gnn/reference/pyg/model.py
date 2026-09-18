@@ -7,7 +7,16 @@ from .cagnet_model import CagnetSAGE
 
 
 class GraphSAGEWrapper(torch.nn.Module):
-    def __init__(self, in_channels, hidden_channels, out_channels, num_layers, dropout):
+    def __init__(
+        self,
+        in_channels,
+        hidden_channels,
+        out_channels,
+        num_layers,
+        dropout,
+        *,
+        aggregator="mean",
+    ):
         super().__init__()
         self.gnn = PyGGraphSAGE(
             in_channels=in_channels,
@@ -18,6 +27,7 @@ class GraphSAGEWrapper(torch.nn.Module):
             act="relu",
             norm=None,
             jk=None,
+            aggr=aggregator,
         )
         self.classifier = torch.nn.Linear(hidden_channels, out_channels)
         self.dropout_p = dropout
@@ -145,7 +155,15 @@ def _get_graphsage_model(
     force_cagnet_flag,
     num_nodes,
 ):
+    aggregator = str(architecture.get("aggregator", "mean")).lower()
+    if aggregator not in ("mean", "sum", "max"):
+        raise ValueError(
+            f"Unsupported GraphSAGE aggregator '{aggregator}'; "
+            "choose mean, sum, or max."
+        )
     if use_cgnet:
+        if aggregator != "mean":
+            raise ValueError("CAGNET GraphSAGE supports the mean aggregator only")
         # Always use CagnetSAGE (OFFSET-GNN baseline) if distributed or forced
         return CagnetSAGE(
             in_channels=architecture["n_feat"],
@@ -167,4 +185,5 @@ def _get_graphsage_model(
         out_channels=architecture["n_class"],
         num_layers=architecture["num_layers"],
         dropout=architecture["dropout"],
+        aggregator=aggregator,
     )

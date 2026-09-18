@@ -39,12 +39,12 @@ class GNNDataProcessorConfig(DataConfig):
     sampling_mode: Literal["full_graph", "neighbor"] = "full_graph"
     fanouts: Optional[List[int]] = None
     cache_fraction: Optional[float] = (
-        None  # Fraction of nodes to cache on GPU (0.0 to 1.0)
+        None  # Fraction of nodes cached on the loader's selected device (0.0 to 1.0)
     )
     sampler_seed: int = 0
 
     batch_size: int = Field(1)
-    drop_last: bool = Field(True, validation_alias="drop_last_batch")
+    drop_last: bool = Field(False, validation_alias="drop_last_batch")
     num_workers: int = 0
     shuffle: bool = False
     prefetch_factor: Optional[int] = Field(10, ge=1)
@@ -166,7 +166,7 @@ class GNNDataProcessor:
         if self.config.sampling_mode == "full_graph":
             self.float_dtype = torch.float32
         self.label_dtype = torch.int32 if cstorch.use_cs() else torch.long
-        self.current_split = getattr(self.config, "split", "train")
+        self.current_split = self.config.split or "train"
 
         self.adj_normalization_fn = None
         if self.config.adj_normalization == "gcn":
@@ -214,6 +214,8 @@ class GNNDataProcessor:
                 num_workers=self.config.num_workers,
                 prefetch_factor=self.config.prefetch_factor,
                 persistent_workers=self.config.persistent_workers,
+                pin_memory=self.config.pin_memory,
+                drop_last=self.config.drop_last,
                 pad_id=self.config.pad_node_id,
                 cache_fraction=self.config.cache_fraction,
                 static_batch_cache_size=self.config.static_batch_cache_size,
@@ -231,6 +233,9 @@ class GNNDataProcessor:
                 sparse_matmul_max_degree=self.config.sparse_matmul_max_degree,
                 drop_last=self.config.drop_last,
                 num_workers=self.config.num_workers,
+                prefetch_factor=self.config.prefetch_factor,
+                persistent_workers=self.config.persistent_workers,
+                pin_memory=self.config.pin_memory,
             )
 
     def create_dataloader(self) -> Union[DataLoader, SampleGenerator]:

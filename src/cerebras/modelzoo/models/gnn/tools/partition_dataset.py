@@ -135,7 +135,7 @@ def get_dataset(name, dataset_dir, use_sparse_tensor=False):
             transform=T.Compose(transforms),
         )
     elif name == "ogbn-arxiv":
-        transforms = [T.RemoveDuplicatedEdges()] + transforms
+        transforms = [T.ToUndirected(), T.RemoveDuplicatedEdges()] + transforms
         from pathlib import Path
 
         dpath = Path(dataset_dir)
@@ -176,16 +176,17 @@ def save_partitions(split_idx, dataset_name, num_parts, save_dir):
     # save_dir is .../{num_parts}-parts
 
     parts_dir = osp.join(save_dir, f"{dataset_name}-partitions")
-    node_map_path = osp.join(parts_dir, "node_map.pt")
+    node_map_path = (
+        osp.join(parts_dir, "node_map", "paper.pt")
+        if dataset_name == "ogbn-mag"
+        else osp.join(parts_dir, "node_map.pt")
+    )
 
     if not osp.exists(node_map_path):
-        print(
-            f"[warn] node_map.pt not found at {node_map_path}. Falling back to tensor_split (contiguous)."
-        )
-        node_map = None
+        raise FileNotFoundError(f"Partition ownership map is required: {node_map_path}")
     else:
         print(f"-- Loading node map from {node_map_path}")
-        node_map = torch.load(node_map_path)
+        node_map = torch.load(node_map_path, map_location="cpu", weights_only=True)
 
     for key, idx in split_idx.items():
         print(f"-- Partitioning {key} indices ...")
@@ -193,19 +194,11 @@ def save_partitions(split_idx, dataset_name, num_parts, save_dir):
         part_dir = osp.join(save_dir, f"{dataset_name}-{key}-partitions")
         os.makedirs(part_dir, exist_ok=True)
 
-        if node_map is not None:
-            # Mask indices by ownership
-            # idx contains global node IDs. node_map[global_id] -> partition_id
-            ownership = node_map[idx]
-            for i in range(num_parts):
-                mask = ownership == i
-                chunk = idx[mask]
-                torch.save(chunk, osp.join(part_dir, f"partition{i}.pt"))
-        else:
-            # Fallback
-            idx_chunks = torch.tensor_split(idx, num_parts)
-            for i, chunk in enumerate(idx_chunks):
-                torch.save(chunk, osp.join(part_dir, f"partition{i}.pt"))
+        # idx contains global node IDs; node_map maps those IDs to owners.
+        ownership = node_map[idx]
+        for i in range(num_parts):
+            chunk = idx[ownership == i]
+            torch.save(chunk, osp.join(part_dir, f"partition{i}.pt"))
 
 
 def save_link_partitions(split_idx, data, dataset_name, num_parts, save_dir):

@@ -9,6 +9,7 @@ from cerebras.modelzoo.models.gnn.reference.pyg.utils import (
     setup_ddp,
     cleanup_ddp,
     ensure_pickle_friendly_load,
+    wrap_ddp,
 )
 from cerebras.modelzoo.models.gnn.reference.pyg.cagnet_shim import (
     destroy_cagnet_groups,
@@ -179,10 +180,8 @@ def main(expected_architecture=None, enable_graphsage_options=True):
         model = get_model(cfg, args, num_nodes=num_nodes).to(device)
 
         if world_size > 1:
-            from torch.nn.parallel import DistributedDataParallel as DDP
-
             # DDP wrapper
-            model = DDP(model, device_ids=[rank])
+            model = wrap_ddp(model, device)
             print(f"[ddp] Rank {rank}: Wrapped model in DDP")
 
         if hasattr(torch, "compile") and not os.getenv("NO_COMPILE"):

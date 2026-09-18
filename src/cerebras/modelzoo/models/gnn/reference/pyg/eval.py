@@ -5,37 +5,37 @@ import torch.distributed as dist
 from cerebras.modelzoo.models.gnn.reference.pyg.utils import set_seed, load_cfg
 from cerebras.modelzoo.models.gnn.reference.pyg.data import (
     load_dataset,
-    make_loaders,
+    make_validation_loader,
     check_pyg_lib,
     _resolve_dataset_profile,
 )
 from cerebras.modelzoo.models.gnn.reference.pyg.model import get_model
+from cerebras.modelzoo.models.gnn.gpu_policy import precision_dtype
 
 
 @torch.no_grad()
-def evaluate(model, loader, device, cache=None):
+def evaluate(model, loader, device, cache=None, dtype=torch.float32):
     model.eval()
     total = 0
     correct = 0
     for batch in loader:
         batch = batch.to(device, non_blocking=True)
-        if hasattr(batch, "node_idx"):
-            out = model(batch.x, batch.edge_index)
-            node_idx = batch.node_idx
-            out = out.index_select(0, node_idx)
-            y = batch.y.index_select(0, node_idx).view(-1)
-        elif cache is not None:
-            batch.x = cache.fetch(batch.n_id)
-            out = model(batch.x, batch.edge_index, batch_size=batch.batch_size)
-            out = out[: batch.batch_size]
-            y = batch.y[: batch.batch_size].view(-1)
-        else:
-            out = model(batch.x, batch.edge_index, batch_size=batch.batch_size)
-            out = out[: batch.batch_size]
-            y = batch.y[: batch.batch_size].view(-1)
+        with torch.autocast(device.type, dtype=dtype, enabled=dtype != torch.float32):
+            if hasattr(batch, "node_idx"):
+                out = model(batch.x, batch.edge_index)
+                node_idx = batch.node_idx
+                out = out.index_select(0, node_idx)
+                y = batch.y.index_select(0, node_idx).view(-1)
+            else:
+                if cache is not None:
+                    batch.x = cache.fetch(batch.n_id)
+                out = model(batch.x, batch.edge_index, batch_size=batch.batch_size)
+                out = out[: batch.batch_size]
+                y = batch.y[: batch.batch_size].view(-1)
         pred = out.argmax(dim=-1)
-        correct += (pred == y).sum().item()
-        total += y.numel()
+        valid = y != -100
+        correct += ((pred == y) & valid).sum().item()
+        total += valid.sum().item()
     if dist.is_available() and dist.is_initialized():
         counts = torch.tensor([correct, total], device=device, dtype=torch.long)
         dist.all_reduce(counts, op=dist.ReduceOp.SUM)
@@ -50,8 +50,9 @@ def evaluate_full_batch(model, data, node_idx, device):
     logits = model(data.x, data.edge_index)
     pred = logits[node_idx].argmax(dim=-1)
     y = data.y[node_idx].view(-1)
-    correct = (pred == y).sum().item()
-    return correct / max(y.numel(), 1)
+    valid = y != -100
+    correct = ((pred == y) & valid).sum().item()
+    return correct / max(valid.sum().item(), 1)
 
 
 def main():
@@ -73,12 +74,9 @@ def main():
     dataset_profile = _resolve_dataset_profile(val_c)
     data, split_idx = load_dataset(dataset_profile)
 
-    check_pyg_lib()
-    # We only need val loader for evaluation
-    # But make_loaders returns both. Let's just use make_loaders for simplicity or manually create val loader.
-    # make_loaders requires 'fit' section in config which might be present.
-    # Let's reuse make_loaders to be consistent.
-    _, val_loader = make_loaders(data, split_idx, cfg)
+    if val_c.get("sampling_mode", "neighbor") == "neighbor":
+        check_pyg_lib()
+    val_loader = make_validation_loader(data, split_idx, cfg)
 
     # Model
     model = get_model(cfg).to(device)
@@ -103,7 +101,13 @@ def main():
         model = torch.compile(model)
 
     # Evaluate
-    acc = evaluate(model, val_loader, device)
+    init = cfg["trainer"]["init"]
+    task = init["model"].get("task", init["model"])
+    dtype = precision_dtype(
+        init,
+        default=(torch.float16 if task.get("to_float16", False) else torch.float32),
+    )
+    acc = evaluate(model, val_loader, device, dtype=dtype)
     print(f"Validation Accuracy: {acc:.4f}")
 
 

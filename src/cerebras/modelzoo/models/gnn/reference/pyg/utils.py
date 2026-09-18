@@ -91,6 +91,18 @@ def cleanup_ddp():
         dist.destroy_process_group()
 
 
+def wrap_ddp(model, device):
+    """CUDA device identifiers are local to a node, unlike global ranks."""
+    from torch.nn.parallel import DistributedDataParallel
+
+    device_id = device.index
+    if device.type == "cuda" and device_id is None:
+        device_id = torch.cuda.current_device()
+    return DistributedDataParallel(
+        model, device_ids=[device_id] if device.type == "cuda" else None
+    )
+
+
 def _canonicalize_ogb_name(name: str) -> str:
     """Return the official OGB dataset identifier (ogbn-*) for the given name."""
     if name.startswith("ogbn-"):

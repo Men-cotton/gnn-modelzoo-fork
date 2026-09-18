@@ -14,7 +14,7 @@ from cerebras.modelzoo.common.input_utils import get_streaming_batch_size
 from cerebras.modelzoo.common.pytorch_utils import SampleGenerator
 from cerebras.modelzoo.models.gnn.worker_validation import validate_num_workers
 
-from ..runtime.csx import to_dense_adjacency
+from ..runtime.csx import to_dense_adjacency, validate_single_streamer
 from ..runtime.torch import to_edge_adjacency
 from ..sources.base import (
     BaseGraphDataSource,
@@ -32,6 +32,13 @@ def _full_graph_payload(
     labels: Tensor,
     mask: Tensor,
 ):
+    if isinstance(adjacency, EdgeIndexAdjacency):
+        # Keep the emitted payload in standard containers so both PyTorch
+        # pinning and the SDK tensor traversal include the adjacency tensors.
+        adjacency = {
+            "edge_index": adjacency.edge_index,
+            "edge_weight": adjacency.edge_weight,
+        }
     return {
         "features": features,
         "adjacency": adjacency,
@@ -89,6 +96,9 @@ class FullGraphDataProcessor(BaseGraphDataSource):
         sparse_matmul_max_degree: Optional[int] = None,
         drop_last: bool,
         num_workers: int,
+        prefetch_factor: Optional[int] = 2,
+        persistent_workers: bool = False,
+        pin_memory: bool = True,
     ):
         super().__init__(
             dataset_name=dataset_name,
@@ -105,8 +115,14 @@ class FullGraphDataProcessor(BaseGraphDataSource):
             num_workers,
             context=f"{self.__class__.__name__}.num_workers",
         )
+        if prefetch_factor is not None and prefetch_factor < 1:
+            raise ValueError("prefetch_factor must be positive or None")
+        self.prefetch_factor = prefetch_factor if self.num_workers else None
+        self.persistent_workers = persistent_workers if self.num_workers else False
+        self.pin_memory = pin_memory
 
     def create_dataloader(self) -> DataLoader:
+        validate_single_streamer()
         features, adjacency, labels, mask = self.load_full_graph()
         dataset = _SingleGraphDataset(features, adjacency, labels, mask)
 
@@ -116,7 +132,9 @@ class FullGraphDataProcessor(BaseGraphDataSource):
             shuffle=False,
             drop_last=self.drop_last,
             num_workers=self.num_workers,
-            pin_memory=(self.num_workers > 0 and torch.cuda.is_available()),
+            prefetch_factor=self.prefetch_factor,
+            persistent_workers=self.persistent_workers,
+            pin_memory=self.pin_memory and torch.cuda.is_available(),
             collate_fn=_collate_full_graph,
         )
 
@@ -128,6 +146,7 @@ class FullGraphDataProcessor(BaseGraphDataSource):
         n_class: int,
         seed: Optional[int] = None,
     ) -> SampleGenerator:
+        validate_single_streamer()
         logger.info("Using fake data generator (seed: %s).", seed)
         if seed is not None:
             torch.manual_seed(seed)

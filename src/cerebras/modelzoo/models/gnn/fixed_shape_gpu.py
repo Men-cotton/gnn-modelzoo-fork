@@ -24,6 +24,7 @@ from cerebras.modelzoo.models.gnn.data_processing.samplers.neighbor_tree import 
     NeighborSamplingDataProcessor,
 )
 from cerebras.modelzoo.models.gnn.model import GNNModel
+from cerebras.modelzoo.models.gnn.gpu_policy import adamw_kwargs, precision_dtype
 
 
 def make_loader(config, *, num_layers, float_dtype):
@@ -53,26 +54,14 @@ def make_loader(config, *, num_layers, float_dtype):
         num_workers=config.num_workers,
         prefetch_factor=config.prefetch_factor,
         persistent_workers=config.persistent_workers,
+        pin_memory=config.pin_memory,
+        drop_last=config.drop_last,
         pad_id=config.pad_node_id,
         cache_fraction=config.cache_fraction,
         static_batch_cache_size=config.static_batch_cache_size,
         worker_diagnostics=config.worker_diagnostics,
     )
     return processor.create_torch_dataloader()
-
-
-def precision_dtype(init, override=None):
-    if override is not None:
-        return {"fp32": torch.float32, "fp16": torch.float16, "bf16": torch.bfloat16}[
-            override
-        ]
-    precision = init.get("precision", {})
-    if not precision.get("enabled", True):
-        return torch.float32
-    kind = precision.get("fp16_type", "float16")
-    if kind not in ("float16", "bfloat16"):
-        raise ValueError(f"GPU precision {kind!r} is unsupported; select --precision")
-    return {"float16": torch.float16, "bfloat16": torch.bfloat16}[kind]
 
 
 @torch.no_grad()
@@ -82,7 +71,6 @@ def evaluate(model, loader, device, dtype):
     correct = torch.zeros((), device=device, dtype=torch.long)
     targets = 0
     for payload in loader:
-        targets += int(payload["target_mask"].sum())
         batch = GraphSAGEBatch.from_payload(payload).to(device, non_blocking=True)
         param = next(model.parameters())
         with torch.autocast(device.type, dtype=dtype, enabled=dtype != torch.float32):
@@ -90,11 +78,11 @@ def evaluate(model, loader, device, dtype):
                 batch, device, param.dtype, model.architecture_spec.name
             )
             logits = model.model(*adapted.model_args)
-            correct += (
-                (logits.argmax(-1) == adapted.labels) & adapted.target_mask
-            ).sum()
+            mask = adapted.target_mask & (adapted.labels != -100)
+            targets += int(mask.sum())
+            correct += ((logits.argmax(-1) == adapted.labels) & mask).sum()
     model.train()
-    return {"accuracy": int(correct) / targets, "targets": targets}
+    return {"accuracy": int(correct) / max(targets, 1), "targets": targets}
 
 
 def train(
@@ -137,13 +125,7 @@ def train(
         and fit["val_dataloader"].get("static_batch_cache_size", 0)
     ):
         raise ValueError("validation cannot repeat cached static batches")
-    optimizer_cfg = copy.deepcopy(init["optimizer"])
-    if set(optimizer_cfg) != {"AdamW"}:
-        raise ValueError("fixed_shape_gpu currently supports AdamW only")
-    adamw = optimizer_cfg["AdamW"]
-    if adamw.pop("params", []):
-        raise ValueError("custom optimizer parameter groups are unsupported")
-    adamw["lr"] = adamw.pop("learning_rate")
+    adamw = adamw_kwargs(init)
 
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)

@@ -16,7 +16,6 @@ from pathlib import Path
 import re
 from typing import Sequence
 
-
 PROGRESS = re.compile(
     r"^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3}).*"
     r"\| Train Device=CSX, Step=(\d+), Loss=([^,]+),"
@@ -80,6 +79,30 @@ def measure(points: Sequence[Point], start: int, end: int, batch_size: int) -> d
     }
 
 
+def _check_training_only_window(path: Path, start: int, end: int) -> None:
+    """Reject logged evaluation/checkpoint work between the selected endpoints."""
+    activity = re.compile(
+        r"\b(?:Eval(?:uation)?|Validat(?:e|ion))\b"
+        r"|\b(?:Saving|Saved) (?:a )?checkpoint\b"
+        r"|\bCheckpoint (?:saved|saving)\b",
+        re.IGNORECASE,
+    )
+    inside = False
+    for line in path.read_text().splitlines():
+        match = PROGRESS.search(line)
+        if match:
+            step = int(match[2])
+            if step == end:
+                break
+            if step == start:
+                inside = True
+        if inside and activity.search(line):
+            raise ValueError(
+                "Evaluation or checkpoint activity overlaps the training window: "
+                + line.strip()
+            )
+
+
 def summarize(
     path: Path,
     start: int = 40,
@@ -90,6 +113,7 @@ def summarize(
     """Measure the full window and compare its two halves."""
     points = read_points(path)
     result = measure(points, start, end, batch_size)
+    _check_training_only_window(path, start, end)
     result["definition"] = "nominal seed-node slots/s; includes padded slots"
     midpoint = (start + end) // 2
     if (end - start) % 2 == 0 and any(p.step == midpoint for p in points):

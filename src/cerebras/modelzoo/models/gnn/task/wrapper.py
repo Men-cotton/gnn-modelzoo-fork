@@ -2,13 +2,12 @@ from __future__ import annotations
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from cerebras.pytorch.metrics import AccuracyMetric
 
-from ..architectures.registry import get_architecture_spec_for_config
 from ..architectures.spec import ArchitectureSpec
 from .adapters import GNNBatch
 from .config import GNNModelConfig
+from .loss import masked_classification_loss
 
 
 class GNNTaskWrapper(nn.Module):
@@ -16,6 +15,9 @@ class GNNTaskWrapper(nn.Module):
 
     def __init__(self, config: GNNModelConfig):
         super().__init__()
+        # The registry imports task adapters while registering architectures.
+        from ..architectures.registry import get_architecture_spec_for_config
+
         if isinstance(config, dict):
             model_dict = config.get("model", config)
             if not isinstance(model_dict, dict):
@@ -29,8 +31,6 @@ class GNNTaskWrapper(nn.Module):
             self.architecture_config
         )
         self.model = self.build_model(self.architecture_spec, self.architecture_config)
-        self.nll_loss_fn = nn.NLLLoss(ignore_index=-100)
-        self.ce_loss_fn = nn.CrossEntropyLoss(ignore_index=-100)
         self.accuracy_metric = (
             AccuracyMetric(name="eval/masked_accuracy")
             if self.config.compute_eval_metrics
@@ -56,19 +56,17 @@ class GNNTaskWrapper(nn.Module):
         logits = self.architecture_spec.postprocess_logits(logits)
 
         labels_long = adapted.labels.to(torch.long)
-        mask = adapted.target_mask.to(torch.bool)
-        ignore_filled = torch.full_like(labels_long, self.nll_loss_fn.ignore_index)
-        labels_with_ignore = torch.where(mask, labels_long, ignore_filled)
-        if not self.config.disable_log_softmax:
-            log_probs = F.log_softmax(logits, dim=1)
-            loss = self.nll_loss_fn(log_probs, labels_with_ignore)
-        else:
-            log_probs = logits
-            loss = self.ce_loss_fn(logits, labels_with_ignore)
+        mask = adapted.target_mask.to(torch.bool) & (labels_long != -100)
+        loss = masked_classification_loss(
+            logits,
+            labels_long,
+            mask,
+            disable_log_softmax=self.config.disable_log_softmax,
+        )
 
         if not self.training and self.accuracy_metric is not None:
-            predictions = log_probs.argmax(dim=-1).to(labels_long.dtype).detach()
-            weights = mask.to(log_probs.dtype)
+            predictions = logits.argmax(dim=-1).to(labels_long.dtype).detach()
+            weights = mask.to(torch.float32)
             self.accuracy_metric(
                 labels=labels_long.clone().detach(),
                 predictions=predictions,

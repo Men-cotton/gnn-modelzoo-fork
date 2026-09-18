@@ -7,6 +7,7 @@ import torch.nn.functional as F
 from torch.optim import AdamW
 import torch.distributed as dist
 from cerebras.modelzoo.models.gnn.reference.pyg.eval import evaluate
+from cerebras.modelzoo.models.gnn.gpu_policy import adamw_kwargs, precision_dtype
 
 
 def _get_task_cfg(model_cfg: Dict[str, Any]) -> Dict[str, Any]:
@@ -66,16 +67,15 @@ def train_model(
         raise ValueError("PyG input tuning requires one GPU and grad_accum_steps=1")
 
     # --- Optimizer & AMP ---
-    opt_conf = train_cfg["optimizer"]["AdamW"]
-    optimizer = AdamW(
-        model.parameters(),
-        lr=opt_conf["learning_rate"],
-        weight_decay=opt_conf["weight_decay"],
-    )
+    optimizer = AdamW(model.parameters(), **adamw_kwargs(train_cfg))
 
     task_cfg = _get_task_cfg(model_cfg)
-    use_amp = bool(task_cfg.get("to_float16", False))
-    scaler = torch.amp.GradScaler("cuda", enabled=use_amp)
+    dtype = precision_dtype(
+        train_cfg,
+        default=torch.float16 if task_cfg.get("to_float16", False) else torch.float32,
+    )
+    use_amp = dtype != torch.float32
+    scaler = torch.amp.GradScaler("cuda", enabled=dtype == torch.float16)
     disable_log_softmax = task_cfg.get("disable_log_softmax", False)
     compute_eval_metrics = bool(task_cfg.get("compute_eval_metrics", True))
     if benchmark is not None and (compute_eval_metrics or eval_frequency is not None):
@@ -109,6 +109,8 @@ def train_model(
 
     # --- Training State ---
     train_loader, val_loader = loaders
+    if compute_eval_metrics and eval_frequency and val_loader is None:
+        raise ValueError("Evaluation requires fit.val_dataloader")
     train_iter = iter(train_loader)
 
     model.train()
@@ -188,7 +190,7 @@ def train_model(
 
         # 4. Forward Pass
         ev_current["fwd"][0].record()
-        with torch.amp.autocast("cuda", enabled=use_amp):
+        with torch.amp.autocast("cuda", dtype=dtype, enabled=use_amp):
             logits, y = _select_logits_and_labels(model, batch, cache=None)
 
             if not disable_log_softmax:
@@ -292,7 +294,7 @@ def train_model(
         # --- Evaluation ---
         if compute_eval_metrics and eval_frequency and step % eval_frequency == 0:
             # Note: evaluate is likely synchronous
-            val_acc = evaluate(model, val_loader, device, cache=cache)
+            val_acc = evaluate(model, val_loader, device, cache=cache, dtype=dtype)
             model.train()
 
             if rank == 0:

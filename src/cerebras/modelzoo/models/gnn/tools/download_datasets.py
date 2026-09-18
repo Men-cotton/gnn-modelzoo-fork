@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import gzip
 import hashlib
 import os
 import shutil
@@ -214,26 +215,91 @@ def _get_ogb_dataset_metadata(dataset_name: str) -> Dict[str, str]:
     return metadata
 
 
-def _ogb_raw_is_ready(dataset_subdir: Path, metadata: Dict[str, str]) -> bool:
-    raw_dir = dataset_subdir / "raw"
+def _nonempty_file(path: Path) -> bool:
+    return path.is_file() and path.stat().st_size > 0
+
+
+def _flagged_node_types(path: Path) -> list[str]:
+    with gzip.open(path, "rt", newline="") as stream:
+        flags = next(csv.DictReader(stream))
+    return [name for name, flag in flags.items() if flag.lower() == "true"]
+
+
+def _ogb_split_is_ready(dataset_subdir: Path, metadata: Dict[str, str]) -> bool:
     split_dir = dataset_subdir / "split" / metadata["split"]
-    if not raw_dir.is_dir() or not split_dir.is_dir():
+    if _nonempty_file(split_dir / "split_dict.pt"):
+        return True
+    split_roots = [split_dir]
+    if metadata["is hetero"] == "True":
+        try:
+            node_types = _flagged_node_types(split_dir / "nodetype-has-split.csv.gz")
+        except (OSError, EOFError, StopIteration, AttributeError):
+            return False
+        if not node_types:
+            return False
+        split_roots = [split_dir / name for name in node_types]
+    return all(
+        _nonempty_file(root / f"{split}.csv.gz")
+        for root in split_roots
+        for split in ("train", "valid", "test")
+    )
+
+
+def _ogb_raw_is_ready(dataset_subdir: Path, metadata: Dict[str, str]) -> bool:
+    """Check required file layout without loading the full graph into memory."""
+    raw_dir = dataset_subdir / "raw"
+    if not raw_dir.is_dir() or not _ogb_split_is_ready(dataset_subdir, metadata):
         return False
 
     if metadata["binary"] == "True":
         raw_graph_file = (
             "edge_index_dict.npz" if metadata["is hetero"] == "True" else "data.npz"
         )
-        label_file = "node-label.npz"
-    else:
-        raw_graph_file = (
-            "triplet-type-list.csv.gz"
-            if metadata["is hetero"] == "True"
-            else "edge.csv.gz"
+        required = [raw_dir / raw_graph_file, raw_dir / "node-label.npz"]
+    elif metadata["is hetero"] == "True":
+        required = [raw_dir / "num-node-dict.csv.gz"]
+        try:
+            node_types = _flagged_node_types(raw_dir / "nodetype-has-label.csv.gz")
+            with gzip.open(raw_dir / "triplet-type-list.csv.gz", "rt") as stream:
+                relations = list(csv.reader(stream))
+        except (OSError, EOFError, StopIteration, AttributeError):
+            return False
+        if not node_types or not relations or any(len(row) != 3 for row in relations):
+            return False
+        required.extend(
+            raw_dir / "node-label" / name / "node-label.csv.gz" for name in node_types
         )
-        label_file = "node-label.csv.gz"
-
-    return (raw_dir / raw_graph_file).exists() and (raw_dir / label_file).exists()
+        required.extend(
+            raw_dir / "relations" / "___".join(relation) / filename
+            for relation in relations
+            for filename in ("edge.csv.gz", "num-edge-list.csv.gz")
+        )
+        if metadata.get("has_node_attr") == "True" and not any(
+            _nonempty_file(path)
+            for path in (raw_dir / "node-feat").glob("*/node-feat.csv.gz")
+        ):
+            return False
+    else:
+        required = [
+            raw_dir / name
+            for name in (
+                "edge.csv.gz",
+                "num-node-list.csv.gz",
+                "num-edge-list.csv.gz",
+                "node-label.csv.gz",
+            )
+        ]
+        for key, filename in (
+            ("has_node_attr", "node-feat.csv.gz"),
+            ("has_edge_attr", "edge-feat.csv.gz"),
+        ):
+            if metadata.get(key) == "True":
+                required.append(raw_dir / filename)
+        for key in ("additional node files", "additional edge files"):
+            for name in metadata.get(key, "None").split(","):
+                if name and name != "None":
+                    required.append(raw_dir / f"{name}.csv.gz")
+    return all(_nonempty_file(path) for path in required)
 
 
 def download_pubmed(root_dir: Path) -> None:
@@ -298,11 +364,12 @@ def download_ogb_dataset(dataset_name: str, root_dir: Path) -> None:
     metadata = _get_ogb_dataset_metadata(dataset_name)
     dataset_dir = root_dir / dataset_name
     dataset_subdir = dataset_dir / dataset_name.replace("-", "_")
-    processed_flag = dataset_subdir / "processed"
-    if processed_flag.exists():
-        print(f"[{dataset_name}] Dataset already prepared under {processed_flag}.")
+    processed_path = dataset_subdir / "processed" / "geometric_data_processed.pt"
+    if _nonempty_file(processed_path) and _ogb_split_is_ready(dataset_subdir, metadata):
+        print(f"[{dataset_name}] Dataset already prepared at {processed_path}.")
         return
-    if not _request_download(dataset_name):
+    raw_ready = _ogb_raw_is_ready(dataset_subdir, metadata)
+    if not raw_ready and not _request_download(dataset_name):
         return
 
     dataset_dir.mkdir(parents=True, exist_ok=True)
@@ -311,7 +378,7 @@ def download_ogb_dataset(dataset_name: str, root_dir: Path) -> None:
     archive_path = dataset_dir / archive_name
     extracted_dir = dataset_dir / metadata["download_name"]
 
-    if not _ogb_raw_is_ready(dataset_subdir, metadata):
+    if not raw_ready:
         print(
             f"[{dataset_name}] Downloading archive with resume support into {archive_path}."
         )
@@ -330,6 +397,11 @@ def download_ogb_dataset(dataset_name: str, root_dir: Path) -> None:
         if dataset_subdir.exists():
             shutil.rmtree(dataset_subdir)
         shutil.move(str(extracted_dir), str(dataset_subdir))
+
+        if not _ogb_raw_is_ready(dataset_subdir, metadata):
+            raise RuntimeError(
+                f"Required OGB raw/split files are missing under {dataset_subdir}"
+            )
 
     if dataset_name == "ogbn-papers100M":
         print(
