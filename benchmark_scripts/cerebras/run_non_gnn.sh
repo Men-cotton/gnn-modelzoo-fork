@@ -10,5 +10,5 @@ for arg in "$@"; do
         --profile|--profile=*|--data-dir|--data-dir=*) entry=run.py ;;
     esac
 done
-exec "${project_root}/.venv/bin/python" "${project_root}/benchmark_scripts/non_gnn/${entry}" \
+exec uv run --no-sync --project "${project_root}" python "${project_root}/benchmark_scripts/non_gnn/${entry}" \
     --backend CSX "$@"

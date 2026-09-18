@@ -19,7 +19,7 @@ done
 config="$(realpath -- "$config")"
 output_dir="$(dirname "$config")"
 export PYTHONPATH="${project_root}/src${PYTHONPATH:+:${PYTHONPATH}}"
-command=("${project_root}/.venv/bin/python" "${project_root}/benchmark_scripts/non_gnn/gpu/train.py"
+command=(uv run --no-sync --project "${project_root}" python "${project_root}/benchmark_scripts/non_gnn/gpu/train.py"
     --config "$config")
 if (( dry_run )); then
     printf '%q ' "${command[@]}"
@@ -33,7 +33,7 @@ require_cuda_toolkit
 [[ -f "${project_root}/.venv/.setup_successful" ]] || {
     echo 'Run ./setup.sh --target-env gpu before launching Pegasus jobs.' >&2; exit 4;
 }
-"${project_root}/.venv/bin/python" -c 'import torch; assert torch.cuda.is_available(), "CUDA is unavailable"'
+uv run --no-sync --project "${project_root}" python -c 'import torch; assert torch.cuda.is_available(), "CUDA is unavailable"'
 cd "$project_root"
 {
     echo "[non_gnn] hostname=$(hostname) job=${PBS_JOBID:-local} config=${config}"

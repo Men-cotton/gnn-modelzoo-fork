@@ -130,6 +130,12 @@ bash ./benchmark_scripts/non_gnn/setup.sh
 起動時には `datasets`, `transformers`, `torchvision`, `h5py`, `filelock` の import を
 データ取得・tokenizer ロード・ジョブ投入より前に確認する。不足やバイナリの不整合があれば，
 使用中の Python と失敗した import，修復コマンドを表示して停止する。
+CS-3／Pegasus の起動は `uv run --no-sync --project <repo> python ...` に統一する。
+環境の有効化と `.venv/bin` の探索パスは uv に任せ，起動スクリプトでは `PATH` を変更しない。
+`--no-sync` によりジョブ起動時の依存再解決・環境更新を省き，依存追加は上記の
+セットアップ内の `uv pip install` で行う。CSX はデータ取得前とクライアント起動時に
+`torch-cirh-opt` の存在を確認し，見つからなければ具体的な起動方法を表示して停止する。
+Python ファイルを直接実行する場合も `uv run --no-sync` を付ける。
 Model Zoo の設定検証は他の入力 processor も import するため，ローカルテキストや
 前処理済みデータを使う場合にも `datasets` と `torchvision` が必要になる。
 `--dry-run` は追加依存の確認を省いて予定だけを表示する。

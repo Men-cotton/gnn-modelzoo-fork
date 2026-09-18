@@ -11,7 +11,7 @@ for arg in "$@"; do
 done
 if (( ! single )); then
     export PYTHONPATH="${project_root}/src${PYTHONPATH:+:${PYTHONPATH}}"
-    exec "${project_root}/.venv/bin/python" "${project_root}/benchmark_scripts/non_gnn/campaign.py" --backend GPU "$@"
+    exec uv run --no-sync --project "${project_root}" python "${project_root}/benchmark_scripts/non_gnn/campaign.py" --backend GPU "$@"
 fi
 output_dir="${project_root}/model_dirs/non_gnn/gpu_$(date +%Y%m%d_%H%M%S)_$$"
 args=()
@@ -25,7 +25,7 @@ while (( $# )); do
         --backend|--prepare-only)
             echo "$1 is managed by this submit script" >&2; exit 2 ;;
         -h|--help|--list-configs)
-            exec "${project_root}/.venv/bin/python" "${project_root}/benchmark_scripts/non_gnn/run.py" --backend GPU "$1" ;;
+            exec uv run --no-sync --project "${project_root}" python "${project_root}/benchmark_scripts/non_gnn/run.py" --backend GPU "$1" ;;
         *) args+=("$1"); shift ;;
     esac
 done
@@ -36,7 +36,7 @@ if [[ "$output_dir" == *','* || "$output_dir" == *$'\n'* ]]; then
     exit 2
 fi
 export PYTHONPATH="${project_root}/src${PYTHONPATH:+:${PYTHONPATH}}"
-prepare=("${project_root}/.venv/bin/python" "${project_root}/benchmark_scripts/non_gnn/run.py"
+prepare=(uv run --no-sync --project "${project_root}" python "${project_root}/benchmark_scripts/non_gnn/run.py"
     --backend GPU "${args[@]}" --output-dir "$output_dir" --prepare-only)
 command=(qsub -v "NON_GNN_CONFIG=${output_dir}/params.yaml" "${script_dir}/run_non_gnn_nqsv.pbs")
 if (( dry_run )); then

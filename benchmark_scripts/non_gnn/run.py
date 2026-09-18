@@ -14,6 +14,7 @@ import json
 import os
 from pathlib import Path
 import shlex
+import shutil
 import subprocess
 import sys
 
@@ -25,6 +26,19 @@ VOCAB = (
     ROOT
     / "src/cerebras/modelzoo/models/vocab/google_research_uncased_L-12_H-768_A-12.txt"
 )
+
+
+def check_runtime(backend):
+    if backend == "CSX" and shutil.which("torch-cirh-opt") is None:
+        raise ValueError(
+            "CSX compiler torch-cirh-opt is not on PATH. "
+            "Launch through the benchmark shell script (uv run --no-sync), "
+            "or use uv run --no-sync --project "
+            + shlex.quote(str(ROOT))
+            + " python benchmark_scripts/non_gnn/campaign.py --backend CSX. "
+            "If it is still missing under uv run, check that cerebras_pytorch "
+            "is installed completely and .venv/bin/torch-cirh-opt is executable."
+        )
 
 
 def check_dependencies():
@@ -339,6 +353,7 @@ def main(argv=None):
             raise ValueError(
                 f"Output directory already exists: {args.output_dir}; choose a new directory"
             )
+        check_runtime(args.backend)
         check_dependencies()
         check_data(args, metadata)
         from cerebras.modelzoo.trainer.validate import validate_trainer_params

@@ -10,7 +10,7 @@ venv_python="${project_root}/.venv/bin/python"
 }
 command -v uv >/dev/null || { echo 'uv is required to install dependencies.' >&2; exit 2; }
 # Read the installed build, rather than inferring CUDA from this login node's devices.
-torch_build="$("$venv_python" - <<'PY'
+torch_build="$(uv run --no-sync --project "$project_root" python - <<'PY'
 import torch
 if torch.__version__.split('+')[0] != '2.4.0':
     raise SystemExit('Expected the project PyTorch 2.4.0 environment; refusing to replace PyTorch.')
@@ -29,4 +29,4 @@ uv pip install --python "$venv_python" \
     --extra-index-url "https://download.pytorch.org/whl/${torch_flavor}" \
     -r "${script_dir}/requirements.txt"
 export PYTHONPATH="${project_root}/src${PYTHONPATH:+:${PYTHONPATH}}"
-"$venv_python" "${script_dir}/run.py" --backend CSX --check-dependencies
+uv run --no-sync --project "$project_root" python "${script_dir}/run.py" --backend CSX --check-dependencies

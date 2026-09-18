@@ -7,6 +7,7 @@ import importlib
 import io
 import json
 import os
+import shutil
 from pathlib import Path
 import subprocess
 import sys
@@ -89,6 +90,79 @@ class CampaignTests(unittest.TestCase):
         ):
             return prepare_data.prepare(self.args(), self.profiles, run.VOCAB)
 
+    def test_uv_exposes_compiler_to_shell_children_without_activation(self):
+        uv = shutil.which("uv")
+        self.assertIsNotNone(uv)
+        project = self.path / "uv-project"
+        project.mkdir()
+        (project / "pyproject.toml").write_text(
+            '[project]\nname="compiler-path-test"\nversion="0.0.0"\n'
+        )
+        created = subprocess.run(
+            [
+                uv,
+                "venv",
+                "--offline",
+                "--python",
+                sys.executable,
+                str(project / ".venv"),
+            ],
+            env={**os.environ, "UV_CACHE_DIR": str(self.path / "uv-cache")},
+            text=True,
+            capture_output=True,
+        )
+        self.assertEqual(created.returncode, 0, created.stderr)
+        bin_dir = project / ".venv/bin"
+        compiler = bin_dir / "torch-cirh-opt"
+        compiler.write_text("#!/bin/sh\necho compiler-found\n")
+        compiler.chmod(0o755)
+        env = {
+            **os.environ,
+            "PATH": "/usr/bin:/bin",
+            "UV_CACHE_DIR": str(self.path / "uv-cache"),
+        }
+        for name in ("VIRTUAL_ENV", "UV_PROJECT_ENVIRONMENT"):
+            env.pop(name, None)
+        missing = subprocess.run(
+            ["/bin/sh", "-c", "torch-cirh-opt"], env=env, capture_output=True
+        )
+        self.assertEqual(missing.returncode, 127)
+        found = subprocess.run(
+            [
+                uv,
+                "run",
+                "--offline",
+                "--no-sync",
+                "--project",
+                str(project),
+                "/bin/sh",
+                "-c",
+                "torch-cirh-opt",
+            ],
+            env=env,
+            text=True,
+            capture_output=True,
+        )
+        self.assertEqual(found.returncode, 0, found.stderr)
+        self.assertEqual(found.stdout.strip(), "compiler-found")
+        self.assertFalse((project / "uv.lock").exists())
+
+    def test_missing_compiler_stops_campaign_before_preprocessing(self):
+        with mock.patch.object(
+            run.shutil, "which", return_value=None
+        ), mock.patch.object(prepare_data, "prepare") as prepare, mock.patch.object(
+            campaign, "start_csx"
+        ) as start, contextlib.redirect_stderr(
+            io.StringIO()
+        ) as errors:
+            with self.assertRaises(SystemExit):
+                campaign.main(self.argv("CSX"))
+        self.assertIn("torch-cirh-opt is not on PATH", errors.getvalue())
+        self.assertIn("uv run --no-sync", errors.getvalue())
+        prepare.assert_not_called()
+        start.assert_not_called()
+        self.assertFalse((self.path / "data").exists())
+
     def test_missing_dependencies_fail_before_data_or_submission(self):
         for backend in ("CSX", "GPU"):
             errors = io.StringIO()
@@ -136,6 +210,11 @@ class CampaignTests(unittest.TestCase):
             uv.write_text(
                 f"#!{sys.executable}\nimport json,sys\nfrom pathlib import Path\n"
                 "args=sys.argv[1:]\n"
+                "if args[0] == 'run':\n"
+                " import os\n"
+                " root=Path(args[args.index('--project')+1])\n"
+                " pos=args.index('python')\n"
+                " os.execv(str(root/'.venv/bin/python'), [str(root/'.venv/bin/python'), *args[pos+1:]])\n"
                 "constraints=Path(args[args.index('--constraint')+1]).read_text()\n"
                 f"Path({str(captured)!r}).write_text(json.dumps([args,constraints]))\n"
             )
@@ -371,6 +450,7 @@ class CampaignTests(unittest.TestCase):
                         "command": [
                             sys.executable,
                             "-c",
+                            "import shutil; assert shutil.which('torch-cirh-opt'); "
                             f"print('client output'); raise SystemExit({code})",
                         ],
                     }

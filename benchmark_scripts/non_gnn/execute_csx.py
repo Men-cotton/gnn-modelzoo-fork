@@ -9,6 +9,8 @@ from pathlib import Path
 import subprocess
 import sys
 
+from run import check_runtime
+
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
@@ -29,6 +31,7 @@ def main():
     status_path = output / "client_status.json"
     status_path.write_text(json.dumps(status, indent=2) + "\n")
     try:
+        check_runtime("CSX")
         with (output / "console.log").open("x") as log:
             completed = subprocess.run(
                 launch["command"],
