@@ -9,6 +9,7 @@ import argparse
 import copy
 import datetime
 import hashlib
+import importlib
 import json
 import os
 from pathlib import Path
@@ -24,6 +25,26 @@ VOCAB = (
     ROOT
     / "src/cerebras/modelzoo/models/vocab/google_research_uncased_L-12_H-768_A-12.txt"
 )
+
+
+def check_dependencies():
+    """Check real imports before downloading data or submitting any jobs."""
+    failures = []
+    for name in ("datasets", "transformers", "torchvision", "h5py", "filelock"):
+        try:
+            importlib.import_module(name)
+        except (ImportError, OSError, RuntimeError, ValueError, AttributeError) as exc:
+            failures.append(f"{name}: {type(exc).__name__}: {exc}")
+    if failures:
+        setup = ROOT / "benchmark_scripts/non_gnn/setup.sh"
+        raise ValueError(
+            "Non-GNN dependencies are missing or cannot be imported in "
+            f"{sys.executable}:\n  "
+            + "\n  ".join(failures)
+            + f"\nRun: bash {shlex.quote(str(setup))}"
+            + "\nThis adds dependencies to the existing .venv and preserves its PyTorch build."
+            + " No data has been downloaded and no jobs have been submitted."
+        )
 
 
 def positive(value):
@@ -45,6 +66,7 @@ def parser():
     p.add_argument("--backend", choices=("CSX", "GPU"), required=True)
     p.add_argument("--profile", choices=tuple(yaml.safe_load(PROFILES.read_text())))
     p.add_argument("--list-configs", action="store_true")
+    p.add_argument("--check-dependencies", action="store_true")
     p.add_argument(
         "--data-dir", type=Path, help="Preprocessed training data on this system"
     )
@@ -265,6 +287,13 @@ def main(argv=None):
     if args.list_configs:
         print(PROFILES.read_text(), end="")
         return 0
+    if args.check_dependencies:
+        try:
+            check_dependencies()
+        except ValueError as exc:
+            p.error(str(exc))
+        print(f"Non-GNN dependencies import successfully in {sys.executable}")
+        return 0
     if args.profile is None or args.data_dir is None:
         p.error("--profile and --data-dir are required")
     args.data_dir = args.data_dir.resolve()
@@ -310,6 +339,7 @@ def main(argv=None):
             raise ValueError(
                 f"Output directory already exists: {args.output_dir}; choose a new directory"
             )
+        check_dependencies()
         check_data(args, metadata)
         from cerebras.modelzoo.trainer.validate import validate_trainer_params
 

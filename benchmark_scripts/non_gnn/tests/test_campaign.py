@@ -89,6 +89,71 @@ class CampaignTests(unittest.TestCase):
         ):
             return prepare_data.prepare(self.args(), self.profiles, run.VOCAB)
 
+    def test_missing_dependencies_fail_before_data_or_submission(self):
+        for backend in ("CSX", "GPU"):
+            errors = io.StringIO()
+            with mock.patch.object(
+                campaign.shutil, "which", return_value="qsub"
+            ), mock.patch.object(
+                run.importlib,
+                "import_module",
+                side_effect=ModuleNotFoundError("No module named 'datasets'"),
+            ), mock.patch.object(
+                prepare_data, "prepare"
+            ) as prepare, mock.patch.object(
+                campaign, "submit_gpu"
+            ) as submit, mock.patch.object(
+                campaign, "start_csx"
+            ) as start, contextlib.redirect_stderr(
+                errors
+            ):
+                with self.assertRaises(SystemExit):
+                    campaign.main(self.argv(backend))
+            prepare.assert_not_called()
+            submit.assert_not_called()
+            start.assert_not_called()
+            self.assertIn("datasets: ModuleNotFoundError", errors.getvalue())
+            self.assertIn("benchmark_scripts/non_gnn/setup.sh", errors.getvalue())
+            self.assertIn(sys.executable, errors.getvalue())
+            self.assertFalse((self.path / "data").exists())
+
+    def test_setup_preserves_installed_cpu_and_cuda_builds(self):
+        # Exercise the shell script with fake Python/uv; never install into .venv.
+        for flavor in ("cpu", "cu121"):
+            root = self.path / flavor
+            folder = root / "benchmark_scripts/non_gnn"
+            folder.mkdir(parents=True)
+            script = folder / "setup.sh"
+            script.write_text((BENCH / "setup.sh").read_text())
+            python = root / ".venv/bin/python"
+            python.parent.mkdir(parents=True)
+            python.write_text(
+                f'#!/bin/bash\nif [[ "$1" == "-" ]]; then cat >/dev/null; echo "2.4.0+{flavor} {flavor}"; else exit 0; fi\n'
+            )
+            python.chmod(0o755)
+            captured = root / "install.json"
+            uv = root / "uv"
+            uv.write_text(
+                f"#!{sys.executable}\nimport json,sys\nfrom pathlib import Path\n"
+                "args=sys.argv[1:]\n"
+                "constraints=Path(args[args.index('--constraint')+1]).read_text()\n"
+                f"Path({str(captured)!r}).write_text(json.dumps([args,constraints]))\n"
+            )
+            uv.chmod(0o755)
+            result = subprocess.run(
+                ["bash", str(script)],
+                text=True,
+                capture_output=True,
+                env={**os.environ, "PATH": str(root) + os.pathsep + os.environ["PATH"]},
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            args, constraints = json.loads(captured.read_text())
+            self.assertIn(f"torch===2.4.0+{flavor}", constraints)
+            self.assertIn(f"torchvision==0.19.0+{flavor}", constraints)
+            self.assertIn(f"https://download.pytorch.org/whl/{flavor}", args)
+            self.assertEqual(args[args.index("--python") + 1], str(python))
+            self.assertFalse(Path(args[args.index("--constraint") + 1]).exists())
+
     def test_cache_hit_skips_source_and_tokenizer_on_both_backends(self):
         data, manifest = self.prepare()
         with mock.patch.object(

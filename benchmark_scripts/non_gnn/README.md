@@ -118,15 +118,21 @@ toolkit を確認する。一括実行では以下のデータを自動生成す
 語彙は Worker コンテナからも参照できるパスを使う。必要な追加 mount は
 `--mount-dir /absolute/path` で指定する。環境間のデータ転送は自動では行わない。
 
-GNN 向け setup で省かれる NLP 依存は [requirements.txt](requirements.txt) に記載した。
-設定検証は，使用しない入力 processor も Model Zoo registry 経由で import するため，
-`datasets` と `torchvision` も必要になる。PyTorch 2.4.0 のビルドに合わせて，
-次の追加セットアップを行う（GPU の例。CPU版を使う CS-3 user node では末尾を `/cpu` にする）。
+`./setup.sh` は [requirements.txt](requirements.txt) の NLP 依存も導入する。
+以前作成した `.venv` は，両環境とも次のコマンドで更新する。仮想環境の再作成や
+GNN データの再取得は行わず，インストール済み PyTorch のバージョンと CPU/CUDA ビルドを
+固定して，対応する torchvision と datasets 等を追加する。
 
 ```bash
-uv pip install --python .venv/bin/python -r benchmark_scripts/non_gnn/requirements.txt \
-  --extra-index-url https://download.pytorch.org/whl/cu121
+bash ./benchmark_scripts/non_gnn/setup.sh
 ```
+
+起動時には `datasets`, `transformers`, `torchvision`, `h5py`, `filelock` の import を
+データ取得・tokenizer ロード・ジョブ投入より前に確認する。不足やバイナリの不整合があれば，
+使用中の Python と失敗した import，修復コマンドを表示して停止する。
+Model Zoo の設定検証は他の入力 processor も import するため，ローカルテキストや
+前処理済みデータを使う場合にも `datasets` と `torchvision` が必要になる。
+`--dry-run` は追加依存の確認を省いて予定だけを表示する。
 
 GPU 実装は Transformers 4.57.3 と PyTorch 2.4 の API を使用する。
 

@@ -256,6 +256,7 @@ def main(argv=None):
             and shutil.which("qsub") is None
         ):
             raise ValueError("qsub not found; run on Pegasus or use --prepare-only")
+        run.check_dependencies()
         data, manifest = prepare_data.prepare(args, profiles, run.VOCAB)
         for profile in args.only:
             effective = (

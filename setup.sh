@@ -263,6 +263,12 @@ main() {
     log_info "Removing 'outdated' package to prevent deprecation warnings..."
     uv pip uninstall --python "${VENV_PYTHON}" outdated || true
 
+    log_step "Installing and checking non-GNN benchmark dependencies"
+    if ! bash "${PROJECT_ROOT}/benchmark_scripts/non_gnn/setup.sh"; then
+        log_error "Non-GNN dependency setup failed."
+        return 1
+    fi
+
     log_step "Pre-downloading GNN Datasets"
     local download_script_full_path="${PROJECT_ROOT}/${DOWNLOAD_SCRIPT_PATH}"
     if [ ! -f "${download_script_full_path}" ]; then
