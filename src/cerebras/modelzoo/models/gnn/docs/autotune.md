@@ -1,9 +1,11 @@
-# CSX and PyG input auto tuner
+# CSX and GPU input auto tuner
 
-For HPC Asia R04, use the [worker sensitivity workflow](worker_sensitivity.md): every worker count receives the same independent repeats and a mean/sample-standard-deviation report. The defaults below describe the original winner-selection mode.
+For HPC Asia runs, start with [learning curves followed by tuning](learning_campaign.md).
+Researchers assess learning from the recorded curves; the driver checks execution integrity.
 
-`tools/autotune.py` uses the configurations and measurement script from
-`cs3_autotune_overrides.zip`. It runs one `python -u -m cerebras.modelzoo.cli.main fit` client
+For HPC Asia R04, use the [worker sensitivity workflow](worker_sensitivity.md): every worker count receives the same independent repeats and a mean/sample-standard-deviation report. The defaults below describe the winner-selection mode.
+
+`tools/autotune.py` uses the configurations in `configs/autotune/`. It runs one `python -u -m cerebras.modelzoo.cli.main fit` client
 at a time with `--backend csx` (the default). `--backend pyg` launches the existing
 `pyg_graphsage.py` path on one CUDA GPU. Search, budgets, resume and finalist
 confirmation share one implementation. No dependency synchronization or dataset
@@ -26,19 +28,17 @@ uv run --no-sync tools/autotune.py \
   --budget-sec 14400 --trial-timeout-sec 1800 --dry-run
 ```
 
-Remove `--dry-run` to run trials. `--backend csx` selects the original CSX path.
+Remove `--dry-run` to run trials. `--backend csx` selects CSX.
 Use a separate output directory per backend/dataset. The PyG backend operates
 inside the allocation; it does not submit PBS jobs and must not itself be
 launched with `torchrun`. The GPU environment check verifies CUDA and PyG sampling
 support and records GPU name/capacity, PyTorch/PyG/CUDA versions and selected
 runtime environment variables. It does not require `cszoo` or load the Cerebras
-SDK. The legacy non-benchmark PyG profiler still uses the SDK RateTracker.
+SDK. The PyG profiler outside benchmark mode uses the SDK RateTracker.
 
 PyG defaults to 40 warm-up + 400 measured steps, then 40+800 for three independent
-finalist runs. See [the historical GPU log study](pyg_windows.md) for the eight
-source logs, comparisons, negative results and limits of these defaults.
-The initial positive-worker baseline uses prefetch 2 and persistent workers on,
-matching the previous PyG setting. Zero workers use None/False. Optional
+finalist runs. Confirm window stability on the target allocation.
+The initial positive-worker baseline uses prefetch 2 and persistent workers on. Zero workers use None/False. Optional
 `--prefetch-factors 1 2 4` tests both persistence values in the shared search.
 `pin_memory` stays fixed at the inherited value. Compilation follows the existing
 PyG runner: enabled unless `NO_COMPILE` has a nonempty value. To study eager
@@ -49,25 +49,60 @@ record contains a cumulative seed count, wall time after CUDA synchronization,
 and a finite-loss check covering every step. Endpoint differences include input
 loading, transfer and GPU computation. Tail batches contribute their actual
 number of seeds. The parser requires the exact start/midpoint/end records and
-one completed run, and rejects evaluation or old nominal-only logs. For manual
+one completed run, and rejects evaluation or missing seed counters. For manual
 measurement use `tools/measure_pyg.py LOG --start-step 40 --end-step 440`.
 
 PyG trials disable validation and checkpoint saving and use `cache_fraction: 0.0`
 (the existing uncached GPU feature-fetch path). PyG interprets `null` as automatic
 GPU caching, unlike CSX; the backend handles this difference explicitly. Shape,
 optimizer, precision and sampling conditions stay fixed within each study.
-CSX nominal slots/s and PyG actual seeds/s are different metrics; rankings store
+Current CSX trials derive actual seed counts from a runtime sampler contract;
+PyG trials count consumed seeds. Rankings store
 `metric`, `median_throughput`, `min_throughput` and `max_throughput` and are separate
-for each backend. Existing study journals from the CSX-only implementation need
-a new output directory after upgrading, because source/settings identity changes.
+for each backend. Source and settings must remain fixed within a study.
 
 The timeout kills the local process group, including loader workers. A returned
 PyG failure or timeout is retained and the search can proceed; Ctrl-C/SIGTERM
 pauses it. If the tuner disappears before recording termination, resume still
-requires `--acknowledge-stopped-jobs` after independently checking the old process.
+requires `--acknowledge-stopped-jobs` after independently checking the preceding process.
 `job_time_sec` applies only to CSX; the client timeout and total budget apply to both.
 `best.yaml` is a backend-specific bounded benchmark configuration: 840 total steps
 for default PyG, 440 for default CSX.
+
+## Matched fixed-shape GPU measurements
+
+`--backend fixed_shape` uses the same fixed batches, model and CPU GraphCache as
+CSX. Run it inside an existing GPU allocation after reviewing the learning curves.
+The handoff preserves explicit AdamW eps/betas, precision, architecture and seeds.
+GPU worker counts should be tuned for that allocation separately. For example,
+from the repository root:
+
+```bash
+uv run --no-sync python src/cerebras/modelzoo/models/gnn/tools/autotune.py \
+  --backend fixed_shape --dataset arxiv \
+  --base-config model_dirs/learning_arxiv/handoff/selected_fixed_shape_gpu.yaml \
+  --workers 0 2 4 8 --prefetch-factors 1 2 --compile \
+  --measure-steps 400 --confirm-steps 800 --repeats 3 \
+  --trial-timeout-sec 1800 --budget-sec 86400 \
+  --output model_dirs/fixed_shape_gpu_arxiv --dry-run
+```
+
+Remove `--dry-run` to execute. Defaults are eager; `--compile` is recorded as a
+study condition. The native GPU parser measures synchronized endpoint differences,
+including logging between endpoints, and sums actual consumed masks in that
+interval. It rejects overlapping evaluation/checkpoint work and the tuner rejects
+AMP-skipped optimizer updates. CSX and GPU now expose the same seed-rate numerator;
+their measurement boundaries remain host-observed training-loop boundaries.
+Detailed `--measure-input` and neighbor-padding measurements belong in separate
+diagnostic runs because they add overhead.
+
+After selecting GPU input settings, use `--mode sensitivity` with one `--workers`
+value, `--prefetch-factor` and `--[no-]persistent-workers` to make three fresh
+repetitions of the selected configuration. Use the same 40--840 window for CSX
+and GPU. Report independent runs, their dispersion and each backend's settings.
+The selected CSX knobs are a starting point for GPU, not evidence of GPU optimality.
+Ordinary `--backend pyg` is an additional baseline: its sampling and GraphSAGE
+parameterization differ from the fixed-shape model.
 
 ## CSX: prepare and preview
 
@@ -115,17 +150,26 @@ counts must also fit those allocations. Restrict candidates with, for example,
 4. `best.yaml` is written only after confirmation completes. Candidates must pass
    every repeat. Final ranking uses the median, with minimum and maximum recorded.
 
-The objective is **nominal seed-node slots/s, including padding**:
+The objective is **actual target seed nodes/s, excluding padded target slots**.
+Every CSX trial enables `measure_batch_accounting`. The real input sampler logs
+`GNN_INPUT_CONTRACT`: ordered batch seed counts, supervised counts excluding label
+`-100`, target/label digests, batch size and traversal settings. The parser sums the
+schedule for completed steps `(start, end]` and divides by the same endpoint time
+difference used for the nominal rate:
 
 ```text
-4096 * (end_step - start_step) / (timestamp[end_step] - timestamp[start_step])
+sum(real seeds in completed batches start+1 ... end) / (t[end] - t[start])
 ```
 
-It does not measure valid unpadded nodes/s. Batch size (4096), fanouts, model,
+The result also retains `nominal_slots_per_second` and
+`supervised_targets_per_second`. Missing or conflicting contracts, replayed static
+batches, checkpoint restore, evaluation before the endpoint, and multiple input
+streamers are rejected. The count is derived from the actual sampler schedule and
+completed steps; it is not an on-device counter. Trials use a fresh nonrestartable
+loader, a single uninterrupted training executor, and one input streamer.
+Batch size (4096), fanouts, model,
 precision, optimizer and seeds stay fixed. `Rate`, `GlobalRate`, and cumulative
-`performance.json` values do not determine ranking. The original ZIP's
-`autotune_evidence.json` is historical evidence supplied with that archive; the
-auto tuner does not treat those numbers as new CS-3 measurements.
+`performance.json` values do not determine ranking.
 
 A measurement requires exit code zero, exactly one training completion marker,
 finite logged losses, increasing steps/timestamps, and exact endpoints. It
@@ -142,14 +186,12 @@ validation, checkpoint saving and checkpoint autoload are disabled. Each trial
 has a fresh model directory. This search does not vary `num_workers_per_csx`,
 model shape, batch size, fanouts, or learning quality.
 
-The neighbor DataLoader now receives `prefetch_factor` and
-`persistent_workers` from `GNNDataProcessor`. For zero workers it uses
-`prefetch_factor=None` and `persistent_workers=False`. The imported ZIP settings
-explicitly use prefetch 2 and persistence off for positive workers, preserving
-the previous effective PyTorch behavior for the worker-only comparison.
-Existing configurations with `persistent_workers: True` now actually enable it.
-`pin_memory` retains the existing automatic CUDA-dependent behavior and is not
-an exploration variable.
+The neighbor DataLoader receives `prefetch_factor` and `persistent_workers`
+from `GNNDataProcessor`. For zero workers it uses `prefetch_factor=None` and
+`persistent_workers=False`. CSX worker-only tuning defaults to prefetch 2 and
+persistence off; `--persistent-workers` selects persistence on. Sensitivity mode
+defaults to persistence on. `pin_memory` retains automatic CUDA-dependent behavior
+and is not an exploration variable.
 
 ## Budgets and resume
 
@@ -222,7 +264,6 @@ graph, real NeighborLoader and GraphSAGE on CUDA, FP32 and `NO_COMPILE=1`; it
 checks exact seed counts, disabled evaluation and absent checkpoint output. The
 host loop test mocks CUDA timing/placement and executes real CPU autograd.
 
-On September 7 these CUDA smoke tests passed on an RTX 4060 Laptop GPU. They do
-not establish CS-3 submission, remote scheduling, compilation behavior or
-throughput on the full arxiv/products models. The eight historical H100/window
-comparisons are documented separately in [pyg_windows.md](pyg_windows.md).
+Local tests do not establish physical CSX execution, remote scheduling or
+throughput on the full arxiv/products models. Record those measurements on the
+target systems before using them in a performance comparison.

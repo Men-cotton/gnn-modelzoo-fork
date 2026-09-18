@@ -1,7 +1,7 @@
 # Worker実験の起動と監視
 
 `benchmark_scripts/cerebras/run_worker_sensitivity.sh` と
-`run_worker_campaign.sh` は共通の起動処理を使う。通常の起動では専用tmux内で
+`run_worker_campaign.sh`、`run_learning_campaign.sh` は共通の起動処理を使う。通常の起動では専用tmux内で
 実験を開始し、コマンドは端末へ戻る。起動したホストが動作している間は、
 端末やSSH接続を閉じても実験を継続する。tmuxはホスト再起動後の自動復旧機能ではない。
 
@@ -24,8 +24,8 @@ bash benchmark_scripts/cerebras/run_worker_sensitivity.sh \
 ```
 
 6 runを逐次実行する。`54010`は全runのクライアント時間の合計予算であり、
-予測時間ではない。出力先は新規にする。`--workers` を省略した従来の既定値には
-40が含まれ、40 workerではOOMの実績がある。
+予測時間ではない。出力先は新規にする。worker数は投入元と実行Workerの
+CPU・メモリ割当に合わせて明示する。
 
 入力条件を変える比較と詳細診断を含める場合:
 
@@ -39,7 +39,7 @@ campaignは通常の感度測定を `autotune.py --mode sensitivity` へ委譲�
 tmuxと起動状態の管理はcampaign全体に一つだけ設ける。測定対象・順序・失敗時の扱いは、それぞれの
 [sensitivity](worker_sensitivity.md)・[campaign](worker_campaign.md)の説明に従う。
 
-両コマンドで次の起動オプションを使える。
+これらのコマンドで次の起動オプションを使える。
 
 - `--tmux-session NAME`: 英数字・`-`・`_`でセッション名を指定する。省略時は自動で決める。
 - `--foreground`: tmuxを使わず、呼び出し元で終了まで待つ。

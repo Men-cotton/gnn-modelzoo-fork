@@ -245,4 +245,4 @@ This section highlights the key differences between the standard `cszoo` flow (i
 
 ## CSX and PyG input auto tuning
 
-See [autotune.md](autotune.md) for `--backend csx` / `--backend pyg`, sequential worker exploration, repeated confirmation, budgets and resume. [pyg_windows.md](pyg_windows.md) records the GPU log study used to choose the initial measurement windows.
+See [learning_campaign.md](learning_campaign.md) for learning curves followed by input tuning, and [autotune.md](autotune.md) for CSX, fixed-shape GPU and PyG exploration, repeated confirmation, budgets and resume.

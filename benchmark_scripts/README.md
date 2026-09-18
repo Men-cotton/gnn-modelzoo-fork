@@ -7,6 +7,7 @@ tmuxが必要な実行では、外側の一箇所で
 
 | 入口 | 実験の実行方法 |
 | --- | --- |
+| `cerebras/run_learning_campaign.sh` | 学習曲線を保存後、設定探索を逐次実行。精度の判定は研究者が行う。既定でtmux起動 |
 | `cerebras/run_worker_sensitivity.sh` | 指定したworker数を反復測定。既定でtmux起動 |
 | `cerebras/run_worker_campaign.sh` | 感度測定・入力条件の比較・診断を逐次実行。既定でtmux起動 |
 | `cerebras/run_modelzoo.sh` | 選択した設定で一つの学習を前景実行 |
