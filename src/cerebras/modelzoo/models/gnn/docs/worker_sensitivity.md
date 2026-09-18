@@ -33,7 +33,9 @@ bash benchmark_scripts/cerebras/run_worker_sensitivity.sh \
 まずarxivで確認し、productsでは `--dataset products` と別出力先を使う。
 必要なら主要な少数候補だけを `--workers 40 8 20` のように選ぶ。
 
-シェルは前景で動くので、長時間実行には既存の持続セッションを使う。
+通常起動は共通launcherが専用tmux内で実行するため、端末・SSH切断後も継続する。
+`--foreground` で前景実行を選べる。接続方法、ログ、終了コード、csctlのlabelは
+[起動と監視](worker_launch.md)を参照する。
 予算が尽きた場合は同じコマンド・同じ出力先で `--budget-sec` を増やして再開できる。
 完了runを再投入しない。既定ではCSX clientが失敗・中断した場合はstudyを停止する。
 保存したログとjob IDでリモートジョブの終了を確認したうえで
@@ -41,7 +43,8 @@ bash benchmark_scripts/cerebras/run_worker_sensitivity.sh \
 
 無人運用で失敗・タイムアウトをスキップして後続runへ進むには `--continue-on-failure` を付ける。
 [一括実験](worker_campaign.md) は内部でこの指定を使う。失敗runは再開時にも再試行せず、
-同じ条件の予定済みの別反復は行う。失敗は集計に残り、測定欠落があれば終了コードは2となる。
+同じ条件の予定済みの別反復は行う。失敗は集計に残り、測定欠落があればドライバの終了コードは2となる。
+tmux起動時のシェルは起動成功で0を返すため、実験の終了コードは `launcher.json` で確認する。
 Ctrl-C／SIGTERMの中断と予算切れは、この指定でも停止する。
 遠隔ジョブの終了を確認したことにはしない。残存ジョブとの競合が後続runへ影響する可能性がある。
 

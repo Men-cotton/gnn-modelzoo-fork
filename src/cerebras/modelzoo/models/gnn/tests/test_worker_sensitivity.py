@@ -137,6 +137,9 @@ class WorkerSensitivityTests(unittest.TestCase):
         )
         for config in (a, b):
             config["trainer"]["init"].pop("model_dir")
+            config["trainer"]["init"]["backend"]["cluster_config"].pop(
+                "job_labels"
+            )
             config["trainer"]["fit"]["train_dataloader"].pop("num_workers")
         self.assertEqual(a, b)
 

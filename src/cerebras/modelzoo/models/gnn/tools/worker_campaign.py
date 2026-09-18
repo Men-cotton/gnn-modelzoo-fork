@@ -22,10 +22,12 @@ from cerebras.modelzoo.models.gnn.worker_validation import get_available_cpu_cor
 if __package__:
     from . import autotune, measure_window
     from .autotune_backends import CSXBackend
+    from .job_labels import apply_job_labels
 else:
     import autotune
     import measure_window
     from autotune_backends import CSXBackend
+    from job_labels import apply_job_labels
 
 GNN, ROOT = autotune.GNN, autotune.ROOT
 CONTROLS = {
@@ -44,6 +46,9 @@ def configuration(
     job_seconds: int,
     control: str | None = None,
     diagnostic: bool = False,
+    *,
+    repeat: int = 1,
+    study_dir: Path | None = None,
 ) -> dict:
     config = CSXBackend.prepare_config(
         base, autotune.candidate(workers, persistent=True), model, steps, job_seconds
@@ -63,6 +68,15 @@ def configuration(
             resource_monitor=True,
             resource_monitor_pss=True,
         )
+    apply_job_labels(
+        config,
+        mode=(
+            "diagnostic" if diagnostic else "intervention" if control else "sensitivity"
+        ),
+        repeat=repeat,
+        trial_dir=model.parent,
+        study_dir=study_dir or model.parent.parent,
+    )
     return config
 
 
@@ -74,6 +88,7 @@ def plan(args: argparse.Namespace, base: dict) -> list[dict]:
         command = [
             "bash",
             str(ROOT / "benchmark_scripts/cerebras/run_worker_sensitivity.sh"),
+            "--foreground",
             "--dataset",
             args.dataset,
             "--cache",
@@ -97,6 +112,8 @@ def plan(args: argparse.Namespace, base: dict) -> list[dict]:
             str(args.budget_sec),
             "--output",
             str(folder),
+            "--job-label-study",
+            str(args.output),
         ]
         stages.append(
             dict(
@@ -125,6 +142,8 @@ def plan(args: argparse.Namespace, base: dict) -> list[dict]:
             args.job_time_sec,
             control,
             diagnostic,
+            repeat=repeat,
+            study_dir=args.output,
         )
         stages.append(
             dict(
@@ -290,7 +309,7 @@ def execute(args: argparse.Namespace, stages: list[dict], fingerprint: str) -> i
                     command[command.index("--budget-sec") + 1] = str(
                         int(remaining + spent)
                     )
-                    code = run_sensitivity(command, directory / "driver.log")
+                    code = run_sensitivity(command, directory / "launcher.log")
                     stage["returncode"] = code
                     stage["status"] = "completed" if code == 0 else "failed"
                     study_path = directory / "study.json"

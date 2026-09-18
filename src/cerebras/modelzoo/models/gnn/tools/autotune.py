@@ -29,15 +29,17 @@ from cerebras.modelzoo.models.gnn.worker_validation import (
 # Also support direct execution from the documented GNN directory.
 if __package__:
     from .autotune_backends import get_backend
+    from .job_labels import apply_job_labels
 else:
     from autotune_backends import get_backend
+    from job_labels import apply_job_labels
 
 GNN = Path(__file__).resolve().parents[1]
 ROOT = GNN.parents[4]
 UNCERTAIN = {"running", "interrupted", "timeout", "failed"}
 
 
-def prepare_config(backend, args, base, knobs, model_dir, steps):
+def prepare_config(backend, args, base, knobs, model_dir, steps, *, repeat=1):
     config = backend.prepare_config(
         base, knobs, model_dir, steps, args.job_time_sec, args.warmup_steps
     )
@@ -47,6 +49,14 @@ def prepare_config(backend, args, base, knobs, model_dir, steps):
         config["trainer"]["init"]["backend"]["cluster_config"][
             "num_workers_per_csx"
         ] = args.wsc_workers
+    if backend.name == "csx":
+        apply_job_labels(
+            config,
+            mode=args.mode,
+            repeat=repeat,
+            trial_dir=model_dir.parent,
+            study_dir=Path(args.job_label_study or args.output),
+        )
     return config
 
 
@@ -236,6 +246,14 @@ info.update(torch=torch.__version__, pyg=torch_geometric.__version__, cuda=torch
     )
     # Include uncommitted and untracked implementation changes without storing their contents.
     sources = list((ROOT / "src").rglob("*.py"))
+    sources.extend(
+        ROOT / "benchmark_scripts/cerebras" / name
+        for name in (
+            "worker_launcher.py",
+            "run_worker_campaign.sh",
+            "run_worker_sensitivity.sh",
+        )
+    )
     info["source_sha256"] = digest(
         {
             str(p.relative_to(ROOT)): hashlib.sha256(
@@ -423,6 +441,7 @@ class Study:
             knobs,
             folder / "model",
             self.args.warmup_steps + measured_steps,
+            repeat=repeat,
         )
         config_path = folder / "params.yaml"
         config_path.write_text(yaml.safe_dump(config, sort_keys=False))
@@ -668,6 +687,10 @@ def parse_args(argv=None):
         "--dataset", choices=("arxiv", "products"), required=True
     )
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument(
+        "--job-label-study",
+        help="Shared CSX study directory for job labels; defaults to --output",
+    )
     parser.add_argument("--workers", type=int, nargs="+", default=None)
     parser.add_argument("--prefetch-factors", type=int, nargs="+", default=[])
     parser.add_argument("--top-k", type=int, default=2)
@@ -863,7 +886,10 @@ def main(argv=None):
             }
             for workers in args.workers:
                 knobs = candidate(workers, persistent=args.persistent_workers)
-                folder = output / f"workers_{candidate_id(knobs)}_r1"
+                phase = (
+                    "sensitivity" if args.mode == "sensitivity" else "workers"
+                )
+                folder = output / f"{phase}_{candidate_id(knobs)}_r1"
                 path = output / f"preview_w{workers:02d}.yaml"
                 path.write_text(
                     yaml.safe_dump(
