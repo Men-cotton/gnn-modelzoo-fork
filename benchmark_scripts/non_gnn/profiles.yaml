@@ -1,0 +1,26 @@
+# Paired CS-3 / single-H100 starting points; not tuned performance results.
+# All profiles process 32768 nominal token positions per optimizer update.
+bert_large_msl128:
+  base_config: src/cerebras/modelzoo/models/nlp/bert/configs/bert_large_MSL512.yaml
+  sequence_length: 128
+  effective_batch_size: 256
+  gpu_micro_batch_size: 16
+  learning_rate: 0.0001
+bert_large_msl512:
+  base_config: src/cerebras/modelzoo/models/nlp/bert/configs/bert_large_MSL512.yaml
+  sequence_length: 512
+  effective_batch_size: 64
+  gpu_micro_batch_size: 4
+  learning_rate: 0.0001
+llama3p2_1b_msl1024:
+  base_config: src/cerebras/modelzoo/models/nlp/llama/configs/params_llama3p2_1b_msl_8k.yaml
+  sequence_length: 1024
+  effective_batch_size: 32
+  gpu_micro_batch_size: 1
+  learning_rate: 0.0003
+llama3p2_1b_msl2048:
+  base_config: src/cerebras/modelzoo/models/nlp/llama/configs/params_llama3p2_1b_msl_8k.yaml
+  sequence_length: 2048
+  effective_batch_size: 16
+  gpu_micro_batch_size: 1
+  learning_rate: 0.0003

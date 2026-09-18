@@ -1,0 +1,10 @@
+#!/bin/bash
+#PBS -A AC2
+#PBS -q gpu
+#PBS -b 1
+#PBS -l elapstim_req=02:00:00
+
+set -euo pipefail
+cd "${PBS_O_WORKDIR:?Submit with submit_non_gnn_nqsv.sh}"
+: "${NON_GNN_CONFIG:?Missing NON_GNN_CONFIG}"
+exec ./benchmark_scripts/pegasus/run_non_gnn_gpu.sh --config "$NON_GNN_CONFIG"
