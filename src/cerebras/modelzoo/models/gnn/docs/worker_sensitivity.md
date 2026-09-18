@@ -3,7 +3,7 @@
 ## 一つのコマンドで全候補を実行する
 
 リポジトリ直下で、準備済みの Python 3.11 / Cerebras 2.10 環境とデータセットを使う。
-次は WSC Worker replica を1に固定した実験の例である。R02で採用する割当と照合し、
+現在のGNN入力経路は WSC Worker replica を1に限定する。R02で採用する割当と照合し、
 `--wsc-workers` を明示する。DataLoader の `num_workers` は各 WSC Worker 内の
 CPU子プロセス数であり、replica数とは別である。
 
@@ -57,7 +57,7 @@ Ctrl-C／SIGTERMの中断と予算切れは、この指定でも停止する。
 R04モードは `persistent_workers=True`、`prefetch_factor=2` を既定にする。
 共有の `configs/components/architectures/input_pipelines/neighbor.yaml` もTrueである。
 ゼロworkerを明示した場合はPyTorchの仕様に合わせFalse／prefetch=Noneへ正規化する。
-既存のautotuneモードとインポート済みの過去設定は従来の既定値を保持する。
+autotuneモードの既定値は [autotune](autotune.md) を参照する。
 
 根拠となるコードは `data_processing/samplers/neighbor_tree.py` の
 `_order_targets`、`_deterministic_choice`、`_create_dataloader`。
@@ -66,25 +66,29 @@ Datasetの一巡後もworkerとそのDatasetを保持し、再反復時のプロ
 ローカルSDKの `streamer/data_pipe.py` は入力を使い切ると再び `iter(source)` を呼び、
 PyTorchの `DataLoader.__iter__` はTrueの場合に既存iteratorをresetする。
 この動作は [PyTorchの説明](https://docs.pytorch.org/docs/2.14/data.html#torch.utils.data.DataLoader) とも一致する。
-実機での短縮量は測定後に判断する。過去のYAMLにTrueと書かれていても、当時の実装が
-引数を渡していたかは別に確認するため、過去runとの同条件性はYAMLだけで認定しない。
+実機での短縮量は対象設定の測定後に判断する。
 
 batch size 4096、fanouts `[15,10,5]`、model seedとsampler seed 42を固定する。
 cacheは `--cache none`（CSXでGraphCacheを作らない）または `--cache full`（CPU上のGraphCache）を
 study全体で指定する。R02の主比較とそろえ、途中で変更する場合は新しいstudyにする。
 静的バッチの再利用・fake data・validation・checkpoint保存とautoloadは無効。
 各runは40stepの後、step40と440の時刻差で400stepを測る。
-CSXの指標は `4096 * 400 / (t440 - t40)` の **nominal seed-node slots/s** で、
-末尾のpaddingを含む。setupとcompilationはこの区間の外に置く。
+現在のCSX主指標は、実際の入力バッチ順から求めた対象頂点数を `(t440 - t40)` で割った
+`seed_nodes_per_second` である。末尾のパディングを除き、教師ラベルが無効な実頂点は含む。
+教師ラベルも有効な頂点数/秒と、公称枠数/秒を併記する。
+入力生成時の `GNN_INPUT_CONTRACT` が欠ける測定は新しいstudyから除外する。
+導出条件は [autotune](autotune.md) を参照する。
+setupとcompilationはこの区間の外に置く。
 
 worker数を変えるとprefetchの総枠数（2×num_workers）も変わる。
 観測差はこの入力経路設定全体への感度として説明し、CPU計算能力だけへ帰属させない。
 WSC replica数は要求値を各params.yamlへ保存する。実際の配置・割当はSDK/jobの記録と照合する。
 
-## 既存ログから集計する
+## 実行ログから集計する
 
-通常の `train.log`、SDKの `model/`、既存の `study.json` / `result.json` / `params.yaml` を使う。
-R04のための学習中の追加計時やログ出力は加えていない。
+実行の `train.log`、SDKの `model/`、`study.json` / `result.json` / `params.yaml` を使う。
+入力生成時にバッチ別の対象頂点数を記録し、学習中は既存のstepログを使う。
+`GNN_INPUT_CONTRACT` とstepログが揃ったrunだけを集計する。
 
 各runの更新時に次の派生ファイルを再生成する。
 
@@ -98,13 +102,8 @@ R04のための学習中の追加計時やログ出力は加えていない。
 有効runが1件の場合、標準偏差は空欄とする。最速値の選別や勝者設定の出力は行わない。
 平均だけで安定性を判断せず、各runと不安定判定を併読する。
 
-既存 `artifacts` の調査では、2026-06-22収集の
-`arxiv_graphsage_wse_not2.log` にstep40/240/440の時刻と正常終了があり、
-追加記録なしで同じ定義のthroughputを再計算できる。
-`trainer_params.yaml` にはseed/cache/worker設定も残る。
-`performance.json` の集約値だけでは任意の測定区間を復元できないので、run.logを併せて保持する。
-元ログを集計できることと、旧runを新studyの独立反復に含められることは別の確認事項である。
-WSCの実際の割当、旧コードの挙動、設定、測定区間が一致する場合に限って旧runを採用する。
+`performance.json` の集約値だけでは任意の測定区間を復元できないため、
+`train.log`、入力カウント、解決済み設定を保持する。
 CPUのsampling/gathering/packing個別計時（R05）はこの集計の対象外である。
 
 ## Workerの実効設定とCPU活動を調べる
@@ -113,25 +112,3 @@ CPUのsampling/gathering/packing個別計時（R05）はこの集計の対象外
 実際の子PID、反復開始時のnum_workers、CPU quota、スレッド別CPUカウンタ、
 sampling/gatherと親の取得時間を記録できる。既定は無効で、通常のR04測定には
 診断処理を追加しない。診断runは出力先を分けて実行する。
-
-## 二重DataLoaderラッパー修正後の再測定
-
-2026-09-16の診断では、GNNが返すCerebrasラッパーをTrainerがさらに包むため、
-遠隔の実効num_workersが0になっていた。修正後はTrainerがラッパーを管理する。
-まず `bash benchmark_scripts/cerebras/run_worker_diagnostics.sh` を再実行し、
-遠隔の実効2／40と子PIDを確認する。診断は毎回新しい出力先へ保存される。
-
-通常の感度測定も同じスクリプト・測定条件を使えるが、`--output` は新しくする。
-既存studyはコードrevisionを含むfingerprintが変わるため再開できない。過去の結果を
-消さず、修正前後を別studyとして保存する。旧30 runと同じ指定値で測る例:
-
-```bash
-bash benchmark_scripts/cerebras/run_worker_sensitivity.sh \
-  --dataset arxiv --wsc-workers 1 --cache none \
-  --workers 40 2 4 6 8 10 12 16 20 24 --repeats 3 \
-  --warmup-steps 40 --measure-steps 400 --budget-sec 270010 \
-  --output model_dirs/hpcasia_r04/arxiv_none_loader_fix
-```
-
-通常runでは診断は無効。実効40プロセスとprefetchが有効になるので、修正前と比べて
-Workerのメモリ使用や処理速度が変わり得る。短い診断の結果を確認して本測定へ進む。

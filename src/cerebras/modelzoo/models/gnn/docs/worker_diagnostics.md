@@ -26,14 +26,13 @@ num_workers、worker_diagnosticsのみ。診断は各プロセスの最初の80�
 5秒以上の間隔で最大80回のスナップショットを採る。
 
 各 `w*/` に `train.log`、SDK出力の `model/`、`worker_diagnostics/`、
-step40から80のnominal slots/sを集計した `throughput.json` が残る。
+step40から80の対象頂点数/秒と公称枠数/秒を集計した `throughput.json` が残る。
 診断有効時のthroughputは追加の計測コストを含むため、原稿の主性能値とは分けて扱う。
 起動直後を除く分析にはstep40以降の時刻に対応する記録を使う。
 CSXでの診断出力には、既存の共有領域とコードがWorkerから見えることが必要である。
 
-修正後に多数の条件とメモリ観測を一度に集める場合は
-[一括調査](worker_campaign.md) を使う。40 workerでのOOMが観測されており、
-一括調査の既定は4／8／12／16で、既知の低worker条件を先に実行する。
+多数の条件とメモリ観測を一度に集める場合は [一括調査](worker_campaign.md) を使う。
+既定は4／8／12／16 workerで、worker数の少ない条件から実行する。
 
 クライアントまたは集計が失敗すると、その場で停止する。自動再開・再試行は行わない。
 中断時は保存ログのjob IDでリモートジョブの状態を確認してから再実行する。
@@ -72,12 +71,9 @@ Cerebras PyTorch 2.10.0は、投入元で入力仕様を調べるDataLoaderを
 そのため、`loader_created` の設定と `iterator_started` の設定を照合し、
 hostname、PID、実際の `worker_initialized` を使って遠隔Workerの記録を選ぶ。
 投入元の0-worker記録だけで遠隔の実効値を判断しない。
-2026-09-16の実CSX診断では、GNNとTrainerの二重ラッパーにより遠隔側も0 workerへ
-変更される問題を確認した。修正後はGNNが通常のPyTorch DataLoaderを返し、Trainerが
-Cerebrasラッパーを管理する。Trainer factoryのSDKシリアライズと実子プロセス生成を
-ローカルで検証した。修正後の実CSX確認には、上記と同じ診断コマンドを再実行する。
-毎回新しい出力先を作るので、以前の結果は保持される。遠隔の `iterator_started` と
-`worker_initialized` で、指定2／40に対応する子PIDが実際に起動したことを確認する。
+GNNは通常のPyTorch DataLoaderを返し、TrainerがCerebrasラッパーを管理する。
+遠隔の `iterator_started` と `worker_initialized` で、指定worker数に対応する
+子PIDが実際に起動したことを確認する。
 
 ## 記録の読み方
 

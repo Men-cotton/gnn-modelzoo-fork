@@ -1,4 +1,4 @@
-"""Sequential CSX/PyG input tuning with budgets, resume and repeated measurements."""
+"""Sequential CSX/PyG/fixed-shape input tuning with budgets and repeated measurements."""
 
 from __future__ import annotations
 
@@ -46,6 +46,8 @@ def prepare_config(backend, args, base, knobs, model_dir, steps, *, repeat=1):
     )
     if args.cache == "full":
         config["trainer"]["fit"]["train_dataloader"]["cache_fraction"] = 1.0
+    if backend.name == "fixed_shape":
+        config["trainer"]["init"]["benchmark"]["compile"] = args.compile
     if args.wsc_workers is not None:
         config["trainer"]["init"]["backend"]["cluster_config"][
             "num_workers_per_csx"
@@ -92,9 +94,7 @@ def sensitivity_report(state, output):
                 status=trial["status"] if trial else "not_run",
                 throughput=rate,
                 metric=measurement.get("metric"),
-                training_window_seconds=measurement.get(
-                    "training_window_seconds"
-                ),
+                training_window_seconds=measurement.get("training_window_seconds"),
                 trial_id=trial["trial_id"] if trial else None,
                 job_ids=";".join(trial.get("job_ids", [])) if trial else "",
                 reason=trial.get("failure_reason") if trial else None,
@@ -112,17 +112,14 @@ def sensitivity_report(state, output):
                 measured_runs=len(rates),
                 unstable_runs=sum(r["status"] == "unstable" for r in group),
                 failed_or_invalid_runs=sum(
-                    r["status"]
-                    not in {"completed", "unstable", "not_run", "running"}
+                    r["status"] not in {"completed", "unstable", "not_run", "running"}
                     for r in group
                 ),
                 not_run=sum(r["status"] == "not_run" for r in group),
                 running_runs=sum(r["status"] == "running" for r in group),
                 metric=next(iter(metrics), None),
                 mean=statistics.mean(rates) if rates else None,
-                sample_stddev=(
-                    statistics.stdev(rates) if len(rates) > 1 else None
-                ),
+                sample_stddev=(statistics.stdev(rates) if len(rates) > 1 else None),
             )
         )
     write_json(
@@ -136,9 +133,7 @@ def sensitivity_report(state, output):
         },
     )
     for name, values in (("runs", rows), ("summary", summaries)):
-        with (output / f"sensitivity_{name}.csv").open(
-            "w", newline=""
-        ) as stream:
+        with (output / f"sensitivity_{name}.csv").open("w", newline="") as stream:
             writer = csv.DictWriter(stream, fieldnames=list(values[0]))
             writer.writeheader()
             writer.writerows(values)
@@ -157,9 +152,7 @@ def write_json(path, value):
 
 
 def digest(value):
-    return hashlib.sha256(
-        json.dumps(value, sort_keys=True).encode()
-    ).hexdigest()
+    return hashlib.sha256(json.dumps(value, sort_keys=True).encode()).hexdigest()
 
 
 @contextmanager
@@ -199,7 +192,7 @@ info = {"python": sys.version, "executable": sys.executable,
         code += """import cerebras.pytorch
 info.update(sdk=m.version("cerebras-pytorch"))
 """
-    else:
+    elif backend == "pyg":
         code += """import torch, torch_geometric
 from cerebras.modelzoo.models.gnn.reference.pyg.data import check_pyg_lib
 from cerebras.modelzoo.models.gnn.reference.pyg.runner import main
@@ -210,6 +203,18 @@ if "RANK" in os.environ or "WORLD_SIZE" in os.environ:
     raise RuntimeError("PyG tuning currently supports one GPU per trial; launch without torchrun")
 p = torch.cuda.get_device_properties(0)
 info.update(torch=torch.__version__, pyg=torch_geometric.__version__, cuda=torch.version.cuda,
+            gpu=p.name, gpu_memory_bytes=p.total_memory,
+            gpu_capability=[p.major, p.minor])
+"""
+    else:
+        code += """import torch
+from cerebras.modelzoo.models.gnn import fixed_shape_gpu
+if not torch.cuda.is_available():
+    raise RuntimeError("Fixed-shape tuning requires an available CUDA GPU")
+if "RANK" in os.environ or "WORLD_SIZE" in os.environ:
+    raise RuntimeError("Fixed-shape tuning supports one GPU per trial; launch without torchrun")
+p = torch.cuda.get_device_properties(0)
+info.update(torch=torch.__version__, cuda=torch.version.cuda,
             gpu=p.name, gpu_memory_bytes=p.total_memory,
             gpu_capability=[p.major, p.minor])
 """
@@ -228,8 +233,7 @@ info.update(torch=torch.__version__, pyg=torch_geometric.__version__, cuda=torch
     if Path(info["modelzoo_path"]).resolve().parent != GNN.parents[1]:
         raise ValueError("Prepare an editable installation of this checkout")
     if backend == "csx" and (
-        not info["python"].startswith("3.11.")
-        or info["sdk"] != "2.10.0"
+        not info["python"].startswith("3.11.") or info["sdk"] != "2.10.0"
     ):
         raise ValueError(
             "Prepare Python 3.11, Cerebras 2.10.0 and an editable checkout before tuning"
@@ -247,13 +251,13 @@ info.update(torch=torch.__version__, pyg=torch_geometric.__version__, cuda=torch
         for name in (
             "run_worker_campaign.sh",
             "run_worker_sensitivity.sh",
+            "run_learning_campaign.sh",
         )
+        if (ROOT / "benchmark_scripts/cerebras" / name).exists()
     )
     info["source_sha256"] = digest(
         {
-            str(p.relative_to(ROOT)): hashlib.sha256(
-                p.read_bytes()
-            ).hexdigest()
+            str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest()
             for p in sorted(sources)
         }
     )
@@ -296,9 +300,7 @@ def execute(cmd, log, timeout):
         return {
             "status": "completed" if code == 0 else "failed",
             "returncode": code,
-            "failure_reason": (
-                None if code == 0 else f"Client exited with {code}"
-            ),
+            "failure_reason": (None if code == 0 else f"Client exited with {code}"),
         }
     except subprocess.TimeoutExpired:
         return {
@@ -312,9 +314,7 @@ def execute(cmd, log, timeout):
     finally:
         if process is not None:
             stop_process(process)
-        print(
-            f"  client elapsed: {time.monotonic() - started:.1f}s", flush=True
-        )
+        print(f"  client elapsed: {time.monotonic() - started:.1f}s", flush=True)
 
 
 def rank(records, phase, repeats=1):
@@ -325,9 +325,7 @@ def rank(records, phase, repeats=1):
     ranked = []
     for key, rows in groups.items():
         # A failed or unstable repeat disqualifies the candidate; never cherry-pick it away.
-        if len(rows) != repeats or any(
-            r["status"] != "completed" for r in rows
-        ):
+        if len(rows) != repeats or any(r["status"] != "completed" for r in rows):
             continue
         rates = [r["measurement"]["throughput"] for r in rows]
         ranked.append(
@@ -341,9 +339,7 @@ def rank(records, phase, repeats=1):
                 "metric": rows[0]["measurement"]["metric"],
             }
         )
-    return sorted(
-        ranked, key=lambda r: (-r["median_throughput"], r["candidate_id"])
-    )
+    return sorted(ranked, key=lambda r: (-r["median_throughput"], r["candidate_id"]))
 
 
 class Study:
@@ -376,9 +372,7 @@ class Study:
                     "Settings, source, configuration or environment changed; use a new output directory"
                 )
             if args.budget_sec < self.state["budget_sec"]:
-                raise ValueError(
-                    "A resumed study's total budget cannot decrease"
-                )
+                raise ValueError("A resumed study's total budget cannot decrease")
             if args.acknowledge_stopped_jobs:
                 for row in self.state["trials"]:
                     if row["status"] in UNCERTAIN:
@@ -402,9 +396,7 @@ class Study:
                 "trials": [],
                 "status": "ready",
             }
-            (output / "base.yaml").write_text(
-                yaml.safe_dump(base, sort_keys=False)
-            )
+            (output / "base.yaml").write_text(yaml.safe_dump(base, sort_keys=False))
         self.state["budget_sec"] = args.budget_sec
         self.save()
 
@@ -472,12 +464,9 @@ class Study:
         self.state["used_sec"] += row["client_wall_seconds"]
         log = folder / "train.log"
         contents = log.read_text(errors="replace") if log.exists() else ""
-        row["job_ids"] = sorted(
-            set(re.findall(r"\bwsjob-[A-Za-z0-9-]+", contents))
-        )
+        row["job_ids"] = sorted(set(re.findall(r"\bwsjob-[A-Za-z0-9-]+", contents)))
         row["performance_files"] = [
-            str(p.relative_to(folder))
-            for p in sorted(folder.rglob("performance.json"))
+            str(p.relative_to(folder)) for p in sorted(folder.rglob("performance.json"))
         ]
         if row["status"] == "completed":
             try:
@@ -494,9 +483,7 @@ class Study:
                         failure_reason="Half-window stability check failed or midpoint missing",
                     )
             except (ValueError, OSError) as exc:
-                row.update(
-                    status="invalid_measurement", failure_reason=str(exc)
-                )
+                row.update(status="invalid_measurement", failure_reason=str(exc))
         if row["status"] in UNCERTAIN and not self.backend.remote:
             row["job_stop_acknowledged_at"] = timestamp()
         continuing = self.args.continue_on_failure and row["status"] in {
@@ -508,11 +495,7 @@ class Study:
             row["remote_stop_unconfirmed"] = self.backend.remote
         write_json(folder / "result.json", row)
         self.save()
-        if (
-            row["status"] in UNCERTAIN
-            and self.backend.remote
-            and not continuing
-        ):
+        if row["status"] in UNCERTAIN and self.backend.remote and not continuing:
             self.state["status"] = "job_stop_unconfirmed"
             self.save()
             raise StopIteration
@@ -527,8 +510,7 @@ class Study:
             r["status"] in UNCERTAIN
             and not r.get("job_stop_acknowledged_at")
             and not (
-                self.args.continue_on_failure
-                and r["status"] in {"failed", "timeout"}
+                self.args.continue_on_failure and r["status"] in {"failed", "timeout"}
             )
             for r in self.state["trials"]
         ):
@@ -548,6 +530,7 @@ class Study:
                         self.trial(
                             candidate(
                                 workers,
+                                prefetch=self.args.prefetch_factor,
                                 persistent=self.args.persistent_workers,
                             ),
                             "sensitivity",
@@ -567,10 +550,7 @@ class Study:
                 pass
             print(
                 json.dumps(
-                    {
-                        k: self.state[k]
-                        for k in ("status", "used_sec", "budget_sec")
-                    },
+                    {k: self.state[k] for k in ("status", "used_sec", "budget_sec")},
                     indent=2,
                 )
             )
@@ -579,7 +559,9 @@ class Study:
             for workers in self.args.workers:
                 self.trial(
                     candidate(
-                        workers, persistent=self.args.persistent_workers
+                        workers,
+                        prefetch=self.args.prefetch_factor,
+                        persistent=self.args.persistent_workers,
                     ),
                     "workers",
                     1,
@@ -608,10 +590,7 @@ class Study:
                 for row in loader_rows:
                     combined.pop(row["candidate_id"], None)
                 combined.update(
-                    {
-                        r["candidate_id"]: r
-                        for r in rank(self.state["trials"], "loader")
-                    }
+                    {r["candidate_id"]: r for r in rank(self.state["trials"], "loader")}
                 )
                 pool = sorted(
                     combined.values(),
@@ -653,10 +632,7 @@ class Study:
             pass
         print(
             json.dumps(
-                {
-                    k: self.state[k]
-                    for k in ("status", "used_sec", "budget_sec")
-                },
+                {k: self.state[k] for k in ("status", "used_sec", "budget_sec")},
                 indent=2,
             )
         )
@@ -680,10 +656,16 @@ def parse_args(argv=None):
         type=int,
         help="Fixed WSC Worker replicas per CSX; distinct from DataLoader workers",
     )
-    parser.add_argument("--backend", choices=("csx", "pyg"), default="csx")
     parser.add_argument(
-        "--dataset", choices=("arxiv", "products"), required=True
+        "--backend", choices=("csx", "pyg", "fixed_shape"), default="csx"
     )
+    parser.add_argument(
+        "--base-config", help="Resolved learning-validated configuration to benchmark"
+    )
+    parser.add_argument(
+        "--compile", action="store_true", help="Compile native fixed-shape GPU trials"
+    )
+    parser.add_argument("--dataset", choices=("arxiv", "products"), required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument(
         "--job-label-study",
@@ -691,14 +673,18 @@ def parse_args(argv=None):
     )
     parser.add_argument("--workers", type=int, nargs="+", default=None)
     parser.add_argument("--prefetch-factors", type=int, nargs="+", default=[])
+    parser.add_argument(
+        "--prefetch-factor",
+        type=int,
+        default=2,
+        help="Fixed prefetch depth for sensitivity and initial worker trials",
+    )
     parser.add_argument("--top-k", type=int, default=2)
     parser.add_argument("--warmup-steps", type=int, default=40)
     parser.add_argument("--measure-steps", type=int)
     parser.add_argument("--confirm-steps", type=int)
     parser.add_argument("--repeats", type=int, default=3)
-    parser.add_argument(
-        "--stability-tolerance-percent", type=float, default=2.0
-    )
+    parser.add_argument("--stability-tolerance-percent", type=float, default=2.0)
     parser.add_argument("--job-time-sec", type=int, default=7200)
     parser.add_argument(
         "--trial-timeout-sec",
@@ -730,6 +716,8 @@ def parse_args(argv=None):
     args = parser.parse_args(argv)
     if args.continue_on_failure and args.mode != "sensitivity":
         parser.error("--continue-on-failure requires --mode sensitivity")
+    if args.compile and args.backend != "fixed_shape":
+        parser.error("--compile requires --backend fixed_shape; PyG uses NO_COMPILE")
     backend = get_backend(args.backend)
     if args.workers is None:
         args.workers = (
@@ -742,9 +730,9 @@ def parse_args(argv=None):
             True if args.mode == "sensitivity" else backend.persistent_workers
         )
     if args.wsc_workers is not None and (
-        args.backend != "csx" or args.wsc_workers < 1
+        args.backend != "csx" or args.wsc_workers != 1
     ):
-        parser.error("wsc-workers requires CSX and a positive replica count")
+        parser.error("The GNN loader requires CSX with exactly one WSC Worker replica")
     if args.mode == "sensitivity":
         if args.backend == "csx" and args.wsc_workers is None:
             parser.error(
@@ -752,7 +740,7 @@ def parse_args(argv=None):
             )
         if args.prefetch_factors:
             parser.error(
-                "Sensitivity fixes prefetch_factor=2; omit --prefetch-factors"
+                "Sensitivity fixes one prefetch factor; omit --prefetch-factors"
             )
         if args.confirm_steps is not None:
             parser.error(
@@ -764,9 +752,7 @@ def parse_args(argv=None):
         )
     if args.confirm_steps is None:
         args.confirm_steps = (
-            args.measure_steps
-            if args.mode == "sensitivity"
-            else backend.confirm_steps
+            args.measure_steps if args.mode == "sensitivity" else backend.confirm_steps
         )
     positive = (
         "top_k",
@@ -781,11 +767,7 @@ def parse_args(argv=None):
         parser.error(
             "Budgets and step counts must be positive; confirmation requires at least 3 repeats"
         )
-    if (
-        args.warmup_steps % 10
-        or args.measure_steps % 20
-        or args.confirm_steps % 20
-    ):
+    if args.warmup_steps % 10 or args.measure_steps % 20 or args.confirm_steps % 20:
         parser.error(
             "warmup must be a multiple of 10; measured windows must be multiples of 20 (exact endpoints/midpoints)"
         )
@@ -797,12 +779,12 @@ def parse_args(argv=None):
         parser.error(
             "Require budget-sec >= trial-timeout-sec + 10 (cleanup reserve); CSX also requires trial-timeout-sec >= job-time-sec"
         )
-    if any(w < 0 for w in args.workers) or any(
-        p < 1 for p in args.prefetch_factors
+    if (
+        args.prefetch_factor < 1
+        or any(w < 0 for w in args.workers)
+        or any(p < 1 for p in args.prefetch_factors)
     ):
-        parser.error(
-            "Workers must be non-negative and prefetch factors positive"
-        )
+        parser.error("Workers must be non-negative and prefetch factors positive")
     if (
         not math.isfinite(args.stability_tolerance_percent)
         or args.stability_tolerance_percent <= 0
@@ -813,6 +795,8 @@ def parse_args(argv=None):
         args.workers.remove(40)
         args.workers.insert(0, 40)
     args.prefetch_factors = list(dict.fromkeys(args.prefetch_factors))
+    if args.base_config:
+        args.base_config = str(Path(args.base_config).resolve())
     return args
 
 
@@ -837,15 +821,24 @@ def main(argv=None):
         )
     backend = get_backend(args.backend)
     base = load_params_file(
-        GNN / "configs/autotune" / f"{args.dataset}_w40.yaml"
+        args.base_config or GNN / "configs/autotune" / f"{args.dataset}_w40.yaml"
     )
+    loader = base["trainer"]["fit"]["train_dataloader"]
+    profile = (loader.get("dataset_profiles") or {}).get(loader.get("dataset"), {})
+    dataset_name = (
+        loader.get("dataset_name")
+        or profile.get("dataset_name")
+        or loader.get("dataset")
+    )
+    if dataset_name != "ogbn-" + args.dataset:
+        raise ValueError("Base configuration dataset differs from --dataset")
+    if loader.get("batch_size") != 4096:
+        raise ValueError("Current CSX measurement contract requires batch_size=4096")
     cores = get_available_cpu_cores()
     eligible = [w for w in args.workers if cores is None or w <= cores]
     skipped = [w for w in args.workers if w not in eligible]
     if not eligible and not (args.mode == "sensitivity" and args.dry_run):
-        raise ValueError(
-            "No worker candidates fit this process's CPU allocation"
-        )
+        raise ValueError("No worker candidates fit this process's CPU allocation")
     if skipped and args.mode == "autotune":
         print(
             f"CPU affinity allows {cores} cores; skipping workers {skipped}. Execution worker memory/CPU allocation still needs to fit."
@@ -876,9 +869,7 @@ def main(argv=None):
                 "continue_on_failure": args.continue_on_failure,
                 "workers": args.workers,
                 "skipped_workers": skipped if args.mode == "autotune" else [],
-                "blocked_workers": (
-                    skipped if args.mode == "sensitivity" else []
-                ),
+                "blocked_workers": (skipped if args.mode == "sensitivity" else []),
                 "launch_cpu_cores": cores,
                 "cache": args.cache,
                 "persistent_workers": args.persistent_workers,
@@ -893,16 +884,21 @@ def main(argv=None):
                 "confirm_steps": args.confirm_steps,
                 "repeats": args.repeats,
                 "prefetch_factors": args.prefetch_factors,
+                "prefetch_factor": args.prefetch_factor,
+                "base_config": args.base_config,
+                "compile": args.compile,
                 "top_k": args.top_k,
                 "budget_sec": args.budget_sec,
                 "trial_timeout_sec": args.trial_timeout_sec,
                 "commands": [],
             }
             for workers in args.workers:
-                knobs = candidate(workers, persistent=args.persistent_workers)
-                phase = (
-                    "sensitivity" if args.mode == "sensitivity" else "workers"
+                knobs = candidate(
+                    workers,
+                    prefetch=args.prefetch_factor,
+                    persistent=args.persistent_workers,
                 )
+                phase = "sensitivity" if args.mode == "sensitivity" else "workers"
                 folder = output / f"{phase}_{candidate_id(knobs)}_r1"
                 path = output / f"preview_w{workers:02d}.yaml"
                 path.write_text(
@@ -918,9 +914,7 @@ def main(argv=None):
                         sort_keys=False,
                     )
                 )
-                plan["commands"].append(
-                    backend.command(path, folder / "model")
-                )
+                plan["commands"].append(backend.command(path, folder / "model"))
             write_json(output / "plan.json", plan)
             print(f"Plan saved to {output / 'plan.json'}; no jobs submitted")
             return 0

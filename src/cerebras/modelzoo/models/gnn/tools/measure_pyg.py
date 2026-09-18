@@ -10,7 +10,6 @@ from pathlib import Path
 import re
 
 PREFIX = "[Autotune] "
-LEGACY = re.compile(r"^\[Step=(\d+)\] Wall=([\d.]+)s \| Loss=(\S+)")
 COMPLETE = re.compile(r"^Training Completed\. Total Steps: (\d+)")
 
 
@@ -18,10 +17,12 @@ COMPLETE = re.compile(r"^Training Completed\. Total Steps: (\d+)")
 class Point:
     step: int
     seconds: float
-    seeds: int | None
+    seeds: int
 
 
-def read_points(path: Path, *, legacy: bool = False) -> list[Point]:
+def read_points(path: Path) -> list[Point]:
+    if "invalid" in path.resolve().parts:
+        raise ValueError("Input is outside the active measurement set")
     points = []
     completed = []
     for line in path.read_text().splitlines():
@@ -30,41 +31,34 @@ def read_points(path: Path, *, legacy: bool = False) -> list[Point]:
             completed.append(int(match[1]))
         if "[Eval]" in line:
             raise ValueError("Evaluation is present in the measurement log")
-        if legacy:
-            match = LEGACY.match(line)
-            if not match:
-                continue
-            point = Point(int(match[1]), float(match[2]), None)
-            finite = math.isfinite(float(match[3]))
-        else:
-            if not line.startswith(PREFIX):
-                continue
-            try:
-                row = json.loads(line[len(PREFIX) :])
-                if row.get("version") != 1:
-                    raise ValueError("Unsupported PyG measurement version")
-                step, seeds = row["step"], row["seed_nodes"]
-                if (
-                    type(step) is not int
-                    or type(seeds) is not int
-                    or seeds <= 0
-                    or step <= 0
-                ):
-                    raise ValueError(
-                        "Step and cumulative seed count must be positive integers"
-                    )
-                point = Point(step, float(row["wall_seconds"]), seeds)
-                finite = row["all_losses_finite"] is True and math.isfinite(
-                    float(row["loss"])
+        if not line.startswith(PREFIX):
+            continue
+        try:
+            row = json.loads(line[len(PREFIX) :])
+            if row.get("version") != 1:
+                raise ValueError("Unsupported PyG measurement version")
+            step, seeds = row["step"], row["seed_nodes"]
+            if (
+                type(step) is not int
+                or type(seeds) is not int
+                or seeds <= 0
+                or step <= 0
+            ):
+                raise ValueError(
+                    "Step and cumulative seed count must be positive integers"
                 )
-            except (KeyError, TypeError, AttributeError) as exc:
-                raise ValueError(f"Invalid PyG measurement record: {exc}") from exc
+            point = Point(step, float(row["wall_seconds"]), seeds)
+            finite = row["all_losses_finite"] is True and math.isfinite(
+                float(row["loss"])
+            )
+        except (KeyError, TypeError, AttributeError) as exc:
+            raise ValueError(f"Invalid PyG measurement record: {exc}") from exc
         if not finite or not math.isfinite(point.seconds) or point.seconds <= 0:
             raise ValueError("Nonfinite loss or invalid wall time")
         if points and (
             point.step <= points[-1].step
             or point.seconds <= points[-1].seconds
-            or (not legacy and point.seeds <= points[-1].seeds)
+            or point.seeds <= points[-1].seeds
         ):
             raise ValueError(
                 "Steps, wall times and seed counts must increase; use one fresh log"
@@ -75,9 +69,7 @@ def read_points(path: Path, *, legacy: bool = False) -> list[Point]:
     return points
 
 
-def measure(
-    points: list[Point], start: int, end: int, *, nominal_batch_size: int | None = None
-) -> dict:
+def measure(points: list[Point], start: int, end: int) -> dict:
     by_step = {p.step: p for p in points}
     if start < 0 or end <= start or start not in by_step or end not in by_step:
         raise ValueError(f"Exact step {start} and {end} timestamps required")
@@ -85,24 +77,16 @@ def measure(
     seconds = b.seconds - a.seconds
     if seconds <= 0:
         raise ValueError("Nonpositive measurement duration")
-    if nominal_batch_size is None:
-        if a.seeds is None or b.seeds is None:
-            raise ValueError(
-                "Actual seed counts unavailable; historical logs are not tuner measurements"
-            )
-        count = b.seeds - a.seeds
-        metric = "seed_nodes_per_second"
-    else:
-        if nominal_batch_size <= 0:
-            raise ValueError("Nominal batch size must be positive")
-        count = nominal_batch_size * (end - start)
-        metric = "nominal_slots_per_second"
+    count = b.seeds - a.seeds
+    metric = "seed_nodes_per_second"
     return {
         "start_step": start,
         "end_step": end,
         "measured_steps": end - start,
         "training_window_seconds": seconds,
         "count": count,
+        "seed_nodes": count,
+        "seed_nodes_per_second": count / seconds,
         "metric": metric,
         "throughput": count / seconds,
     }

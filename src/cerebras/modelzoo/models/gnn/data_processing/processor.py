@@ -51,6 +51,7 @@ class GNNDataProcessorConfig(DataConfig):
     persistent_workers: bool = True
     pin_memory: bool = True
     static_batch_cache_size: int = 0
+    measure_batch_accounting: bool = False
     worker_diagnostics: WorkerDiagnosticsConfig = Field(
         default_factory=WorkerDiagnosticsConfig
     )
@@ -106,6 +107,8 @@ class GNNDataProcessorConfig(DataConfig):
     def _validate_worker_diagnostics(self):
         if self.worker_diagnostics.enabled and self.sampling_mode != "neighbor":
             raise ValueError("worker_diagnostics requires neighbor sampling")
+        if self.measure_batch_accounting and self.sampling_mode != "neighbor":
+            raise ValueError("measure_batch_accounting requires neighbor sampling")
         return self
 
     @field_validator("data_dir", mode="after")
@@ -219,6 +222,7 @@ class GNNDataProcessor:
                 pad_id=self.config.pad_node_id,
                 cache_fraction=self.config.cache_fraction,
                 static_batch_cache_size=self.config.static_batch_cache_size,
+                measure_batch_accounting=self.config.measure_batch_accounting,
                 worker_diagnostics=self.config.worker_diagnostics,
             )
         else:

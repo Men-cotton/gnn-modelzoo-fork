@@ -32,6 +32,7 @@ class FixedShapeJobTests(unittest.TestCase):
                 config.name,
                 "--compile",
                 "--measure-neighbor-padding",
+                "--measure-input",
             ]
             result = subprocess.run(
                 command, cwd=temp, env=env, check=True, capture_output=True, text=True
@@ -43,7 +44,7 @@ class FixedShapeJobTests(unittest.TestCase):
                 [
                     "-v",
                     f"FIXED_SHAPE_CONFIG={config},FIXED_SHAPE_COMPILE=1,"
-                    "FIXED_SHAPE_MEASURE_NEIGHBOR_PADDING=1",
+                    "FIXED_SHAPE_MEASURE_NEIGHBOR_PADDING=1,FIXED_SHAPE_MEASURE_INPUT=1",
                     str(SCRIPTS / "run_fixed_shape_gpu_nqsv.pbs"),
                 ],
             )

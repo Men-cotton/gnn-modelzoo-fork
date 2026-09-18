@@ -25,6 +25,10 @@ from cerebras.modelzoo.models.gnn.data_processing.samplers.neighbor_tree import 
 )
 from cerebras.modelzoo.models.gnn.model import GNNModel
 from cerebras.modelzoo.models.gnn.gpu_policy import adamw_kwargs, precision_dtype
+from cerebras.modelzoo.models.gnn.gpu_measurements import (
+    logical_tensor_bytes,
+    save_provenance,
+)
 
 
 def make_loader(config, *, num_layers, float_dtype):
@@ -59,6 +63,7 @@ def make_loader(config, *, num_layers, float_dtype):
         pad_id=config.pad_node_id,
         cache_fraction=config.cache_fraction,
         static_batch_cache_size=config.static_batch_cache_size,
+        measure_batch_accounting=True,
         worker_diagnostics=config.worker_diagnostics,
     )
     return processor.create_torch_dataloader()
@@ -94,6 +99,7 @@ def train(
     compile_model=False,
     warmup_steps=40,
     measure_neighbor_padding=False,
+    measure_input=False,
 ):
     """Run synchronized training windows; exclude setup, warmup and evaluation."""
     if int(os.environ.get("WORLD_SIZE", "1")) != 1:
@@ -152,6 +158,15 @@ def train(
     native_model_cfg.setdefault("task", {})["compute_eval_metrics"] = False
     model = GNNModel(native_model_cfg).to(device)
     optimizer = torch.optim.AdamW(model.parameters(), **adamw)
+    save_provenance(output_dir, optimizer=optimizer, device=device)
+    optimizer_steps = 0
+
+    def optimizer_completed(*_):
+        nonlocal optimizer_steps
+        optimizer_steps += 1
+
+    # GradScaler does not call optimizer.step when it skips an overflowing update.
+    optimizer.register_step_post_hook(optimizer_completed)
     scaler = torch.amp.GradScaler(device.type, enabled=dtype == torch.float16)
     training_model = torch.compile(model) if compile_model else model
     model.train()
@@ -169,7 +184,15 @@ def train(
     iterator = iter(train_loader)
     measured_seconds = 0.0
     measured_targets = measured_slots = measured_steps = 0
+    measured_supervised = measured_optimizer_steps = 0
     window_targets = window_slots = window_steps = 0
+    window_supervised = window_optimizer_start = 0
+    window_loader_seconds = 0.0
+    window_payload_bytes = 0
+    measured_loader_seconds = 0.0
+    measured_payload_bytes = 0
+    measured_copy_seconds = measured_device_step_seconds = 0.0
+    device_events = []
     window_padding = NeighborPaddingStats() if measure_neighbor_padding else None
     measured_padding = NeighborPaddingStats() if measure_neighbor_padding else None
     loss_sum = torch.zeros((), device=device)
@@ -179,6 +202,7 @@ def train(
             {
                 "event": "run",
                 "backend": "fixed_shape_gpu",
+                "input_contract": getattr(train_loader, "gnn_input_contract", None),
                 "device": str(device),
                 "device_name": (
                     torch.cuda.get_device_name(device)
@@ -190,6 +214,8 @@ def train(
                 "compile": compile_model,
                 "warmup_steps": warmup_steps,
                 "measure_neighbor_padding": measure_neighbor_padding,
+                "measure_input": measure_input,
+                "window_definition": "Synchronized training windows include loader, transfer, forward/backward and optimizer work; exclude logging, evaluation and checkpoint writing. Exact endpoint timing is available for comparisons including logging.",
                 "cache_device": "cpu",
                 "static_batch_cache_size": fit["train_dataloader"].get(
                     "static_batch_cache_size", 0
@@ -197,19 +223,34 @@ def train(
             }
         )
         synchronize()
+        if device.type == "cuda":
+            torch.cuda.reset_peak_memory_stats(device)
         window_start = time.perf_counter()
         for step in range(1, max_steps + 1):
+            if measure_input:
+                loader_start = time.perf_counter()
             try:
                 payload = next(iterator)
             except StopIteration:
                 iterator = iter(train_loader)
                 payload = next(iterator)
+            if measure_input:
+                window_loader_seconds += time.perf_counter() - loader_start
+                window_payload_bytes += logical_tensor_bytes(payload)
             window_targets += int(payload["target_mask"].sum())
+            window_supervised += int(
+                (payload["target_mask"] & (payload["labels"] != -100)).sum()
+            )
             window_slots += payload["target_mask"].numel()
             window_steps += 1
             if measure_neighbor_padding:
                 window_padding.update(payload)
+            if measure_input and device.type == "cuda":
+                events = tuple(torch.cuda.Event(enable_timing=True) for _ in range(3))
+                events[0].record()
             batch = GraphSAGEBatch.from_payload(payload).to(device, non_blocking=True)
+            if measure_input and device.type == "cuda":
+                events[1].record()
             optimizer.zero_grad(set_to_none=True)
             with torch.autocast(
                 device.type, dtype=dtype, enabled=dtype != torch.float32
@@ -220,12 +261,36 @@ def train(
             scaler.update()
             loss_sum += loss.detach()
             all_finite &= torch.isfinite(loss.detach())
+            if measure_input and device.type == "cuda":
+                events[2].record()
+                device_events.append(events)
             do_eval = val_loader is not None and (
                 step % eval_frequency == 0 or step == max_steps
             )
             if step % log_steps == 0 or step in (warmup_steps, max_steps) or do_eval:
                 synchronize()
-                elapsed = time.perf_counter() - window_start
+                boundary = time.perf_counter()
+                elapsed = boundary - window_start
+                window_optimizer_steps = optimizer_steps - window_optimizer_start
+                input_metrics = {}
+                if measure_input:
+                    copy_seconds = (
+                        sum(a.elapsed_time(b) for a, b, _ in device_events) / 1000
+                    )
+                    device_step_seconds = (
+                        sum(b.elapsed_time(c) for _, b, c in device_events) / 1000
+                    )
+                    input_metrics = {
+                        "loader_wait_seconds": window_loader_seconds,
+                        "logical_payload_bytes": window_payload_bytes,
+                        "logical_payload_bytes_per_second": window_payload_bytes
+                        / elapsed,
+                    }
+                    if device.type == "cuda":
+                        input_metrics.update(
+                            cuda_copy_stream_seconds=copy_seconds,
+                            cuda_step_stream_seconds=device_step_seconds,
+                        )
                 if not bool(all_finite):
                     raise FloatingPointError(f"non-finite training loss by step {step}")
                 measured = step > warmup_steps
@@ -234,20 +299,36 @@ def train(
                     measured_targets += window_targets
                     measured_slots += window_slots
                     measured_steps += window_steps
+                    measured_supervised += window_supervised
+                    measured_optimizer_steps += window_optimizer_steps
+                    if measure_input:
+                        measured_loader_seconds += window_loader_seconds
+                        measured_payload_bytes += window_payload_bytes
+                        measured_copy_seconds += copy_seconds
+                        measured_device_step_seconds += device_step_seconds
                     if measure_neighbor_padding:
                         measured_padding.merge(window_padding)
                 emit(
                     {
                         "event": "train",
                         "step": step,
+                        "start_step": step - window_steps,
+                        "end_step": step,
+                        "boundary_monotonic_seconds": boundary,
                         "measured": measured,
                         "loss": float(loss_sum) / window_steps,
                         "seconds": elapsed,
                         "steps": window_steps,
                         "seed_nodes": window_targets,
+                        "supervised_targets": window_supervised,
+                        "optimizer_steps": window_optimizer_steps,
+                        "skipped_optimizer_steps": window_steps
+                        - window_optimizer_steps,
                         "nominal_slots": window_slots,
                         "seed_nodes_per_second": window_targets / elapsed,
                         "nominal_slots_per_second": window_slots / elapsed,
+                        "supervised_targets_per_second": window_supervised / elapsed,
+                        **input_metrics,
                         **(
                             {"neighbor_padding": window_padding.summary()}
                             if measure_neighbor_padding
@@ -264,6 +345,11 @@ def train(
                         }
                     )
                 window_targets = window_slots = window_steps = 0
+                window_supervised = 0
+                window_optimizer_start = optimizer_steps
+                window_loader_seconds = 0.0
+                window_payload_bytes = 0
+                device_events = []
                 if measure_neighbor_padding:
                     window_padding = NeighborPaddingStats()
                 loss_sum.zero_()
@@ -273,23 +359,48 @@ def train(
             "event": "summary",
             "steps": measured_steps,
             "seed_nodes": measured_targets,
+            "supervised_targets": measured_supervised,
+            "optimizer_steps": measured_optimizer_steps,
+            "skipped_optimizer_steps": measured_steps - measured_optimizer_steps,
             "nominal_slots": measured_slots,
             "seconds": measured_seconds,
             "seed_nodes_per_second": measured_targets / measured_seconds,
             "nominal_slots_per_second": measured_slots / measured_seconds,
+            "supervised_targets_per_second": measured_supervised / measured_seconds,
+            "start_step": warmup_steps,
+            "end_step": max_steps,
         }
+        if measure_input:
+            summary.update(
+                loader_wait_seconds=measured_loader_seconds,
+                logical_payload_bytes=measured_payload_bytes,
+                logical_payload_bytes_per_second=measured_payload_bytes
+                / measured_seconds,
+            )
+            if device.type == "cuda":
+                summary.update(
+                    cuda_copy_stream_seconds=measured_copy_seconds,
+                    cuda_step_stream_seconds=measured_device_step_seconds,
+                )
+        if device.type == "cuda":
+            summary["cuda_allocator"] = {
+                "peak_allocated_bytes": torch.cuda.max_memory_allocated(device),
+                "peak_reserved_bytes": torch.cuda.max_memory_reserved(device),
+                "scope": "training loop including warmup and evaluation; PyTorch allocator only, not whole-device memory",
+            }
         if measure_neighbor_padding:
             summary["neighbor_padding"] = measured_padding.summary()
+        torch.save(
+            {
+                "model": model.state_dict(),
+                "optimizer": optimizer.state_dict(),
+                "scaler": scaler.state_dict(),
+                "step": max_steps,
+            },
+            output_dir / "checkpoint.pt",
+        )
+        summary["completed"] = True
         emit(summary)
-    torch.save(
-        {
-            "model": model.state_dict(),
-            "optimizer": optimizer.state_dict(),
-            "scaler": scaler.state_dict(),
-            "step": max_steps,
-        },
-        output_dir / "checkpoint.pt",
-    )
     return summary
 
 
@@ -311,6 +422,11 @@ def main():
         help="count neighbor padding on the CPU and include it in metrics (default: off)",
     )
     parser.add_argument("--warmup-steps", type=int, default=40)
+    parser.add_argument(
+        "--measure-input",
+        action="store_true",
+        help="record loader wait, logical payload bytes and CUDA stream timings (adds instrumentation overhead)",
+    )
     parser.add_argument("--max-steps", type=int)
     parser.add_argument("--num-workers", type=int)
     args = parser.parse_args()
@@ -335,6 +451,7 @@ def main():
         compile_model=args.compile,
         warmup_steps=args.warmup_steps,
         measure_neighbor_padding=args.measure_neighbor_padding,
+        measure_input=args.measure_input,
     )
 
 

@@ -99,7 +99,7 @@ class PyGTunerTests(unittest.TestCase):
             original.replace('"seed_nodes": 152', '"seed_nodes": 0'),
             original.replace("Training Completed.", "Aborted."),
             original + "\n[Eval] Step=440",
-            "[Step=0040] Wall=1.0s | Loss=0.5\n[Step=0440] Wall=2.0s | Loss=0.5\nTraining Completed. Total Steps: 440",
+            "No measurement records\nTraining Completed. Total Steps: 440",
         ]
         for content in invalid:
             path.write_text(content)

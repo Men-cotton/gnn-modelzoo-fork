@@ -313,21 +313,26 @@ class PipelineTests(unittest.TestCase):
         actual = factory.call_args.kwargs["transform"](graph).edge_index
         torch.testing.assert_close(actual, expected)
 
-    def test_measurement_rejects_only_overlapping_activity(self):
+    def test_measurement_requires_continuous_training_before_endpoint(self):
+        from test_autotune import write_log
+
         path = self.root / "train.log"
-        start = "2026-01-01 00:00:40,000 INFO | Train Device=CSX, Step=40, Loss=1.0,"
-        end = "2026-01-01 00:04:00,000 INFO | Train Device=CSX, Step=240, Loss=1.0,"
-        complete = "Training completed successfully!"
+        write_log(path)
+        content = path.read_text()
+        boundary = next(line for line in content.splitlines() if "Step=40," in line)
         for event in (
             "| Eval Device=CSX, Step=60",
             "Saving checkpoint checkpoint_100.mdl",
             "Checkpoint saved: checkpoint_100.mdl",
         ):
-            path.write_text("\n".join((start, event, end, complete)))
+            path.write_text(content.replace(boundary, boundary + "\n" + event))
             with self.assertRaisesRegex(ValueError, "overlaps"):
                 summarize(path)
-            path.write_text("\n".join((event, start, end, event, complete)))
+            path.write_text(content + "\n" + event)
             self.assertEqual(summarize(path)["training_window_seconds"], 200)
+        path.write_text("Evaluation completed successfully!\n" + content)
+        with self.assertRaisesRegex(ValueError, "restart"):
+            summarize(path)
 
     def test_mag_raw_layout_and_reuse_without_download(self):
         dataset = self.root / "ogbn-mag" / "ogbn_mag"

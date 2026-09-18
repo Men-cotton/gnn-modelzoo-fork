@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import hashlib
+import json
 import math
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Sequence, Tuple
@@ -364,6 +366,63 @@ class CachedStaticGraphSAGEDataset(Dataset):
         return self._batches[index % len(self._batches)]
 
 
+def batch_accounting_contract(
+    dataset: GraphSAGENeighborSamplerDataset,
+    *,
+    dataset_name: str,
+    split: str,
+    drop_last: bool,
+    static_batch_cache_size: int,
+) -> dict:
+    """Describe emitted target counts without sampling neighbors or features.
+
+    Counts refer to consumed occurrences, not unique graph nodes. The SDK's
+    Repeater and MegaBatcher preserve this order within one data executor.
+    A resumed checkpoint or a new train executor may restart at batch zero;
+    the measurement consumer must establish the corresponding global step.
+    """
+    digest = hashlib.sha256()
+    seed_counts = []
+    supervised_counts = []
+    for index in range(len(dataset)):
+        start = index * dataset.batch_size
+        targets = dataset._ordered_targets[start : start + dataset.batch_size]
+        labels = dataset.labels[torch.from_numpy(targets)].reshape(-1)
+        digest.update(np.asarray(targets, dtype="<i8").tobytes())
+        canonical_labels = labels.to(device="cpu", dtype=torch.int64).numpy()
+        digest.update(canonical_labels.astype("<i8").tobytes())
+        seed_counts.append(int(targets.size))
+        supervised_counts.append(int((labels != -100).sum()))
+    if static_batch_cache_size:
+        cached = min(static_batch_cache_size, len(dataset))
+        seed_counts = [seed_counts[index % cached] for index in range(len(dataset))]
+        supervised_counts = [
+            supervised_counts[index % cached] for index in range(len(dataset))
+        ]
+    return {
+        "event": "gnn_input_contract",
+        "version": 1,
+        "dataset_name": dataset_name,
+        "split": split,
+        "batch_size": dataset.batch_size,
+        "source_seed_nodes": int(dataset._ordered_targets.size),
+        "seed_nodes_per_epoch": sum(seed_counts),
+        "seed_nodes_by_batch": seed_counts,
+        "supervised_targets_by_batch": supervised_counts,
+        "drop_last": drop_last,
+        "static_batch_cache_size": static_batch_cache_size,
+        "sampler_seed": dataset.seed,
+        "shuffle": dataset.shuffle,
+        "ordered_targets_and_labels_sha256": digest.hexdigest(),
+        "traversal": "continuous_sequential_batches",
+        "traversal_scope": "single_data_executor",
+        "batch_index_origin": 0,
+        "restartable": False,
+        "num_streamers": 1,
+        "count_basis": "deterministic loader schedule; not device counters",
+    }
+
+
 class NeighborSamplingDataProcessor(BaseGraphDataSource):
     """Prepares deterministic neighbor-sampled batches for GraphSAGE."""
 
@@ -388,6 +447,7 @@ class NeighborSamplingDataProcessor(BaseGraphDataSource):
         drop_last: bool = False,
         cache_fraction: Optional[float] = None,
         static_batch_cache_size: int = 0,
+        measure_batch_accounting: bool = False,
         worker_diagnostics: Optional[WorkerDiagnosticsConfig] = None,
     ):
         super().__init__(
@@ -415,6 +475,7 @@ class NeighborSamplingDataProcessor(BaseGraphDataSource):
         self.pin_memory = pin_memory
         self.drop_last = drop_last
         self.static_batch_cache_size = static_batch_cache_size
+        self.measure_batch_accounting = measure_batch_accounting
         self.worker_diagnostics = worker_diagnostics
         self.graph_cache = None
         self._neighbor_indexes = None
@@ -507,6 +568,19 @@ class NeighborSamplingDataProcessor(BaseGraphDataSource):
                 self.static_batch_cache_size,
             )
 
+        contract = None
+        if self.measure_batch_accounting:
+            contract = batch_accounting_contract(
+                dataset,
+                dataset_name=self.dataset_name,
+                split=split_key,
+                drop_last=self.drop_last,
+                static_batch_cache_size=self.static_batch_cache_size,
+            )
+            print(
+                "GNN_INPUT_CONTRACT " + json.dumps(contract, sort_keys=True), flush=True
+            )
+
         loader_type = DataLoader
         diagnostic_kwargs = {}
         if self.worker_diagnostics is not None and self.worker_diagnostics.enabled:
@@ -514,7 +588,7 @@ class NeighborSamplingDataProcessor(BaseGraphDataSource):
 
             loader_type = ObservedDataLoader
             diagnostic_kwargs["diagnostics"] = self.worker_diagnostics
-        return loader_type(
+        loader = loader_type(
             dataloader_dataset,
             batch_size=1,
             shuffle=False,
@@ -530,6 +604,9 @@ class NeighborSamplingDataProcessor(BaseGraphDataSource):
             collate_fn=_first_batch,
             **diagnostic_kwargs,
         )
+        if contract is not None:
+            loader.gnn_input_contract = contract
+        return loader
 
 
 __all__ = [

@@ -1,6 +1,7 @@
 """Exercise shared fixed batches and native training without downloading a graph."""
 
 import copy
+from datetime import datetime, timedelta
 import json
 import tempfile
 import unittest
@@ -18,6 +19,7 @@ from cerebras.modelzoo.models.gnn.data_processing.sources.base import (
     BaseGraphDataSource,
 )
 from cerebras.modelzoo.models.gnn.model import GNNModel
+from cerebras.modelzoo.models.gnn.tools import measure_fixed_shape, measure_window
 
 
 def tiny_graph():
@@ -268,6 +270,69 @@ class FixedShapeTests(unittest.TestCase):
 
     def test_cpu_training(self):
         self.run_training("cpu")
+
+    def test_input_measurement_and_exact_gpu_numerator(self):
+        config = tiny_config()
+        config["trainer"]["init"]["loop"]["eval_frequency"] = None
+        graph = tiny_graph()
+        graph.y[1] = -100
+        with (
+            tempfile.TemporaryDirectory() as output,
+            patch.object(BaseGraphDataSource, "load_graph", return_value=graph),
+        ):
+            result = runner.train(
+                config,
+                output,
+                device=torch.device("cpu"),
+                dtype=torch.float32,
+                warmup_steps=1,
+                measure_input=True,
+            )
+            self.assertEqual(result["seed_nodes"], 6)
+            self.assertEqual(result["supervised_targets"], 4)
+            self.assertEqual(result["optimizer_steps"], 4)
+            self.assertEqual(result["logical_payload_bytes"], 624)
+            self.assertGreater(result["loader_wait_seconds"], 0)
+            self.assertNotIn("cuda_copy_stream_seconds", result)
+            measured = measure_fixed_shape.summarize(
+                Path(output) / "metrics.jsonl", 1, 5
+            )
+            self.assertEqual(measured["seed_nodes"], 6)
+            self.assertEqual(measured["supervised_targets"], 4)
+            # Feed the real sampler's target schedule to the CSX parser, then
+            # compare its numerator with the batches the native model consumed.
+            loader = runner.make_loader(
+                config["trainer"]["fit"]["train_dataloader"],
+                num_layers=2,
+                float_dtype=torch.float32,
+            )
+            contract = neighbor_tree.batch_accounting_contract(
+                loader.dataset,
+                dataset_name="ogbn-arxiv",
+                split="train",
+                drop_last=False,
+                static_batch_cache_size=0,
+            )
+            csx_rows = [
+                "GNN_INPUT_CONTRACT " + json.dumps(contract),
+                "Starting train loop 1 of 1, from global step 1 to 5 (5 steps)",
+            ]
+            for step in range(1, 6):
+                timestamp = (datetime(2026, 1, 1) + timedelta(seconds=step)).strftime(
+                    "%Y-%m-%d %H:%M:%S,%f"
+                )[:-3]
+                csx_rows.append(
+                    f"{timestamp} INFO | Train Device=CSX, Step={step}, Loss=1.0,"
+                )
+            csx_rows.append("Training completed successfully!")
+            csx_log = Path(output) / "synthetic_csx.log"
+            csx_log.write_text("\n".join(csx_rows))
+            csx_counts = measure_window.summarize(csx_log, 1, 5)
+            for count in ("seed_nodes", "supervised_targets", "nominal_slots"):
+                self.assertEqual(csx_counts[count], measured[count])
+            metadata = json.loads((Path(output) / "run_metadata.json").read_text())
+            self.assertEqual(metadata["optimizer_defaults"]["eps"], 1e-8)
+            self.assertTrue(metadata["gnn_source_sha256"])
 
     def test_neighbor_padding_disabled_by_default(self):
         with (

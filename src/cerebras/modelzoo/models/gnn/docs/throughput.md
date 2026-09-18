@@ -1,5 +1,60 @@
 # Measure Model Throughput
 
+## GNN experiment metrics
+
+For new GNN comparisons, use explicit interval measurements instead of the
+SDK's smoothed `Rate` or cumulative `GlobalRate`. Both CSX `measure_window.py`
+and native GPU `measure_fixed_shape.py` use exact logged endpoints and count
+completed batches in `(start_step, end_step]`. The GPU endpoints synchronize
+CUDA. Endpoint elapsed time includes logging; setup and warmup are excluded,
+and overlapping evaluation or checkpoint activity is rejected. The native
+runner's final summary instead sums windows that exclude logging and must not
+be silently substituted for this common comparison boundary.
+
+New CSX Study runs enable `measure_batch_accounting` on the input loader. This
+logs `GNN_INPUT_CONTRACT`, containing actual per-batch seed and supervised-label
+counts derived from ordered split IDs and labels, their digest, batch size,
+drop-last behavior and traversal scope. The parser verifies one fresh train
+loop beginning at global step 1 and one input streamer. It rejects checkpoint
+restore, earlier evaluation/executor restart, static replay and missing or
+conflicting accounting metadata in strict mode. Counts are exact for that
+recorded deterministic schedule; they are not device performance counters.
+ModelZoo's SDK Repeater and MegaBatcher preserve order within that single
+executor. A resumed or multi-executor run requires a different accounting
+contract and cannot use the fresh-run formula.
+
+Report these three numerators over the same elapsed seconds:
+
+- `seed_nodes`: actual unpadded target occurrences (`target_mask`), including
+  repeated visits on later epochs; not unique graph nodes.
+- `supervised_targets`: seed occurrences whose label is not `-100`.
+- `nominal_slots`: fixed batch slots, including padding.
+
+For example, B=4 with 9 targets emits counts `[4, 4, 1]`. Steps `(2, 5]`
+consume `[1, 4, 4]`: 9 seeds and 12 nominal slots. Ignored labels reduce the
+supervised count independently. Do not compare CSX nominal slots/s directly
+against GPU seed nodes/s. Both rates and their counts are retained in new Study
+results, and ranking uses seed nodes/s. The same representation and the same
+optimizer/precision settings still need to be verified separately; ordinary
+PyG uses a different sampling representation and is a separate baseline.
+
+Standalone use:
+
+```bash
+PYTHONPATH=src .venv/bin/python -m cerebras.modelzoo.models.gnn.tools.measure_window \
+  train.log --start-step 40 --end-step 240
+```
+
+Runtime accounting metadata and one fresh train executor are mandatory.
+Static replay uses the separate `--static-replay-probe` measurement path and
+reports `probe_nominal_slots_per_second`; it is not an ordinary training rate.
+
+GPU `--measure-input` and shared `worker_diagnostics` provide logical payload
+bytes, loader/sampler timing, process resources and CUDA allocator peaks using
+ordinary user access. Keep diagnostic overhead separate from final repeated
+throughput measurements. GPU stream timings, CPU wait and worker phase times
+overlap and are not an additive device utilization decomposition.
+
 Learn how to measure the training throughput of your model to evaluate performance and optimize efficiency.
 It is often desirable to measure the throughput of a model. In order to provide this Notermation out of the box, Cerebras Model Zoo runs print a couple of throughput metrics to the console as well as sending them to events files that are then viewable in TensorBoard. This section describes what these metrics are, how they are calculated, and intricacies to be aware of when interpreting them.
 ​

@@ -18,7 +18,27 @@ from cerebras.modelzoo.models.gnn.tools.measure_window import summarize
 
 def write_log(path, end=240, seconds=1, unstable=False):
     origin = datetime(2026, 1, 1)
-    lines = ["Job wsjob-autotune-test"]
+    contract = dict(
+        event="gnn_input_contract",
+        version=1,
+        split="train",
+        dataset_name="ogbn-arxiv",
+        num_streamers=1,
+        batch_index_origin=0,
+        traversal="continuous_sequential_batches",
+        batch_size=4096,
+        traversal_scope="single_data_executor",
+        restartable=False,
+        ordered_targets_and_labels_sha256="a" * 64,
+        seed_nodes_by_batch=[4096],
+        supervised_targets_by_batch=[4096],
+        static_batch_cache_size=0,
+    )
+    lines = [
+        "Job wsjob-autotune-test",
+        "GNN_INPUT_CONTRACT " + json.dumps(contract),
+        f"Starting train loop 1 of 1, from global step 1 to {end} ({end} steps)",
+    ]
     for step in range(10, end + 1, 10):
         elapsed = step * seconds + (max(0, step - 140) if unstable else 0)
         stamp = (origin + timedelta(seconds=elapsed)).strftime("%Y-%m-%d %H:%M:%S,%f")[

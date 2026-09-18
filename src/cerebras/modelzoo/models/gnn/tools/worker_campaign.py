@@ -214,6 +214,14 @@ def summarize(output: Path, state: dict) -> None:
             trials = [stage]
         for trial in trials:
             measurement = trial.get("measurement") or {}
+            metric = measurement.get("metric")
+            if measurement and metric not in {
+                "seed_nodes_per_second",
+                "probe_nominal_slots_per_second",
+            }:
+                raise ValueError(
+                    "A completed measurement requires an explicit current metric"
+                )
             rows.append(
                 dict(
                     stage=stage["id"],
@@ -225,6 +233,15 @@ def summarize(output: Path, state: dict) -> None:
                     nominal_slots_per_second=measurement.get(
                         "nominal_slots_per_second"
                     ),
+                    seed_nodes_per_second=measurement.get("seed_nodes_per_second"),
+                    supervised_targets_per_second=measurement.get(
+                        "supervised_targets_per_second"
+                    ),
+                    probe_nominal_slots_per_second=measurement.get(
+                        "probe_nominal_slots_per_second"
+                    ),
+                    metric=metric,
+                    throughput=measurement.get(metric),
                     unstable=(
                         trial["status"] == "unstable"
                         or (measurement.get("half_window_check") or {}).get(
@@ -239,12 +256,14 @@ def summarize(output: Path, state: dict) -> None:
     groups = {}
     for row in rows:
         scope = row["stage"] if row["kind"] == "sensitivity" else row["kind"]
-        key = f'{scope}/w{row["workers"]}/{row["control"] or "none"}'
-        group = groups.setdefault(key, dict(runs=0, measured=0, rates=[]))
+        key = f"{scope}/w{row['workers']}/{row['control'] or 'none'}/{row['metric']}"
+        group = groups.setdefault(
+            key, dict(runs=0, measured=0, rates=[], metric=row["metric"])
+        )
         group["runs"] += 1
-        if row["nominal_slots_per_second"] is not None:
+        if row["throughput"] is not None:
             group["measured"] += 1
-            group["rates"].append(row["nominal_slots_per_second"])
+            group["rates"].append(row["throughput"])
     for group in groups.values():
         values = group["rates"]
         group.update(
@@ -301,7 +320,7 @@ def execute(args: argparse.Namespace, stages: list[dict], fingerprint: str) -> i
             state["status"] = "running"
             autotune.write_json(path, state)
             started = time.monotonic()
-            print(f'Start {stage["id"]} ({stage["trials"]} run(s))', flush=True)
+            print(f"Start {stage['id']} ({stage['trials']} run(s))", flush=True)
             try:
                 if stage["kind"] == "sensitivity":
                     command = list(stage["command"])
@@ -346,7 +365,12 @@ def execute(args: argparse.Namespace, stages: list[dict], fingerprint: str) -> i
                     stage.update(result)
                     stage["client_status"] = result["status"]
                     if result["status"] == "completed":
-                        measurement = measure_window.summarize(
+                        measure = (
+                            measure_window.summarize_probe
+                            if stage.get("control") == "static_batch"
+                            else measure_window.summarize
+                        )
+                        measurement = measure(
                             directory / "train.log",
                             40,
                             80 if stage["kind"] == "diagnostic" else 440,
@@ -391,7 +415,7 @@ def execute(args: argparse.Namespace, stages: list[dict], fingerprint: str) -> i
             if stage["status"] != "completed":
                 stage["continued_after_failure_at"] = autotune.timestamp()
                 print(
-                    f'Recorded failure in {stage["id"]}; continuing with the next planned stage.',
+                    f"Recorded failure in {stage['id']}; continuing with the next planned stage.",
                     flush=True,
                 )
         else:
@@ -510,7 +534,7 @@ def main(argv: list[str] | None = None) -> int:
                 yaml.safe_dump(base, sort_keys=False)
             )
         print(
-            f'Output: {args.output}; {description["planned_trials"]} planned training runs',
+            f"Output: {args.output}; {description['planned_trials']} planned training runs",
             flush=True,
         )
         if args.dry_run:

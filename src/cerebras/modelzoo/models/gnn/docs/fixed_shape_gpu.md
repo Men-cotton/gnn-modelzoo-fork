@@ -73,6 +73,9 @@ Each output directory contains:
 - `metrics.jsonl`: runtime precision, device, cache placement, train windows,
   validation accuracy, and final measured totals. The same records go to stdout.
 - `checkpoint.pt`: uncompiled model state, AdamW state, scaler state and step.
+- `run_metadata.json`: source revision, dirty status, source hashes, package
+  versions, effective AdamW defaults, CPU affinity, precision-related settings
+  and CUDA device properties. `source_changes.patch` preserves tracked changes.
 
 Warmup defaults to 40 steps. Windows synchronize CUDA at their boundaries and
 include waiting for the host loader, batch transfer, forward, backward, and
@@ -82,9 +85,42 @@ prefetch across boundaries; this measures a running input pipeline, not isolated
 sampling latency. Compilation after warmup, if any, remains part of the timing.
 
 `seed_nodes_per_second` counts `target_mask` entries that are true;
-`nominal_slots_per_second` includes padding. Keep the metric names when comparing
+`supervised_targets_per_second` additionally excludes labels equal to `-100`;
+`nominal_slots_per_second` includes padding. `optimizer_steps` counts completed
+AdamW updates; `skipped_optimizer_steps` exposes FP16 overflow skips. Keep these
+counts when assessing learning or comparing training throughput.
+Keep the metric names when comparing
 with PyG or CSX. Representation reuse does not imply identical kernels,
 precision behavior, training schedules, or throughput across devices.
+
+For the same endpoint boundary as CSX, use the exact-window parser instead of
+the final summary's sum of intervals that exclude logging:
+
+```bash
+PYTHONPATH=src .venv/bin/python -m cerebras.modelzoo.models.gnn.tools.measure_fixed_shape \
+  OUTPUT_DIR/metrics.jsonl --start-step 40 --end-step 240
+```
+
+It accepts captured stdout too. Both endpoints and the midpoint must be logged
+for the full stability check. The elapsed time includes logging between the
+two synchronized endpoints; evaluation or checkpoint activity inside that
+interval is rejected. Numerators sum only batches consumed in `(40, 240]`.
+The parser requires a completed run with a saved final checkpoint, consistent
+window counters and finite loss. A summary alone is not evidence of equal
+optimizer settings, equal sampling, or successful learning.
+
+Add `--measure-input` to direct, wrapper or NQSV commands for optional input
+measurements. Each window records host loader wait, logical payload bytes
+including padded tensors, and (on CUDA) elapsed time on the current CUDA stream
+for transfer and the training step. These timings can overlap host work and
+include stream idle time; they are not an additive hardware utilization
+breakdown. Logical bytes are not measured PCIe traffic. Instrumentation adds
+overhead and must be matched or kept separate from headline throughput runs.
+CUDA summaries also record PyTorch peak allocated/reserved bytes over the
+training loop including warmup and validation, not whole-device memory.
+Existing opt-in `worker_diagnostics` records actual child processes, sampler
+phase timing, CPU/memory/IO and visible cgroup limits through ordinary user
+access. No PMU, Grafana or administrator permission is needed for these metrics.
 
 Neighbor padding measurement is disabled by default: no neighbor masks are
 scanned for statistics, and no `neighbor_padding` results are emitted.
