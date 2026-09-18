@@ -1,8 +1,14 @@
 #!/usr/bin/env bash
-# Launch exactly one non-GNN Model Zoo training profile on one CS-3.
+# Default: prepare/reuse data and launch all profiles. --profile selects one.
 set -euo pipefail
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 project_root="$(cd "${script_dir}/../.." && pwd -P)"
 export PYTHONPATH="${project_root}/src${PYTHONPATH:+:${PYTHONPATH}}"
-exec "${project_root}/.venv/bin/python" "${project_root}/benchmark_scripts/non_gnn/run.py" \
+entry=campaign.py
+for arg in "$@"; do
+    case "$arg" in
+        --profile|--profile=*|--data-dir|--data-dir=*) entry=run.py ;;
+    esac
+done
+exec "${project_root}/.venv/bin/python" "${project_root}/benchmark_scripts/non_gnn/${entry}" \
     --backend CSX "$@"

@@ -1,8 +1,18 @@
 #!/usr/bin/env bash
-# Prepare exactly one profile before qsub. --dry-run creates no files/jobs.
+# Default: prepare/reuse data and submit all profiles; --profile selects one.
 set -euo pipefail
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 project_root="$(cd "${script_dir}/../.." && pwd -P)"
+single=0
+for arg in "$@"; do
+    case "$arg" in
+        --profile|--profile=*|--data-dir|--data-dir=*) single=1 ;;
+    esac
+done
+if (( ! single )); then
+    export PYTHONPATH="${project_root}/src${PYTHONPATH:+:${PYTHONPATH}}"
+    exec "${project_root}/.venv/bin/python" "${project_root}/benchmark_scripts/non_gnn/campaign.py" --backend GPU "$@"
+fi
 output_dir="${project_root}/model_dirs/non_gnn/gpu_$(date +%Y%m%d_%H%M%S)_$$"
 args=()
 dry_run=0

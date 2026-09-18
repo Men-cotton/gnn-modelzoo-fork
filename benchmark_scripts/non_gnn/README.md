@@ -2,8 +2,75 @@
 
 CS-3 は Model Zoo 2.10.0 の `cszoo fit` 相当の CLI，Pegasus は既存例と同じ
 NQSV の `AC2` / `gpu` / 1ノード / 2時間の PBS 設定を使う。
-各コマンドは明示した1条件だけを実行・投入する。`--dry-run` は設定とコマンドを
-表示し，ファイル作成，コンパイル，ジョブ投入を行わない。
+引数なしで，公開 WikiText の取得・前処理から下表の4条件の実行・投入まで行う。
+前処理済みデータを検証できた場合は，取得・整形をスキップして実行・投入へ進む。
+`--dry-run` は予定を表示し，取得，ファイル作成，ジョブ投入を行わない。
+
+## 一括実行
+
+環境をセットアップした後，リポジトリのルートで実行する。
+
+```bash
+# Cerebras user node: 前処理またはキャッシュ再利用 → 4条件のCSXクライアント起動
+./benchmark_scripts/cerebras/run_non_gnn.sh
+
+# Pegasus login node: 前処理またはキャッシュ再利用 → 4条件をqsub
+./benchmark_scripts/pegasus/submit_non_gnn_nqsv.sh
+
+# native / Model Zooを両方比較する場合は計8ジョブ
+./benchmark_scripts/pegasus/submit_non_gnn_nqsv.sh --gpu-implementation both
+```
+
+既定の入力は [Salesforce/wikitext](https://huggingface.co/datasets/Salesforce/wikitext)
+の `wikitext-103-raw-v1` / train。空行と見出しを除いた先頭10000段落を使う。
+モデル重みは取得しない。Llama の tokenizer は
+[meta-llama/Llama-3.2-1B](https://huggingface.co/meta-llama/Llama-3.2-1B)
+を使うため，初回は Hugging Face でのアクセス承認とログイン（または `HF_TOKEN`）が必要。
+取得済み tokenizer は `--llama-tokenizer /path/to/tokenizer` または
+`NON_GNN_LLAMA_TOKENIZER` で指定できる。BERT の語彙はリポジトリ同梱のものを使う。
+
+データは既定で `model_dirs/non_gnn/data/<条件のハッシュ>/` に保存する。
+両環境とも最初に `manifest.json` の前処理条件，必要ファイル，サイズ，SHA256 を確認する。
+一致すれば，公開コーパスの問い合わせ・取得，tokenizer のロード，CSV/HDF5 の再作成を
+すべて省く。学習のバッチやステップ数，GPU 実装の変更ではデータを再作成しない。
+前処理条件の変更や破損があれば再作成し，破損した旧ディレクトリは `.invalid-*` として残す。
+生成途中のディレクトリはキャッシュとして採用せず，同じ条件の並行前処理はロックで直列化する。
+
+既定の revision `main` は初回取得時にコミットSHAを解決して manifest に記録する。
+キャッシュ再利用時にはリモート更新を確認しない。別の版を使う場合は
+`--dataset-revision` / `--tokenizer-revision` に明示した版を指定する。
+両環境で同じ入力を保証するには，この版を揃えるか，キャッシュをディレクトリごと転送する。
+
+```bash
+# 投入予定だけを表示
+./benchmark_scripts/cerebras/run_non_gnn.sh --dry-run
+
+# データと設定を用意するだけ
+./benchmark_scripts/pegasus/submit_non_gnn_nqsv.sh --prepare-only
+
+# BERTだけ選択。--onlyは繰り返せる
+./benchmark_scripts/pegasus/submit_non_gnn_nqsv.sh \
+  --only bert_large_msl128 --only bert_large_msl512
+
+# 任意のUTF-8テキストに切り替え（空行で文書を区切る）
+./benchmark_scripts/cerebras/run_non_gnn.sh --raw-text /data/corpus.txt
+```
+
+`--data-root` はキャッシュの置き場所，`--max-documents` は使用段落数を変更する。
+`--output-dir` はその実行の新しい出力先を指定する。再実行ではデータを再利用し，
+学習ジョブは新しく投入する。既存の出力先への重複投入は拒否する。
+`--only` で選ぶモデル群が変わると，必要な前処理条件も変わるため別キャッシュになる。
+
+BERT は段落を文書として句読点で文分割し，WordPiece と NSP の文対をCSVにする。
+MLM は既存 processor が学習時に生成する。Llama は文書ごとの BOS/text/EOS を
+1次元HDF5に保存し，loader が文書境界をまたいで1024／2048に切り出す。
+これはスループット測定用の入力であり，元論文の事前学習データ処理の完全再現ではない。
+
+全設定の生成・検証に成功してから投入を始める。`campaign.json` に各条件の起動状況を保存する。
+GPU は既存の PBS に順次 `qsub` し，応答を各条件の `qsub.log` に保存する。
+CSX はバックグラウンドで各クライアントを起動し，`client.log`, `console.log`,
+`client_status.json` に進行と終了コードを保存する。クライアント起動表示はCSXキュー受理の保証ではない。
+投入途中で失敗した場合，既に起動したジョブはそのまま残るため，`campaign.json` と各ログで確認する。
 
 ## 比較条件
 
@@ -30,7 +97,8 @@ BERT は両系列長とも512位置の埋め込み表を維持する。Llama は
 
 既存の `./setup.sh --target-env csx` / `./setup.sh --target-env gpu` で作成する
 リポジトリの `.venv` を使う。GPU ジョブは既存の `gpu_env.sh` で CUDA module と
-toolkit を確認する。`setup.sh` がダウンロードする GNN データとは別に，次を準備する。
+toolkit を確認する。一括実行では以下のデータを自動生成する。既存の前処理済みデータを
+指定して1条件だけ実行する場合は，`--profile` と `--data-dir` を併用する。
 
 - BERT: `BertCSVDynamicMaskDataProcessor` 用 CSV と `meta.dat`。
   CSV は `tokens`, `segment_ids`, `is_random_next` を持つ。
@@ -48,7 +116,7 @@ toolkit を確認する。`setup.sh` がダウンロードする GNN データ�
 
 同じ条件の両環境には，同じ前処理済みデータと語彙を配置する。CS-3 側のデータと
 語彙は Worker コンテナからも参照できるパスを使う。必要な追加 mount は
-`--mount-dir /absolute/path` で指定する。スクリプトはデータの転送やダウンロードを行わない。
+`--mount-dir /absolute/path` で指定する。環境間のデータ転送は自動では行わない。
 
 GNN 向け setup で省かれる NLP 依存は [requirements.txt](requirements.txt) に記載した。
 設定検証は，使用しない入力 processor も Model Zoo registry 経由で import するため，
@@ -62,7 +130,7 @@ uv pip install --python .venv/bin/python -r benchmark_scripts/non_gnn/requiremen
 
 GPU 実装は Transformers 4.57.3 と PyTorch 2.4 の API を使用する。
 
-## CS-3：各コマンドを Cerebras user node で実行
+## 既存データで1条件のみ：CS-3
 
 リポジトリのルートから実行する。`/data/...` はその環境の実パスへ置き換える。
 最初は末尾に `--dry-run` を付けて確認する。
@@ -74,10 +142,10 @@ GPU 実装は Transformers 4.57.3 と PyTorch 2.4 の API を使用する。
 ./benchmark_scripts/cerebras/run_non_gnn.sh --profile llama3p2_1b_msl2048 --data-dir /data/llama/train_msl2048
 ```
 
-foreground のクライアントを保持する既存例と同じ方式。設定だけを保存・検証する場合は
+この1条件モードは foreground のクライアントを保持する既存例と同じ方式。設定だけを保存・検証する場合は
 `--prepare-only --output-dir /path/to/new/run` を付ける。
 
-## Pegasus：各コマンドをログインノードで実行
+## 既存データで1条件のみ：Pegasus
 
 ```bash
 ./benchmark_scripts/pegasus/submit_non_gnn_nqsv.sh --profile bert_large_msl128 --data-dir /data/bert/train_msl128
