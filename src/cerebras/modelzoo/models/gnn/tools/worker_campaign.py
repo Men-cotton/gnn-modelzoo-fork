@@ -12,12 +12,14 @@ import shutil
 import signal
 import statistics
 import subprocess
+import sys
 import time
 
 import yaml
 
 from cerebras.modelzoo.common.utils.run.config_loader import load_params_file
 from cerebras.modelzoo.models.gnn.worker_validation import get_available_cpu_cores
+from cerebras.modelzoo.tools import benchmark_launcher
 
 if __package__:
     from . import autotune, measure_window
@@ -86,9 +88,13 @@ def plan(args: argparse.Namespace, base: dict) -> list[dict]:
     def ordinary(workers: int) -> None:
         folder = args.output / f"workers_w{workers:02d}"
         command = [
-            "bash",
-            str(ROOT / "benchmark_scripts/cerebras/run_worker_sensitivity.sh"),
-            "--foreground",
+            sys.executable,
+            "-u",
+            str(Path(autotune.__file__).resolve()),
+            "--backend",
+            "csx",
+            "--mode",
+            "sensitivity",
             "--dataset",
             args.dataset,
             "--cache",
@@ -309,7 +315,7 @@ def execute(args: argparse.Namespace, stages: list[dict], fingerprint: str) -> i
                     command[command.index("--budget-sec") + 1] = str(
                         int(remaining + spent)
                     )
-                    code = run_sensitivity(command, directory / "launcher.log")
+                    code = run_sensitivity(command, directory / "driver.log")
                     stage["returncode"] = code
                     stage["status"] = "completed" if code == 0 else "failed"
                     study_path = directory / "study.json"
@@ -402,6 +408,7 @@ def execute(args: argparse.Namespace, stages: list[dict], fingerprint: str) -> i
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
+    benchmark_launcher.add_arguments(parser)
     parser.add_argument("--dataset", choices=("arxiv", "products"), default="arxiv")
     parser.add_argument("--workers", type=int, nargs="+", default=[4, 8, 12, 16])
     parser.add_argument(
@@ -439,7 +446,23 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 
 def main(argv: list[str] | None = None) -> int:
+    argv = list(sys.argv[1:] if argv is None else argv)
     args = parse_args(argv)
+    if args.detach and not args.dry_run:
+        return benchmark_launcher.launch(
+            [
+                sys.executable,
+                "-u",
+                str(Path(__file__).resolve()),
+                *argv,
+                "--foreground",
+                "--output",
+                str(args.output),
+            ],
+            args.output,
+            name="gnn-worker-campaign",
+            session=args.tmux_session,
+        )
 
     def interrupted(*_):
         raise KeyboardInterrupt
@@ -463,6 +486,8 @@ def main(argv: list[str] | None = None) -> int:
                 "dry_run",
                 "archive",
                 "budget_sec",
+                "detach",
+                "tmux_session",
             }
         }
         provenance = {} if args.dry_run else autotune.environment("csx")

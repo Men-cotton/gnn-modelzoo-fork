@@ -1,4 +1,4 @@
-"""Launch worker studies under tmux without retaining environment credentials."""
+"""Run a benchmark command under tmux, recording its log and exit status."""
 
 from __future__ import annotations
 
@@ -20,15 +20,25 @@ import sys
 import time
 import uuid
 
-ROOT = Path(__file__).resolve().parents[2]
-GNN = ROOT / "src/cerebras/modelzoo/models/gnn"
-PREFLIGHT = """import json, runpy, sys
-from pathlib import Path
-sys.path.insert(0, str(Path(sys.argv[1]).parent))
-module = runpy.run_path(sys.argv[1], run_name='worker_launcher_preflight')
-args = module['parse_args'](sys.argv[2:])
-print('WORKER_LAUNCHER_OUTPUT=' + json.dumps(str(args.output.resolve())))
-"""
+CLEANUP_GRACE_SECONDS = 60
+
+
+def add_arguments(parser):
+    """Add launch options to a driver's parser; direct calls stay foreground."""
+    parser.add_argument(
+        "--detach",
+        dest="detach",
+        action="store_true",
+        default=False,
+        help="Run in a detached tmux session",
+    )
+    parser.add_argument(
+        "--foreground",
+        dest="detach",
+        action="store_false",
+        help="Run here and wait for completion (overrides --detach)",
+    )
+    parser.add_argument("--tmux-session", help="Name of the detached tmux session")
 
 
 def timestamp():
@@ -51,9 +61,7 @@ def output_lock(output, *, wait=False):
         try:
             fcntl.flock(lock, fcntl.LOCK_EX | (0 if wait else fcntl.LOCK_NB))
         except BlockingIOError as exc:
-            raise ValueError(
-                "Another launcher is running for this output"
-            ) from exc
+            raise ValueError("Another launcher is running for this output") from exc
         yield
 
 
@@ -83,19 +91,17 @@ def check_available(output):
             and state.get("socket")
             and session_exists(state["socket"], state["session"])
         ):
-            raise ValueError(
-                "Another tmux launcher is starting for this output"
-            )
+            raise ValueError("Another tmux launcher is starting for this output")
     # Also detect drivers started without this launcher. Do not hold their lock:
     # the driver must acquire it itself, including when resuming an old study.
     with (output / ".lock").open("a") as lock:
         try:
             fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError as exc:
-            raise ValueError("Another driver holds this study's lock") from exc
+            raise ValueError("Another driver holds this output's lock") from exc
 
 
-def supervise(request, *, foreground):
+def supervise(request):
     output = Path(request["output"])
     status = {
         **request,
@@ -121,11 +127,8 @@ def supervise(request, *, foreground):
         nonlocal interrupted, stop_deadline
         if interrupted is None:
             interrupted = number
-            # Campaign cleanup can wait 30 seconds for its nested sensitivity
-            # launcher, whose own client cleanup needs a shorter allowance.
-            stop_deadline = time.monotonic() + (
-                60 if request["kind"] == "campaign" else 20
-            )
+            # Give the driver time to stop and reap any clients it manages.
+            stop_deadline = time.monotonic() + CLEANUP_GRACE_SECONDS
             if process is not None and process.poll() is None:
                 signal_driver(number)
 
@@ -166,10 +169,7 @@ def supervise(request, *, foreground):
                 selector.register(process.stdout, selectors.EVENT_READ)
                 drain_deadline = None
                 while selector.get_map() or process.poll() is None:
-                    if (
-                        stop_deadline is not None
-                        and time.monotonic() >= stop_deadline
-                    ):
+                    if stop_deadline is not None and time.monotonic() >= stop_deadline:
                         try:
                             os.killpg(process.pid, signal.SIGKILL)
                         except ProcessLookupError:
@@ -226,21 +226,32 @@ def run_request(path):
         current = json.loads((output / "launcher.json").read_text())
         if current["launch_id"] != request["launch_id"]:
             raise ValueError("Launcher request was superseded")
-        return supervise(request, foreground=False)
+        return supervise(request)
 
 
-def launch(command, output, *, kind, foreground=False, session=None):
-    output = output.resolve()
+def launch(
+    command, output, *, name="benchmark", foreground=False, session=None, cwd=None
+):
+    """Supervise argv using output for metadata, independently of driver files.
+
+    Validate benchmark arguments before calling this function. The command runs
+    in the caller's environment and cwd (or the explicit cwd) without a shell.
+    """
+    if not command:
+        raise ValueError("A benchmark command is required")
+    output = Path(output).resolve()
+    command = [os.fspath(value) for value in command]
+    session = name if session is None else session
     launch_id = uuid.uuid4().hex
     socket = (
-        "gnn-worker-"
+        "benchmark-"
         + hashlib.sha256(str(output).encode()).hexdigest()[:8]
         + "-"
         + launch_id[:8]
     )
-    if session is not None and not re.fullmatch(r"[A-Za-z0-9_-]+", session):
+    if not re.fullmatch(r"[A-Za-z0-9_-]+", session):
         raise ValueError(
-            "--tmux-session accepts letters, digits, '-' and '_' only"
+            "The tmux session name (--tmux-session or --name) accepts letters, digits, '-' and '_' only"
         )
     if not foreground and shutil.which("tmux") is None:
         raise ValueError("tmux is required; install it or use --foreground")
@@ -248,16 +259,16 @@ def launch(command, output, *, kind, foreground=False, session=None):
         check_available(output)
         request = dict(
             launch_id=launch_id,
-            kind=kind,
+            name=name,
             output=str(output),
-            cwd=str(Path.cwd()),
+            cwd=str(Path(cwd).resolve() if cwd is not None else Path.cwd()),
             command=command,
             created_at=timestamp(),
             socket=None if foreground else socket,
-            session=None if foreground else (session or "gnn-" + kind),
+            session=None if foreground else session,
         )
         if foreground:
-            return supervise(request, foreground=True)
+            return supervise(request)
         request_dir = output / ".launcher"
         request_dir.mkdir(exist_ok=True, mode=0o700)
         path = request_dir / (request["launch_id"] + ".json")
@@ -301,9 +312,7 @@ def launch(command, output, *, kind, foreground=False, session=None):
     print(
         "Attach: "
         + shlex.join(
-            tmux_command(
-                socket, "attach-session", "-t", "=" + request["session"]
-            )
+            tmux_command(socket, "attach-session", "-t", "=" + request["session"])
         )
     )
     print("Status: " + shlex.join(["cat", str(output / "launcher.json")]))
@@ -317,60 +326,33 @@ def launch(command, output, *, kind, foreground=False, session=None):
 def main(argv=None):
     argv = list(sys.argv[1:] if argv is None else argv)
     if argv and argv[0] == "_run":
+        if len(argv) != 2:
+            raise ValueError("Expected exactly one launcher request path")
         return run_request(Path(argv[1]))
-    if not argv or argv[0] not in ("campaign", "sensitivity"):
-        raise ValueError("Expected campaign or sensitivity launcher")
-    kind = argv.pop(0)
-    parser = argparse.ArgumentParser(add_help=False, allow_abbrev=False)
-    parser.add_argument("--foreground", action="store_true")
-    parser.add_argument("--tmux-session")
-    options, driver_args = parser.parse_known_args(argv)
-    target = (
-        GNN
-        / "tools"
-        / ("worker_campaign.py" if kind == "campaign" else "autotune.py")
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        usage="%(prog)s --output DIR [options] -- COMMAND [ARG ...]",
+        allow_abbrev=False,
     )
-    defaults = (
-        []
-        if kind == "campaign"
-        else ["--backend", "csx", "--mode", "sensitivity"]
+    parser.add_argument(
+        "--output",
+        type=Path,
+        required=True,
+        help="Launcher metadata directory; may differ from benchmark output",
     )
-    command = [sys.executable, "-u", str(target), *defaults, *driver_args]
-    if any(arg in ("-h", "--help", "--dry-run") for arg in driver_args):
-        if any(arg in ("-h", "--help") for arg in driver_args):
-            print(
-                "Launcher: detached tmux by default; --foreground runs here; --tmux-session NAME sets its name.\n",
-                flush=True,
-            )
-        os.execv(sys.executable, command)
-    # Reuse the driver's complete validation; this call does not run main(),
-    # inspect the cluster, create output directories or launch training.
-    checked = subprocess.run(
-        [sys.executable, "-c", PREFLIGHT, str(target), *defaults, *driver_args],
-        capture_output=True,
-        text=True,
-    )
-    if checked.returncode:
-        sys.stderr.write(checked.stdout + checked.stderr)
-        return checked.returncode
-    marker = "WORKER_LAUNCHER_OUTPUT="
-    output = Path(
-        json.loads(
-            next(
-                line[len(marker) :]
-                for line in checked.stdout.splitlines()
-                if line.startswith(marker)
-            )
-        )
-    )
-    # Pass the same resolved path chosen by preflight, including campaign's
-    # generated default, so launch records and driver output cannot diverge.
-    command += ["--output", str(output)]
+    parser.add_argument("--name", default="benchmark", help="Default tmux session name")
+    add_arguments(parser)
+    parser.set_defaults(detach=True)
+    separator = argv.index("--") if "--" in argv else len(argv)
+    options = parser.parse_args(argv[:separator])
+    command = argv[separator + 1 :]
+    if not command:
+        parser.error("Separate a nonempty benchmark command with --")
     return launch(
         command,
-        output,
-        kind=kind,
-        foreground=options.foreground,
+        options.output,
+        name=options.name,
+        foreground=not options.detach,
         session=options.tmux_session,
     )
 
@@ -379,5 +361,5 @@ if __name__ == "__main__":
     try:
         raise SystemExit(main())
     except (OSError, ValueError) as exc:
-        print(f"worker launcher: {exc}", file=sys.stderr)
+        print(f"benchmark launcher: {exc}", file=sys.stderr)
         raise SystemExit(2)

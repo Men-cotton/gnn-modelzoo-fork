@@ -70,9 +70,9 @@ class PyGTunerTests(unittest.TestCase):
         )
 
     def fake_execute(self, cmd, log, timeout):
-        self.assertEqual(cmd[4:6], ["python", "-u"])
-        self.assertTrue(cmd[6].endswith("pyg_graphsage.py"))
-        params = yaml.safe_load(Path(cmd[8]).read_text())
+        self.assertEqual(cmd[:2], [sys.executable, "-u"])
+        self.assertTrue(cmd[2].endswith("pyg_graphsage.py"))
+        params = yaml.safe_load(Path(cmd[cmd.index("--config") + 1]).read_text())
         self.assertNotIn("backend", params["trainer"]["init"])
         workers = params["trainer"]["fit"]["train_dataloader"]["num_workers"]
         write_log(

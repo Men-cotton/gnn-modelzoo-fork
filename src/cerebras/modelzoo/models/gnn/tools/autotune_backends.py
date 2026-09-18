@@ -2,6 +2,7 @@
 
 from copy import deepcopy
 from pathlib import Path
+import sys
 
 if __package__:
     from . import measure_pyg, measure_window
@@ -59,11 +60,10 @@ class CSXBackend:
     @staticmethod
     def command(config: Path, model_dir: Path) -> list[str]:
         return [
-            "uv",
-            "run",
-            "--no-sync",
-            "--",
-            "cszoo",
+            sys.executable,
+            "-u",
+            "-m",
+            "cerebras.modelzoo.cli.main",
             "fit",
             str(config),
             "--target_device",
@@ -112,11 +112,7 @@ class PyGBackend:
     @staticmethod
     def command(config: Path, model_dir: Path) -> list[str]:
         return [
-            "uv",
-            "run",
-            "--no-sync",
-            "--",
-            "python",
+            sys.executable,
             "-u",
             str(GNN / "pyg_graphsage.py"),
             "--config",

@@ -23,7 +23,7 @@ bash benchmark_scripts/cerebras/run_worker_sensitivity.sh \
 既定の候補は `40, 4, 8, 10, 12, 16, 20`。7条件×3独立runで21ジョブを逐次実行する。
 初回選別や上位候補の追加反復はなく、全runが同じ測定区間を使う。
 奇数ラウンドは指定順、偶数ラウンドは逆順に回す。各runは新しいモデルディレクトリと
-新しい学習クライアントを使う。内部の起動は `uv run --no-sync -- cszoo fit params.yaml
+新しい学習クライアントを使う。内部の起動は同じPythonによる `python -u -m cerebras.modelzoo.cli.main fit params.yaml
 --target_device CSX --model_dir ...` で、クライアントの終了を待って次へ進む。
 一つのクライアントがコンパイル用と学習用の複数wsjobを作る場合があるため、
 独立run数はwsjob IDの個数から数えない。

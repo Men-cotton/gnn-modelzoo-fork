@@ -50,7 +50,7 @@ class WorkerSensitivityTests(unittest.TestCase):
 
     def test_all_conditions_unstable_included_and_resume(self):
         def execute(cmd, log, timeout):
-            params = yaml.safe_load(Path(cmd[6]).read_text())
+            params = yaml.safe_load(Path(cmd[cmd.index("fit") + 1]).read_text())
             loader = params["trainer"]["fit"]["train_dataloader"]
             self.assertTrue(loader["persistent_workers"])
             self.assertEqual(loader["prefetch_factor"], 2)

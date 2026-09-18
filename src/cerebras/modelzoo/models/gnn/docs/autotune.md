@@ -3,11 +3,16 @@
 For HPC Asia R04, use the [worker sensitivity workflow](worker_sensitivity.md): every worker count receives the same independent repeats and a mean/sample-standard-deviation report. The defaults below describe the original winner-selection mode.
 
 `tools/autotune.py` uses the configurations and measurement script from
-`cs3_autotune_overrides.zip`. It runs one `uv run --no-sync -- cszoo fit` client
+`cs3_autotune_overrides.zip`. It runs one `python -u -m cerebras.modelzoo.cli.main fit` client
 at a time with `--backend csx` (the default). `--backend pyg` launches the existing
 `pyg_graphsage.py` path on one CUDA GPU. Search, budgets, resume and finalist
 confirmation share one implementation. No dependency synchronization or dataset
 downloads are performed.
+
+The entry command selects the prepared Python environment with `uv run --no-sync`.
+Environment checks and training clients use that same interpreter. Direct Python
+invocation runs in the foreground; add `--detach` to use the shared tmux launcher.
+See [launching and monitoring](worker_launch.md) for session and log handling.
 
 ## PyG on one GPU
 
@@ -161,8 +166,8 @@ Re-run the same command and output directory to resume. Completed, unstable and
 invalid measurements are retained and skipped. The cumulative budget can be
 increased with `--budget-sec`; search settings, resolved base config, source hash,
 Git commit and environment must match. A changed study needs a new output path.
-The environment snapshot includes the actual package inventory, Python, backend dependencies and
-uv versions, Git status, and a hash of the Python sources. The full resolved
+The environment snapshot includes the actual package inventory, Python, backend dependencies,
+Git status, and a hash of the Python sources and worker shell entrypoints. The full resolved
 trial configuration is saved and hashed, avoiding inheritance changes mid-study.
 
 For CSX, a failed client, timeout, Ctrl-C or SIGTERM pauses the entire study. Stopping a

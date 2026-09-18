@@ -3,6 +3,7 @@
 import json
 import os
 from pathlib import Path
+import signal
 import subprocess
 import sys
 import tempfile
@@ -34,6 +35,17 @@ class CampaignTests(unittest.TestCase):
         for stage in stages:
             if stage["kind"] == "sensitivity":
                 self.assertIn("--continue-on-failure", stage["command"])
+                self.assertEqual(
+                    stage["command"][:3],
+                    [
+                        sys.executable,
+                        "-u",
+                        str(Path(campaign.autotune.__file__).resolve()),
+                    ],
+                )
+                self.assertFalse(
+                    campaign.autotune.parse_args(stage["command"][3:]).detach
+                )
         first_large = next(i for i, s in enumerate(stages) if s["workers"] > 4)
         self.assertTrue(
             all(
@@ -165,6 +177,86 @@ class CampaignTests(unittest.TestCase):
             self.assertEqual(state["stages"][0]["status"], "pending")
             self.assertEqual(campaign.execute(self.args, stages, "identity"), 0)
         self.assertGreater(seen_budgets[1], seen_budgets[0] + 990)
+
+    def test_detach_validates_before_launch_and_reenters_in_foreground(self):
+        cli = [
+            "--output",
+            str(self.args.output),
+            "--detach",
+            "--tmux-session",
+            "campaign-session",
+        ]
+        with (
+            patch.object(
+                campaign.benchmark_launcher, "launch", return_value=0
+            ) as launch,
+            patch.object(campaign, "load_params_file") as load,
+        ):
+            with self.assertRaises(SystemExit) as invalid:
+                campaign.main(cli + ["--repeats", "2"])
+            self.assertEqual(invalid.exception.code, 2)
+            launch.assert_not_called()
+            self.assertEqual(campaign.main(cli), 0)
+            load.assert_not_called()
+        command, output = launch.call_args.args
+        self.assertEqual(
+            command[:3], [sys.executable, "-u", str(Path(campaign.__file__).resolve())]
+        )
+        child = campaign.parse_args(command[3:])
+        self.assertFalse(child.detach)
+        self.assertEqual(child.output, output)
+        self.assertEqual(
+            launch.call_args.kwargs,
+            dict(name="gnn-worker-campaign", session="campaign-session"),
+        )
+        self.assertEqual(list(self.args.output.iterdir()), [])
+
+    def test_launch_options_do_not_change_campaign_identity(self):
+        self.addCleanup(signal.signal, signal.SIGTERM, signal.getsignal(signal.SIGTERM))
+        cli = ["--output", str(self.args.output), "--no-archive"]
+        with (
+            patch.object(
+                campaign.autotune, "environment", return_value={"test": "identity"}
+            ),
+            patch.object(campaign, "get_available_cpu_cores", return_value=64),
+            patch.object(campaign, "execute", return_value=0) as execute,
+            patch.object(campaign.benchmark_launcher, "launch") as launch,
+        ):
+            self.assertEqual(campaign.main(cli), 0)
+            self.assertEqual(
+                campaign.main(
+                    cli + ["--detach", "--foreground", "--tmux-session", "renamed"]
+                ),
+                0,
+            )
+            launch.assert_not_called()
+        self.assertEqual(
+            execute.call_args_list[0].args[2], execute.call_args_list[1].args[2]
+        )
+        settings = json.loads((self.args.output / "plan.json").read_text())["settings"]
+        self.assertNotIn("detach", settings)
+        self.assertNotIn("tmux_session", settings)
+
+    def test_dry_run_stays_in_foreground(self):
+        self.addCleanup(signal.signal, signal.SIGTERM, signal.getsignal(signal.SIGTERM))
+        with (
+            patch.object(campaign.benchmark_launcher, "launch") as launch,
+            patch.object(campaign.autotune, "environment") as environment,
+            patch.object(campaign, "execute") as execute,
+            patch.object(campaign.subprocess, "run") as nested,
+        ):
+            self.assertEqual(
+                campaign.main(
+                    ["--output", str(self.args.output), "--detach", "--dry-run"]
+                ),
+                0,
+            )
+            launch.assert_not_called()
+            environment.assert_not_called()
+            execute.assert_not_called()
+        self.assertEqual(nested.call_count, 4)
+        for call in nested.call_args_list:
+            self.assertEqual(call.args[0][-1], "--dry-run")
 
 
 class ResourceTests(unittest.TestCase):

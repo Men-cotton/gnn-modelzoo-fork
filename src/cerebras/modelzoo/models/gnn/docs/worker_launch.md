@@ -34,9 +34,9 @@ bash benchmark_scripts/cerebras/run_worker_campaign.sh \
   --output model_dirs/hpcasia_r04/arxiv_input_campaign
 ```
 
-campaignは通常の感度測定をsensitivityへ委譲し、介入・診断も一つずつ実行する。
-内側のsensitivityは `--foreground` で完了を待つため、各段階が別々にdetachされて
-同時投入になることはない。測定対象・順序・失敗時の扱いは、それぞれの
+campaignは通常の感度測定を `autotune.py --mode sensitivity` へ委譲し、
+介入・診断も一つずつ実行する。各段階を同じPythonで直接起動し、完了を待つ。
+tmuxと起動状態の管理はcampaign全体に一つだけ設ける。測定対象・順序・失敗時の扱いは、それぞれの
 [sensitivity](worker_sensitivity.md)・[campaign](worker_campaign.md)の説明に従う。
 
 両コマンドで次の起動オプションを使える。
@@ -46,9 +46,14 @@ campaignは通常の感度測定をsensitivityへ委譲し、介入・診断も�
 - `--dry-run`: 計画・設定の生成だけを前景で行い、tmuxや学習クライアントを起動しない。
 - `--help`: 学習を起動せず、起動オプションと実験オプションを表示する。
 
+Pythonのドライバを直接呼ぶ場合は前景実行が既定で、`--detach` でtmux起動を選べる。
+シェルスクリプトは環境の選択と既定オプションを指定する入口である。
+入口で選んだPythonを環境検証・各trialまで使うため、準備済み環境で実行する。
+前景実行では結果を端末と `study.json`／`campaign.json` で確認し、終了コードは呼出元へ返る。
+
 ## 経過と終了結果を見る
 
-出力先の `driver.log` に実験ドライバの出力を追記し、`launcher.json` に
+tmux起動では出力先の `driver.log` に実験ドライバの出力を追記し、`launcher.json` に
 起動・終了の状態と終了コードを残す。端末への復帰は起動処理の終了であり、
 実験の成功判定には `launcher.json` と `study.json`／`campaign.json` を使う。
 
@@ -61,7 +66,9 @@ tmuxへ接続した後は `Ctrl-b d` でdetachする。実験を中断する場�
 実験ドライバが終了すると専用セッションも
 終了し、ログと状態ファイルが残る。再起動時は同じ出力先を指定すると既存の
 study／campaign再開規則に従う。同じ出力先の実行中ドライバを重複起動できない。
-campaign配下では `launcher.log` が内側の起動処理を、`driver.log` が感度測定を記録する。
+campaign配下の感度測定は各段階の `driver.log` と `study.json` に記録する。
+起動管理の実装と新しいbenchmarkの追加方法は
+[benchmarkの起動規約](../../../../../../benchmark_scripts/README.md)を参照する。
 
 ## csctlのlabelで識別する
 

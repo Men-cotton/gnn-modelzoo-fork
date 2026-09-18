@@ -50,7 +50,7 @@ PSSは共有ページを各プロセスに按分した値。RSSの単純合計�
 
 合計37 run（通常測定21、入力条件の比較12、診断4）。大きいworker数で失敗しても、
 先に完了した対照・入力条件の結果が残る。各ペアの通常測定は既存の
-`run_worker_sensitivity.sh --foreground` を呼び、4との実行順を反復ごとに反転する。
+`autotune.py --mode sensitivity` を同じPythonで直接呼び、4との実行順を反復ごとに反転する。
 4種類の介入はworker数4、WSC入力Worker数1、batch_size=4096、fanouts=[15,10,5]に固定する。
 診断を有効にするのは4つの診断runのみ。
 

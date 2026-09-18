@@ -2,9 +2,11 @@
 
 from copy import deepcopy
 from datetime import datetime, timedelta
+import json
 from pathlib import Path
 import sys
 import tempfile
+from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
@@ -56,7 +58,7 @@ class AutotuneTests(unittest.TestCase):
 
     @staticmethod
     def fake_execute(cmd, log, timeout):
-        params = yaml.safe_load(Path(cmd[6]).read_text())
+        params = yaml.safe_load(Path(cmd[cmd.index("fit") + 1]).read_text())
         loader = params["trainer"]["fit"]["train_dataloader"]
         init = params["trainer"]["init"]
         # Worker 4 is faster. The supplied GlobalRate deliberately contradicts the timing.
@@ -121,7 +123,10 @@ class AutotuneTests(unittest.TestCase):
             self.assertEqual(study.state["ranking"][0]["knobs"]["num_workers"], 4)
             self.assertEqual(len({r["command"][-1] for r in trials}), 8)
             self.assertEqual(trials[0]["job_ids"], ["wsjob-autotune-test"])
-            self.assertEqual(self.study().run(), 0)
+            resumed_args = deepcopy(self.args)
+            resumed_args.detach = True
+            resumed_args.tmux_session = "renamed-session"
+            self.assertEqual(self.study(resumed_args).run(), 0)
             self.assertEqual(execute.call_count, 8)
         self.assertEqual(
             yaml.safe_load((self.output / "best.yaml").read_text())["trainer"]["fit"][
@@ -191,6 +196,70 @@ class AutotuneTests(unittest.TestCase):
         )
         self.assertEqual(row["status"], "timeout")
 
+    def test_commands_and_environment_probe_use_current_python(self):
+        command = tune.get_backend("csx").command(
+            self.output / "params.yaml", self.output / "model"
+        )
+        self.assertEqual(
+            command[:5],
+            [sys.executable, "-u", "-m", "cerebras.modelzoo.cli.main", "fit"],
+        )
+        info = dict(
+            python="3.11.0",
+            sdk="2.10.0",
+            modelzoo_path=str(tune.GNN.parents[1] / "__init__.py"),
+        )
+        with (
+            patch.object(
+                tune.subprocess,
+                "run",
+                return_value=SimpleNamespace(
+                    returncode=0, stdout=json.dumps(info), stderr=""
+                ),
+            ) as probe,
+            patch.object(tune.subprocess, "check_output", side_effect=["revision", ""]),
+        ):
+            provenance = tune.environment()
+        self.assertEqual(probe.call_args.args[0][:2], [sys.executable, "-c"])
+        self.assertIn("source_sha256", provenance)
+        self.assertNotIn("uv", provenance)
+
+    def test_detach_validates_before_launch_and_reenters_in_foreground(self):
+        cli = [
+            "--dataset",
+            "arxiv",
+            "--workers",
+            "4",
+            "--output",
+            str(self.output),
+            "--budget-sec",
+            "100000",
+            "--detach",
+            "--tmux-session",
+            "study-session",
+        ]
+        with (
+            patch.object(tune.benchmark_launcher, "launch", return_value=0) as launch,
+            patch.object(tune, "load_params_file") as load,
+        ):
+            with self.assertRaises(SystemExit) as invalid:
+                tune.main(cli + ["--repeats", "2"])
+            self.assertEqual(invalid.exception.code, 2)
+            launch.assert_not_called()
+            self.assertEqual(tune.main(cli), 0)
+            load.assert_not_called()
+        command, output = launch.call_args.args
+        self.assertEqual(
+            command[:3], [sys.executable, "-u", str(Path(tune.__file__).resolve())]
+        )
+        child = tune.parse_args(command[3:])
+        self.assertFalse(child.detach)
+        self.assertEqual(child.output, output)
+        self.assertEqual(
+            launch.call_args.kwargs, dict(name="gnn-autotune", session="study-session")
+        )
+        self.assertEqual(list(self.output.iterdir()), [])
+
     def test_lock_and_dry_run(self):
         with tune.study_lock(self.output):
             with self.assertRaisesRegex(ValueError, "lock"):
@@ -199,6 +268,7 @@ class AutotuneTests(unittest.TestCase):
         with (
             patch.object(tune, "environment") as env,
             patch.object(tune, "execute") as execute,
+            patch.object(tune.benchmark_launcher, "launch") as launch,
         ):
             self.assertEqual(
                 tune.main(
@@ -210,12 +280,14 @@ class AutotuneTests(unittest.TestCase):
                         "--budget-sec",
                         "100000",
                         "--dry-run",
+                        "--detach",
                     ]
                 ),
                 0,
             )
             env.assert_not_called()
             execute.assert_not_called()
+            launch.assert_not_called()
         self.assertTrue((self.output / "plan.json").exists())
         self.assertFalse((self.output / "study.json").exists())
 

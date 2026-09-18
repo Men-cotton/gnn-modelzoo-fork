@@ -25,6 +25,7 @@ from cerebras.modelzoo.common.utils.run.config_loader import load_params_file
 from cerebras.modelzoo.models.gnn.worker_validation import (
     get_available_cpu_cores,
 )
+from cerebras.modelzoo.tools import benchmark_launcher
 
 # Also support direct execution from the documented GNN directory.
 if __package__:
@@ -195,8 +196,8 @@ info = {"python": sys.version, "executable": sys.executable,
     "packages": sorted((d.metadata["Name"], d.version) for d in m.distributions())}
 """
     if backend == "csx":
-        code += """import cerebras.pytorch, shutil
-info.update(cszoo=shutil.which("cszoo"), sdk=m.version("cerebras-pytorch"))
+        code += """import cerebras.pytorch
+info.update(sdk=m.version("cerebras-pytorch"))
 """
     else:
         code += """import torch, torch_geometric
@@ -214,7 +215,7 @@ info.update(torch=torch.__version__, pyg=torch_geometric.__version__, cuda=torch
 """
     code += "print(json.dumps(info))"
     result = subprocess.run(
-        ["uv", "run", "--no-sync", "--", "python", "-c", code],
+        [sys.executable, "-c", code],
         cwd=GNN,
         capture_output=True,
         text=True,
@@ -229,15 +230,10 @@ info.update(torch=torch.__version__, pyg=torch_geometric.__version__, cuda=torch
     if backend == "csx" and (
         not info["python"].startswith("3.11.")
         or info["sdk"] != "2.10.0"
-        or not info["cszoo"]
-        or Path(info["cszoo"]).parent != Path(info["prefix"]) / "bin"
     ):
         raise ValueError(
-            "Prepare Python 3.11, Cerebras 2.10.0 and editable cszoo before tuning"
+            "Prepare Python 3.11, Cerebras 2.10.0 and an editable checkout before tuning"
         )
-    info["uv"] = subprocess.check_output(
-        ["uv", "--version"], text=True
-    ).strip()
     info["git_commit"] = subprocess.check_output(
         ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True
     ).strip()
@@ -249,7 +245,6 @@ info.update(torch=torch.__version__, pyg=torch_geometric.__version__, cuda=torch
     sources.extend(
         ROOT / "benchmark_scripts/cerebras" / name
         for name in (
-            "worker_launcher.py",
             "run_worker_campaign.sh",
             "run_worker_sensitivity.sh",
         )
@@ -364,6 +359,8 @@ class Study:
                 "dry_run",
                 "acknowledge_stopped_jobs",
                 "budget_sec",
+                "detach",
+                "tmux_session",
             }
         }
         # git_status may change when generated results are stored inside the checkout.
@@ -668,6 +665,7 @@ class Study:
 
 def parse_args(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
+    benchmark_launcher.add_arguments(parser)
     parser.add_argument(
         "--mode", choices=("autotune", "sensitivity"), default="autotune"
     )
@@ -819,8 +817,24 @@ def parse_args(argv=None):
 
 
 def main(argv=None):
+    argv = list(sys.argv[1:] if argv is None else argv)
     args = parse_args(argv)
     output = args.output.resolve()
+    if args.detach and not args.dry_run:
+        return benchmark_launcher.launch(
+            [
+                sys.executable,
+                "-u",
+                str(Path(__file__).resolve()),
+                *argv,
+                "--foreground",
+                "--output",
+                str(output),
+            ],
+            output,
+            name="gnn-" + args.mode,
+            session=args.tmux_session,
+        )
     backend = get_backend(args.backend)
     base = load_params_file(
         GNN / "configs/autotune" / f"{args.dataset}_w40.yaml"

@@ -164,11 +164,8 @@ class JobLabelTests(unittest.TestCase):
                 self.assertEqual(actual["owner"], "alice")
             else:
                 command = stage["command"]
-                self.assertIn("--foreground", command)
-                nested = autotune.parse_args(
-                    ["--mode", "sensitivity"]
-                    + [arg for arg in command[2:] if arg != "--foreground"]
-                )
+                nested = autotune.parse_args(command[3:])
+                self.assertFalse(nested.detach)
                 config = autotune.prepare_config(
                     autotune.get_backend("csx"),
                     nested,
