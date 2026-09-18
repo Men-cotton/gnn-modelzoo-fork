@@ -6,9 +6,9 @@ Read only the reference relevant to the task:
 
 - [Pipeline contracts](reference/pipeline-contracts.md): loader ownership, masking, GPU configuration, supported extensions, and validation commands. Read when changing GNN runtime behavior or the SDK.
 - [Masked-loss lowering fixture](reference/fixtures/masked-loss.mlir): a small equivalent forward/backward graph for local SDK conversion. Use with the pipeline reference; it is not a full model export.
-- [Compiler artifact reference](reference/compiler-artifacts.md): archive locations, interpretation limits, unsupported sparse shapes and SDK loss counterexamples. Read when inspecting compiler output or reconsidering an SDK workaround.
-- [HPC Asia revalidation](research/hpcasia-revalidation.md): the unresolved relationship between the manuscript and its recorded experiments. Read for paper claims or replacement measurements; update or remove it when that dependency is closed.
+- [Compiler artifact reference](reference/compiler-artifacts.md): artifact interpretation limits, unsupported sparse shapes and SDK loss counterexamples. Read when inspecting compiler output or reconsidering an SDK workaround.
+- [HPC Asia revalidation](research/hpcasia-revalidation.md): current learning, throughput and provenance requirements. Read for paper claims and physical measurements; update it when the required evidence is collected.
 
-Operational instructions already live in the [GNN docs](../src/cerebras/modelzoo/models/gnn/docs/). Environment requirements come from [pyproject.toml](../pyproject.toml), not historical reports.
+Operational instructions already live in the [GNN docs](../src/cerebras/modelzoo/models/gnn/docs/). Environment requirements come from [pyproject.toml](../pyproject.toml) and the active installation.
 
 This compact index applies the [GPT-6 Astra guidance](https://developers.openai.com/api/docs/guides/latest-model?model=gpt-6-astra) on auditing conflicting instructions and keeping verification proportional to the change. It does not add mandatory planning templates, automatic commit instructions or duplicate general coding rules.

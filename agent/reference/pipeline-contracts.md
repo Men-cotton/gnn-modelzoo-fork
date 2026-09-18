@@ -1,8 +1,8 @@
 # GNN pipeline contracts
 
-Use this reference when extending loaders, changing training semantics, or upgrading the SDK. Paths below are relative to `src/cerebras/modelzoo/models/gnn/`. Runtime versions come from `pyproject.toml` and the active environment; historical experiment versions come from their saved metadata.
+Use this reference when extending loaders, changing training semantics, or upgrading the SDK. Paths below are relative to `src/cerebras/modelzoo/models/gnn/`. Runtime versions come from `pyproject.toml` and the active environment; each experiment records the versions actually used.
 
-Implementation revision: `327b56a` contains the GNN runtime fixes and regression tests audited on 2026-09-18, including `task/loss.py` and `gpu_policy.py`. Use that revision or a descendant when applying these contracts. The physical CSX validation boundary remains as described below.
+The implementation contracts below cover `task/loss.py`, `gpu_policy.py` and the corresponding regression tests. Physical CSX validation is a separate requirement.
 
 ## Loader ownership and data
 
@@ -31,17 +31,17 @@ papers100M retains compact CSR indexes after releasing the original edge tensor.
 
 Check that both loss and gradient divide by the runtime mask count, clamped to at least 1. The fixture is authored canonicalized arithmetic, not a full Python export. A new CSX execution must still verify the real model, compiler transformations and microbatch behavior. Local conversion and host tests do not establish device numerical equivalence.
 
-The [compiler reference](compiler-artifacts.md) retains the SDK mean-loss counterexamples and archived full-graph evidence. Use those when deciding whether a newer SDK permits removal of the explicit-count workaround.
+The [compiler reference](compiler-artifacts.md) contains the authored SDK mean-loss counterexamples. Use those when deciding whether a newer SDK permits removal of the explicit-count workaround.
 
 All evaluation paths exclude ignored labels from accuracy. PyG training uses `fit.val_dataloader`; standalone validation uses `validate.val_dataloader`. Explicit null splits fall back to the relevant train/validation split.
 
-`gpu_policy.py` translates precision and AdamW settings for the native GPU runners. PyG's legacy `task.to_float16` applies only when precision is absent. BF16 does not use FP16 gradient scaling. Explicit optimizer kwargs are preserved; implicit defaults can still differ between Cerebras and PyTorch, so matched experiments should specify eps/betas as well as learning rate and weight decay.
+`gpu_policy.py` translates precision and AdamW settings for the native GPU runners. PyG uses `task.to_float16` only when precision is absent. BF16 does not use FP16 gradient scaling. Explicit optimizer kwargs are preserved; implicit defaults can still differ between Cerebras and PyTorch, so matched experiments should specify eps/betas as well as learning rate and weight decay.
 
 PyG GraphSAGE honors mean/sum/max at every layer. CAGNET currently accepts mean only. DDP uses local CUDA device IDs, not global ranks. `tests/test_pyg_aggregator.py` checks real aggregations against manual and fixed-shape oracles; `test_pipeline_pyg.py` covers configuration and evaluation.
 
 ## Preparation and unsupported extensions
 
-Homogeneous partition training requires the global label sidecar and the partitioner's owner map. arxiv partitions must be generated with the same undirected transformation as the ordinary loader; old directed partitions need regeneration. MAG partition generation uses `node_map/paper.pt`, but heterogeneous partition training is rejected until a compatible model and sampler contract exist.
+Homogeneous partition training requires the global label sidecar and the partitioner's owner map. arxiv partitions must be generated with the same undirected transformation as the ordinary loader; directed partitions must be regenerated for that path. MAG partition generation uses `node_map/paper.pt`, but heterogeneous partition training is rejected until a compatible model and sampler contract exist.
 
 Dataset readiness checks required nonempty raw/split/processed files, including MAG's typed label layout. It does not validate all file contents or large-file checksums. papers100M raw preparation is distinct from full PyG processing. MAG240M streaming is not implemented. The registry explicitly rejects GCN SparseMatMul: SDK expert-selection sparse kernels are not a supported full-graph adjacency primitive for that model.
 
