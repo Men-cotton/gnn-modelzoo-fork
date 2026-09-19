@@ -12,7 +12,6 @@ args=(--dataset "${GPU_SWEEP_DATASET:-arxiv}"
     --phase "${GPU_SWEEP_PHASE:-all}"
     --backend "${GPU_SWEEP_BACKEND:-both}"
     --pyg-base-config "${GPU_SWEEP_PYG_CONFIG:?Missing GPU_SWEEP_PYG_CONFIG}")
-[[ -z "${GPU_SWEEP_CONFIG:-}" ]] || args+=(--base-config "$GPU_SWEEP_CONFIG")
 case "${GPU_SWEEP_COMPILE:-0}" in
     0) ;;
     1) args+=(--compile) ;;

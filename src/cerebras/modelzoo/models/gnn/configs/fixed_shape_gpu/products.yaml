@@ -1,0 +1,87 @@
+# Fixed-shape GraphSAGE GPU input-sweep base, not a measured tuning winner.
+# Resolved from learning_campaign.shared_base with explicit AdamW settings.
+# Exclude the first 40 steps; use a fresh output directory for each run.
+trainer:
+  init:
+    seed: 42
+    model:
+      name: gnn
+      task:
+        compute_eval_metrics: false
+        disable_log_softmax: false
+        to_float16: true
+      architecture:
+        type: graphsage
+        hidden_dim: 1024
+        num_layers: 3
+        dropout: 0.5
+        aggregator: mean
+        n_feat: 100
+        n_class: 47
+    optimizer:
+      AdamW:
+        params: []
+        weight_decay: 0.0005
+        learning_rate: 0.003
+        eps: 1.0e-06
+        betas:
+        - 0.9
+        - 0.999
+    precision:
+      enabled: true
+      fp16_type: float16
+      loss_scaling_factor: dynamic
+    model_dir: model_dirs/fixed_shape_gpu/products
+    loop:
+      max_steps: 1640
+      steps_per_epoch: null
+      eval_frequency: null
+      num_steps: null
+      num_epochs: null
+      grad_accum_steps: 1
+    logging:
+      log_steps: 10
+    checkpoint:
+      steps: null
+      autoload_last_checkpoint: false
+      save_initial_checkpoint: false
+    autorestart:
+      max_num_restarts: 0
+    benchmark:
+      warmup_steps: 40
+  fit:
+    train_dataloader:
+      data_processor: GNNDataProcessor
+      sampling_mode: neighbor
+      fanouts:
+      - 15
+      - 10
+      - 5
+      batch_size: 4096
+      drop_last_batch: false
+      num_workers: 4
+      prefetch_factor: 2
+      persistent_workers: true
+      pin_memory: true
+      sampler_seed: 42
+      shuffle: true
+      cache_fraction: null
+      split: train
+      dataset_profiles:
+        ogbn_products:
+          dataset_name: ogbn-products
+          data_dir: $MODELZOO_ROOT/models/gnn/data/datasets
+          pad_node_id: 0
+      dataset: ogbn_products
+      static_batch_cache_size: 0
+      use_fake_data: false
+      worker_diagnostics:
+        enabled: false
+      measure_batch_accounting: true
+    val_dataloader: null
+    ckpt_path: null
+  validate: null
+  validate_all: null
+runconfig:
+  python_paths:
+  - $MODELZOO_ROOT/../..

@@ -3,7 +3,6 @@
 set -euo pipefail
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 project_root="$(cd "${script_dir}/../.." && pwd -P)"
-config=""
 backend=both
 dataset=arxiv
 pyg_config=""
@@ -15,14 +14,13 @@ trial_timeout_sec=1800
 compile=0
 dry_run=0
 usage() {
-    echo "Usage: $0 --output DIR [--dataset arxiv|products] [--backend both|fixed_shape|pyg] [--base-config PATH] [--pyg-base-config PATH] [--phase all|tune|workers|prefetch1|persistent-off|feature-cache] [--workers '2 4 ... 64'] [--compile] [--budget-sec N] [--trial-timeout-sec N] [--dry-run]"
+    echo "Usage: $0 --output DIR [--dataset arxiv|products] [--backend both|fixed_shape|pyg] [--pyg-base-config PATH] [--phase all|tune|workers|prefetch1|persistent-off|feature-cache] [--workers '2 4 ... 64'] [--compile] [--budget-sec N] [--trial-timeout-sec N] [--dry-run]"
 }
 while (( $# )); do
     case "$1" in
-        --base-config|--pyg-base-config|--dataset|--backend|--output|--phase|--workers|--budget-sec|--trial-timeout-sec)
+        --pyg-base-config|--dataset|--backend|--output|--phase|--workers|--budget-sec|--trial-timeout-sec)
             [[ -n "${2:-}" ]] || { usage >&2; exit 2; }
             case "$1" in
-                --base-config) config="$2" ;;
                 --pyg-base-config) pyg_config="$2" ;;
                 --backend) backend="$2" ;;
                 --dataset) dataset="$2" ;;
@@ -52,7 +50,8 @@ case "$backend" in
     *) usage >&2; exit 2 ;;
 esac
 if [[ "$backend" != pyg ]]; then
-    [[ -f "$config" ]] || { echo 'Fixed-shape runs require --base-config PATH' >&2; exit 2; }
+    config="${project_root}/src/cerebras/modelzoo/models/gnn/configs/fixed_shape_gpu/${dataset}.yaml"
+    [[ -f "$config" ]] || { echo 'Fixed-shape config not found' >&2; exit 2; }
     config="$(cd "$(dirname "$config")" && pwd -P)/$(basename "$config")"
 fi
 if [[ "$backend" != fixed_shape ]]; then

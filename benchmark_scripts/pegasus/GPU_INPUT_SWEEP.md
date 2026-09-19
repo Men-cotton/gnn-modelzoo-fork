@@ -7,25 +7,27 @@
 PyG側はデータセット別の独立した既存設定とNeighborLoader/GraphSAGE実装を使う。
 学習済み重みは読み込まず、各試行でモデルを初期化する。
 
-CS-3キャンペーンの `handoff/selected_fixed_shape_gpu.yaml` をPegasusへ配置し、
-`--base-config` に指定する。2026-09-18のarxiv条件はseed 42、GraphSAGE 3層、
+固定形状側の既定設定はリポジトリ内の
+`src/cerebras/modelzoo/models/gnn/configs/fixed_shape_gpu/{arxiv,products}.yaml`。
+`--dataset` に応じて自動選択する。GPU探索入口に `--base-config` オプションはない。
+両YAMLは `learning_campaign.shared_base` と固定形状GPU backendから生成した
+探索の基準設定であり、測定済みの最適設定ではない。2026-09-18のarxiv条件はseed 42、GraphSAGE 3層、
 hidden_dim 1024、fanouts [15,10,5]、batch_size 4096、dropout 0.5、
 AdamW lr 0.003 / weight_decay 0.0005 / eps 1e-6、FP16である。
 固定形状側はモデルとseedを指定YAMLから引き継ぐ。データセットは `--dataset arxiv|products`（既定arxiv）で選ぶ。
 PyG側の既定はデータセットに対応する
 `configs/autotune/arxiv_w40.yaml` / `products_w40.yaml`（継承を解決して使用）で、
-`--pyg-base-config PATH` で独立に変更できる。`--backend pyg` では
-`--base-config` は不要。データセットは事前配置する。
+`--pyg-base-config PATH` で独立に変更できる。データセットは事前配置する。
 
 ```bash
-# リポジトリルート。設定ファイルのパスは実際の配置先へ置き換える。
+# リポジトリルート。設定はリポジトリ内の既定YAMLを使用する。
 ./benchmark_scripts/pegasus/run_gpu_input_sweep.sh \
-  --base-config model_dirs/arxiv/handoff/selected_fixed_shape_gpu.yaml \
+  --dataset arxiv \
   --output /tmp/arxiv_gpu_preview --compile --dry-run
 
 # qsubコマンドの確認（投入しない）
 ./benchmark_scripts/pegasus/submit_gpu_input_sweep_nqsv.sh \
-  --base-config model_dirs/arxiv/handoff/selected_fixed_shape_gpu.yaml \
+  --dataset arxiv \
   --output model_dirs/hpcasia_gpu_input/arxiv_s42 --compile --dry-run
 ```
 
@@ -60,13 +62,12 @@ PyGはキャッシュ無効を0.0、有効を1.0に設定する（nullはGPU自�
 | arxiv | 840 | step 40→840 | 800 |
 | products | 1,640 | step 40→1,640 | 1,600 |
 
-productsの固定形状側にはproducts用の解決済みYAMLを指定する。
+productsの固定形状側には既定で `configs/fixed_shape_gpu/products.yaml` を使用する。
 データセットとYAMLの不一致は既存autotunerが拒否する。
 
 ```bash
 ./benchmark_scripts/pegasus/submit_gpu_input_sweep_nqsv.sh \
   --dataset products --backend both \
-  --base-config model_dirs/products/handoff/selected_fixed_shape_gpu.yaml \
   --output model_dirs/hpcasia_gpu_input/products_s42 --compile --dry-run
 ```
 
