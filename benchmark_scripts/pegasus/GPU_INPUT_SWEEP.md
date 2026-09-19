@@ -1,6 +1,10 @@
 # Pegasus: ogbn-arxiv / ogbn-products入力設定の探索
 
 `run_gpu_input_sweep.sh` は既存の `tools/autotune.py` を逐次実行する。
+`submit_gpu_input_sweep_nqsv.sh` は、dataset/backend/phase/num_workers ごとに
+独立した PBS ジョブを投入する。したがって、一つのジョブが全 worker 候補を
+順番に実行して長時間占有することはない。各ジョブ内の同一設定の3反復や、
+`tune` における同一 worker の prefetch/persistence 比較は一つの測定単位として残る。
 `--backend both`（既定）は固定形状GPU経路、その後に通常のPyG経路を実行する。
 `--backend fixed_shape` / `--backend pyg` で個別にも実行できる。
 固定形状側は2026-09-18開始のCS-3学習キャンペーンとR04のモデル・表現を継承する。
@@ -9,7 +13,9 @@ PyG側はデータセット別の独立した既存設定とNeighborLoader/Graph
 
 固定形状側の既定設定はリポジトリ内の
 `src/cerebras/modelzoo/models/gnn/configs/fixed_shape_gpu/{arxiv,products}.yaml`。
-`--dataset` に応じて自動選択する。GPU探索入口に `--base-config` オプションはない。
+`--dataset` に応じて自動選択する。投入入口では `--dataset all` により
+arxiv/products を個別ジョブとして展開できる。GPU探索入口に `--base-config`
+オプションはない。
 両YAMLは `learning_campaign.shared_base` と固定形状GPU backendから生成した
 探索の基準設定であり、測定済みの最適設定ではない。2026-09-18のarxiv条件はseed 42、GraphSAGE 3層、
 hidden_dim 1024、fanouts [15,10,5]、batch_size 4096、dropout 0.5、
@@ -29,6 +35,12 @@ PyG側の既定はデータセットに対応する
 ./benchmark_scripts/pegasus/submit_gpu_input_sweep_nqsv.sh \
   --dataset arxiv \
   --output model_dirs/hpcasia_gpu_input/arxiv_s42 --compile --dry-run
+
+# arxiv/products、固定形状/PyG、各workerを個別PBSジョブとして投入する。
+./benchmark_scripts/pegasus/submit_gpu_input_sweep_nqsv.sh \
+  --dataset all --backend both --phase workers \
+  --workers '2 4 8 12 16 24 32 40 48 64' \
+  --output model_dirs/hpcasia_gpu_input/worker_sensitivity --compile
 ```
 
 投入時はsubmitコマンドの `--dry-run` を外す。既存のAC2/gpu、1ノードの
@@ -83,7 +95,8 @@ GPUメモリとホストメモリへの適合は実行結果で確認する。CS
 GPUの40 workersを除外しない。dry-runは現在のCPU割当を反映するため、
 小さいCPU割当ではtuneの高worker候補が省かれる旨を表示する。
 
-各段階の出力は `<output>/<backend>/<phase>/`。`study.json`、解決済みYAML、試行ログ、
+直接実行時の各段階の出力は `<output>/<backend>/<phase>/`。分割PBS投入時は
+`<output>/<dataset>/<backend>/<phase>/w<num_workers>/` に分かれる。`study.json`、解決済みYAML、試行ログ、
 `result.json`、GPU metricsを既存形式で保存する。経路ごとの `tune/best.yaml` が選択結果、
 `workers/sensitivity_summary.csv` 等が反復集計である。独立した本番測定では、
 選択設定を固定して別の出力先を用いる。設定探索結果と最終性能評価を区別する。通常のPyGは動的な入力表現・独自の

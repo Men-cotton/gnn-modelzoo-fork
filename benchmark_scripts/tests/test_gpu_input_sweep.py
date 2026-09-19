@@ -1,7 +1,7 @@
-"""Exercise NQSV variable serialization without submitting a GPU job."""
+"""Exercise split NQSV submission without submitting a GPU job."""
 import json
-import os
 from pathlib import Path
+import shlex
 import subprocess
 import tempfile
 import unittest
@@ -11,19 +11,39 @@ PEGASUS = ROOT / "benchmark_scripts" / "pegasus"
 
 
 class InputSweepSubmissionTest(unittest.TestCase):
-    def test_worker_list_round_trip(self):
+    def test_submits_one_job_per_dataset_backend_and_worker(self):
         with tempfile.TemporaryDirectory() as tmp:
             tmp = Path(tmp)
-            qsub = tmp / "qsub"
-            qsub.write_text(
-                "#!/usr/bin/env python3\n"
-                "import json, sys\n"
-                "assert sys.argv[1] == '-v'\n"
-                "assert not any(c.isspace() for c in sys.argv[2])\n"
-                "print(json.dumps(sys.argv[1:]))\n"
+            result = subprocess.run(
+                [str(PEGASUS / "submit_gpu_input_sweep_nqsv.sh"),
+                 "--dataset", "all", "--backend", "both", "--phase", "workers",
+                 "--workers", "4\t16  40", "--output", str(tmp / "output"),
+                 "--compile", "--dry-run"],
+                text=True, capture_output=True, check=True,
             )
-            qsub.chmod(0o755)
-            env = dict(os.environ, PATH=str(tmp) + os.pathsep + os.environ["PATH"])
+            lines = [line for line in result.stdout.splitlines() if line.strip()]
+            self.assertEqual(len(lines), 12)
+            jobs = []
+            for line in lines:
+                args = shlex.split(line)
+                self.assertEqual(args[args.index("-v") - 1], "qsub")
+                values = {
+                    item.split("=", 1)[0]: item.split("=", 1)[1]
+                    for item in args[args.index("-v") + 1].split(",")
+                }
+                jobs.append(values)
+            self.assertEqual(
+                {(j["GPU_SWEEP_DATASET"], j["GPU_SWEEP_BACKEND"], j["GPU_SWEEP_WORKER"])
+                 for j in jobs},
+                {(d, b, w) for d in ("arxiv", "products")
+                 for b in ("fixed_shape", "pyg") for w in ("4", "16", "40")},
+            )
+            self.assertTrue(all(j["GPU_SWEEP_PHASE"] == "workers" for j in jobs))
+            self.assertTrue(all(j["GPU_SWEEP_COMPILE"] == "1" for j in jobs))
+
+    def test_pbs_passes_one_worker_to_runner(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
             runner = tmp / "benchmark_scripts/pegasus/run_gpu_input_sweep.sh"
             runner.parent.mkdir(parents=True)
             runner.write_text(
@@ -31,29 +51,26 @@ class InputSweepSubmissionTest(unittest.TestCase):
                 "import json, sys\nprint(json.dumps(sys.argv[1:]))\n"
             )
             runner.chmod(0o755)
-            for worker_args, expected in [
-                ([], "2 4 8 12 16 24 32 40 48 64"),
-                (["--workers", "4\t16  40"], "4 16 40"),
-            ]:
-                with self.subTest(workers=expected):
-                    result = subprocess.run(
-                        [str(PEGASUS / "submit_gpu_input_sweep_nqsv.sh"),
-                         "--dataset", "products", "--backend", "both",
-                         "--output", str(tmp / "output"), "--compile", *worker_args],
-                        env=env, text=True, capture_output=True, check=True,
-                    )
-                    args = json.loads(result.stdout)
-                    values = dict(item.split("=", 1) for item in args[1].split(","))
-                    self.assertEqual(values["GPU_SWEEP_WORKERS"], expected.replace(" ", ":"))
-                    result = subprocess.run(
-                        ["bash", str(PEGASUS / "run_gpu_input_sweep_nqsv.pbs")],
-                        env=dict(env, **values, PBS_O_WORKDIR=str(tmp)),
-                        text=True, capture_output=True, check=True,
-                    )
-                    args = json.loads(result.stdout)
-                    self.assertEqual(args[args.index("--workers") + 1], expected)
-                    self.assertEqual(args[args.index("--dataset") + 1], "products")
-                    self.assertIn("--compile", args)
+            env = {
+                "PBS_O_WORKDIR": str(tmp),
+                "GPU_SWEEP_DATASET": "products",
+                "GPU_SWEEP_OUTPUT": str(tmp / "output"),
+                "GPU_SWEEP_WORKER": "16",
+                "GPU_SWEEP_PHASE": "workers",
+                "GPU_SWEEP_BACKEND": "pyg",
+                "GPU_SWEEP_COMPILE": "1",
+            }
+            result = subprocess.run(
+                ["bash", str(PEGASUS / "run_gpu_input_sweep_nqsv.pbs")],
+                env=env, text=True, capture_output=True, check=True,
+            )
+            args = json.loads(result.stdout)
+            self.assertEqual(args[args.index("--workers") + 1], "16")
+            self.assertEqual(args[args.index("--dataset") + 1], "products")
+            self.assertEqual(args[args.index("--phase") + 1], "workers")
+            self.assertEqual(args[args.index("--backend") + 1], "pyg")
+            self.assertEqual(args[args.index("--worker-suffix") + 1], "w16")
+            self.assertIn(str(tmp / "output" / "products"), args)
 
     def test_reject_ambiguous_output_paths(self):
         for output in ("/tmp/gpu output", "/tmp/gpu,output", "/tmp/gpu\noutput"):

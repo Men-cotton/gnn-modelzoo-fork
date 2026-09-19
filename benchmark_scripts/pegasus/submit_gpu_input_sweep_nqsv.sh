@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Submit one sequential GPU input campaign; --dry-run never calls qsub.
+# Submit one PBS job per GPU input setting; --dry-run never calls qsub.
 set -euo pipefail
+
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 project_root="$(cd "${script_dir}/../.." && pwd -P)"
 backend=both
@@ -11,9 +12,14 @@ workers="2 4 8 12 16 24 32 40 48 64"
 phase=all
 compile=0
 dry_run=0
+
 usage() {
-    echo "Usage: $0 --output DIR [--dataset arxiv|products] [--backend both|fixed_shape|pyg] [--pyg-base-config PATH] [--workers '2 4 ... 64'] [--phase all|tune|workers|prefetch1|persistent-off|feature-cache] [--compile] [--dry-run]"
+    echo "Usage: $0 --output DIR [--dataset arxiv|products|all] [--backend both|fixed_shape|pyg] [--pyg-base-config PATH] [--workers '2 4 ... 64'] [--phase all|tune|workers|prefetch1|persistent-off|feature-cache] [--compile] [--dry-run]"
+    echo
+    echo "Submits one PBS job per dataset/backend/phase/num_workers setting."
+    echo "The control phases use num_workers=4 and are submitted once per dataset/backend."
 }
+
 while (( $# )); do
     case "$1" in
         --pyg-base-config|--dataset|--backend|--output|--workers|--phase)
@@ -33,41 +39,90 @@ while (( $# )); do
         *) usage >&2; exit 2 ;;
     esac
 done
+
 [[ -n "$output" ]] || { usage >&2; exit 2; }
 case "$dataset" in
-    arxiv) measure_steps=800 ;;
-    products) measure_steps=1600 ;;
-    *) echo 'Dataset must be arxiv or products' >&2; exit 2 ;;
+    arxiv|products) datasets=("$dataset") ;;
+    all)
+        [[ -z "$pyg_config" ]] || {
+            echo '--pyg-base-config cannot be combined with --dataset all; use dataset-specific submissions.' >&2
+            exit 2
+        }
+        datasets=(arxiv products)
+        ;;
+    *) echo 'Dataset must be arxiv, products, or all' >&2; exit 2 ;;
 esac
-pyg_config="${pyg_config:-${project_root}/src/cerebras/modelzoo/models/gnn/configs/autotune/${dataset}_w40.yaml}"
-case "$backend" in both|fixed_shape|pyg) ;; *) usage >&2; exit 2 ;; esac
-if [[ "$backend" != pyg ]]; then
-    config="${project_root}/src/cerebras/modelzoo/models/gnn/configs/fixed_shape_gpu/${dataset}.yaml"
-    [[ -f "$config" ]] || { echo 'Fixed-shape config not found' >&2; exit 2; }
-    config="$(cd "$(dirname "$config")" && pwd -P)/$(basename "$config")"
-fi
-if [[ "$backend" != fixed_shape ]]; then
-    [[ -f "$pyg_config" ]] || { echo 'PyG config not found' >&2; exit 2; }
-    pyg_config="$(cd "$(dirname "$pyg_config")" && pwd -P)/$(basename "$pyg_config")"
-fi
+case "$backend" in
+    both) backends=(fixed_shape pyg) ;;
+    fixed_shape|pyg) backends=("$backend") ;;
+    *) usage >&2; exit 2 ;;
+esac
+case "$phase" in
+    all) phases=(tune workers prefetch1 persistent-off feature-cache) ;;
+    tune|workers|prefetch1|persistent-off|feature-cache) phases=("$phase") ;;
+    *) usage >&2; exit 2 ;;
+esac
 [[ "$workers" =~ ^[0-9]+([[:blank:]]+[0-9]+)*$ ]] || { echo 'Invalid --workers list' >&2; exit 2; }
-# NQSV reparses -v values; shell quoting alone does not protect embedded spaces.
 read -r -a worker_counts <<< "$workers"
-workers_encoded="$(IFS=:; echo "${worker_counts[*]}")"
-case "$phase" in all|tune|workers|prefetch1|persistent-off|feature-cache) ;; *) usage >&2; exit 2 ;; esac
+[[ "${#worker_counts[@]}" -gt 0 ]] || { echo 'Worker list must not be empty' >&2; exit 2; }
+for value in "${worker_counts[@]}"; do
+    [[ "$value" =~ ^[0-9]+$ ]] || { echo "Invalid worker count: $value" >&2; exit 2; }
+done
 [[ "$output" == /* ]] || output="${PWD}/${output}"
 for value in "$pyg_config" "$output"; do
     if [[ "$value" == *','* || "$value" =~ [[:space:]] ]]; then
         echo 'Paths must not contain commas or whitespace.' >&2; exit 2
     fi
 done
-command=(qsub -v "GPU_SWEEP_DATASET=${dataset},GPU_SWEEP_OUTPUT=${output},GPU_SWEEP_COMPILE=${compile},GPU_SWEEP_WORKERS=${workers_encoded},GPU_SWEEP_PHASE=${phase},GPU_SWEEP_BACKEND=${backend},GPU_SWEEP_PYG_CONFIG=${pyg_config}"
-    "${script_dir}/run_gpu_input_sweep_nqsv.pbs")
-cd "$project_root"
-if (( dry_run )); then
-    printf 'cd %q && ' "$project_root"
-    printf '%q ' "${command[@]}"
-    printf '\n'
-else
-    exec "${command[@]}"
+
+if (( ! dry_run )) && ! command -v qsub >/dev/null 2>&1; then
+    echo '[ERROR] qsub command not found. Use --dry-run to print commands.' >&2
+    exit 1
 fi
+
+submit_job() {
+    local job_dataset="$1"
+    local job_backend="$2"
+    local job_phase="$3"
+    local job_worker="$4"
+    local job_pyg_config="${5:-}"
+    local job_output="${output}"
+    local vars="GPU_SWEEP_DATASET=${job_dataset},GPU_SWEEP_OUTPUT=${job_output},GPU_SWEEP_COMPILE=${compile},GPU_SWEEP_WORKER=${job_worker},GPU_SWEEP_PHASE=${job_phase},GPU_SWEEP_BACKEND=${job_backend},GPU_SWEEP_PYG_CONFIG=${job_pyg_config}"
+    local command=(qsub -v "$vars" "${script_dir}/run_gpu_input_sweep_nqsv.pbs")
+
+    if (( dry_run )); then
+        printf 'cd %q && ' "$project_root"
+        printf '%q ' "${command[@]}"
+        printf '\n'
+    else
+        printf '[submit] dataset=%s backend=%s phase=%s num_workers=%s\n' \
+            "$job_dataset" "$job_backend" "$job_phase" "$job_worker"
+        "${command[@]}"
+    fi
+}
+
+for job_dataset in "${datasets[@]}"; do
+    pyg_config_for_dataset="$pyg_config"
+    if [[ "$backend" != fixed_shape ]]; then
+        pyg_config_for_dataset="${pyg_config_for_dataset:-${project_root}/src/cerebras/modelzoo/models/gnn/configs/autotune/${job_dataset}_w40.yaml}"
+        [[ -f "$pyg_config_for_dataset" ]] || {
+            echo "PyG config not found: $pyg_config_for_dataset" >&2; exit 2;
+        }
+        pyg_config_for_dataset="$(cd "$(dirname "$pyg_config_for_dataset")" && pwd -P)/$(basename "$pyg_config_for_dataset")"
+    fi
+    if [[ "$backend" != pyg ]]; then
+        config="${project_root}/src/cerebras/modelzoo/models/gnn/configs/fixed_shape_gpu/${job_dataset}.yaml"
+        [[ -f "$config" ]] || { echo "Fixed-shape config not found: $config" >&2; exit 2; }
+    fi
+    for job_backend in "${backends[@]}"; do
+        for job_phase in "${phases[@]}"; do
+            if [[ "$job_phase" == prefetch1 || "$job_phase" == persistent-off || "$job_phase" == feature-cache ]]; then
+                submit_job "$job_dataset" "$job_backend" "$job_phase" 4 "$pyg_config_for_dataset"
+            else
+                for job_worker in "${worker_counts[@]}"; do
+                    submit_job "$job_dataset" "$job_backend" "$job_phase" "$job_worker" "$pyg_config_for_dataset"
+                done
+            fi
+        done
+    done
+done

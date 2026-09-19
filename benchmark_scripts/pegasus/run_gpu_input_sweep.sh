@@ -13,12 +13,13 @@ budget_sec=10800
 trial_timeout_sec=1800
 compile=0
 dry_run=0
+worker_suffix=""
 usage() {
-    echo "Usage: $0 --output DIR [--dataset arxiv|products] [--backend both|fixed_shape|pyg] [--pyg-base-config PATH] [--phase all|tune|workers|prefetch1|persistent-off|feature-cache] [--workers '2 4 ... 64'] [--compile] [--budget-sec N] [--trial-timeout-sec N] [--dry-run]"
+    echo "Usage: $0 --output DIR [--dataset arxiv|products] [--backend both|fixed_shape|pyg] [--pyg-base-config PATH] [--worker-suffix NAME] [--phase all|tune|workers|prefetch1|persistent-off|feature-cache] [--workers '2 4 ... 64'] [--compile] [--budget-sec N] [--trial-timeout-sec N] [--dry-run]"
 }
 while (( $# )); do
     case "$1" in
-        --pyg-base-config|--dataset|--backend|--output|--phase|--workers|--budget-sec|--trial-timeout-sec)
+        --pyg-base-config|--dataset|--backend|--output|--phase|--workers|--budget-sec|--trial-timeout-sec|--worker-suffix)
             [[ -n "${2:-}" ]] || { usage >&2; exit 2; }
             case "$1" in
                 --pyg-base-config) pyg_config="$2" ;;
@@ -29,6 +30,7 @@ while (( $# )); do
                 --workers) workers="$2" ;;
                 --budget-sec) budget_sec="$2" ;;
                 --trial-timeout-sec) trial_timeout_sec="$2" ;;
+                --worker-suffix) worker_suffix="$2" ;;
             esac
             shift 2 ;;
         --compile) compile=1; shift ;;
@@ -103,7 +105,11 @@ for route in "${backends[@]}"; do
     fi
     route_output="${output}/${route}"
     for study in "${phases[@]}"; do
-        args=("${common[@]}" "${route_args[@]}" --output "${route_output}/${study}")
+        study_output="${route_output}/${study}"
+        if [[ -n "$worker_suffix" ]]; then
+            study_output="${study_output}/${worker_suffix}"
+        fi
+        args=("${common[@]}" "${route_args[@]}" --output "${study_output}")
         case "$study" in
             tune) args+=(--mode autotune --workers "${worker_counts[@]}"
                 --prefetch-factors 1 2 4 --top-k 2 --confirm-steps "$measure_steps") ;;
@@ -120,8 +126,8 @@ for route in "${backends[@]}"; do
         fi
         # A completed sensitivity grid can retain OOM/timeout failures. Continue
         # independent controls, but return nonzero so missing measurements stay visible.
-        if [[ "$rc" == 2 && -f "${route_output}/${study}/study.json" ]] &&
-            "$python" -c 'import json,sys; sys.exit(json.load(open(sys.argv[1]))["status"] != "completed_with_missing_measurements")' "${route_output}/${study}/study.json"; then
+        if [[ "$rc" == 2 && -f "${study_output}/study.json" ]] &&
+            "$python" -c 'import json,sys; sys.exit(json.load(open(sys.argv[1]))["status"] != "completed_with_missing_measurements")' "${study_output}/study.json"; then
             status=2
         else
             exit "$rc"

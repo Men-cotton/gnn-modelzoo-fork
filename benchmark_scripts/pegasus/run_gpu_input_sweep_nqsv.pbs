@@ -6,17 +6,28 @@
 
 set -euo pipefail
 cd "${PBS_O_WORKDIR:?Submit with submit_gpu_input_sweep_nqsv.sh}"
-workers="${GPU_SWEEP_WORKERS:-2:4:8:12:16:24:32:40:48:64}"
-[[ "$workers" =~ ^[0-9]+(:[0-9]+)*$ ]] || {
-    echo 'GPU_SWEEP_WORKERS must be a colon-separated integer list' >&2; exit 2;
-}
-workers="${workers//:/ }"
-args=(--dataset "${GPU_SWEEP_DATASET:-arxiv}"
-    --output "${GPU_SWEEP_OUTPUT:?Missing GPU_SWEEP_OUTPUT}"
-    --workers "$workers"
-    --phase "${GPU_SWEEP_PHASE:-all}"
-    --backend "${GPU_SWEEP_BACKEND:-both}"
-    --pyg-base-config "${GPU_SWEEP_PYG_CONFIG:?Missing GPU_SWEEP_PYG_CONFIG}")
+dataset="${GPU_SWEEP_DATASET:-arxiv}"
+phase="${GPU_SWEEP_PHASE:-workers}"
+backend="${GPU_SWEEP_BACKEND:-both}"
+worker="${GPU_SWEEP_WORKER:-}"
+case "$phase" in
+    prefetch1|persistent-off|feature-cache) worker=4 ;;
+    tune|workers)
+        [[ "$worker" =~ ^[0-9]+$ ]] || {
+            echo 'GPU_SWEEP_WORKER must be one non-negative integer for tune/workers.' >&2; exit 2;
+        }
+        ;;
+    *) echo "Unsupported split phase: $phase" >&2; exit 2 ;;
+esac
+args=(--dataset "$dataset"
+    --output "${GPU_SWEEP_OUTPUT:?Missing GPU_SWEEP_OUTPUT}/${dataset}"
+    --workers "$worker"
+    --phase "$phase"
+    --backend "$backend"
+    --worker-suffix "w${worker}")
+if [[ -n "${GPU_SWEEP_PYG_CONFIG:-}" ]]; then
+    args+=(--pyg-base-config "$GPU_SWEEP_PYG_CONFIG")
+fi
 case "${GPU_SWEEP_COMPILE:-0}" in
     0) ;;
     1) args+=(--compile) ;;
