@@ -51,14 +51,17 @@ if [[ "$backend" != fixed_shape ]]; then
     pyg_config="$(cd "$(dirname "$pyg_config")" && pwd -P)/$(basename "$pyg_config")"
 fi
 [[ "$workers" =~ ^[0-9]+([[:blank:]]+[0-9]+)*$ ]] || { echo 'Invalid --workers list' >&2; exit 2; }
+# NQSV reparses -v values; shell quoting alone does not protect embedded spaces.
+read -r -a worker_counts <<< "$workers"
+workers_encoded="$(IFS=:; echo "${worker_counts[*]}")"
 case "$phase" in all|tune|workers|prefetch1|persistent-off|feature-cache) ;; *) usage >&2; exit 2 ;; esac
 [[ "$output" == /* ]] || output="${PWD}/${output}"
 for value in "$pyg_config" "$output"; do
-    if [[ "$value" == *','* || "$value" == *$'\n'* ]]; then
-        echo 'Paths must not contain commas or newlines.' >&2; exit 2
+    if [[ "$value" == *','* || "$value" =~ [[:space:]] ]]; then
+        echo 'Paths must not contain commas or whitespace.' >&2; exit 2
     fi
 done
-command=(qsub -v "GPU_SWEEP_DATASET=${dataset},GPU_SWEEP_OUTPUT=${output},GPU_SWEEP_COMPILE=${compile},GPU_SWEEP_WORKERS=${workers},GPU_SWEEP_PHASE=${phase},GPU_SWEEP_BACKEND=${backend},GPU_SWEEP_PYG_CONFIG=${pyg_config}"
+command=(qsub -v "GPU_SWEEP_DATASET=${dataset},GPU_SWEEP_OUTPUT=${output},GPU_SWEEP_COMPILE=${compile},GPU_SWEEP_WORKERS=${workers_encoded},GPU_SWEEP_PHASE=${phase},GPU_SWEEP_BACKEND=${backend},GPU_SWEEP_PYG_CONFIG=${pyg_config}"
     "${script_dir}/run_gpu_input_sweep_nqsv.pbs")
 cd "$project_root"
 if (( dry_run )); then
