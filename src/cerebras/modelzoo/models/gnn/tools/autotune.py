@@ -252,6 +252,7 @@ info.update(torch=torch.__version__, cuda=torch.version.cuda,
             "run_worker_campaign.sh",
             "run_worker_sensitivity.sh",
             "run_learning_campaign.sh",
+            "run_hpcasia_campaign.sh",
         )
         if (ROOT / "benchmark_scripts/cerebras" / name).exists()
     )
