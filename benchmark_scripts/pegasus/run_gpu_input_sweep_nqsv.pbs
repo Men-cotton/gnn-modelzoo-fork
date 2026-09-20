@@ -10,6 +10,17 @@ dataset="${GPU_SWEEP_DATASET:-arxiv}"
 phase="${GPU_SWEEP_PHASE:-workers}"
 backend="${GPU_SWEEP_BACKEND:-both}"
 worker="${GPU_SWEEP_WORKER:-}"
+budget_sec="${GPU_SWEEP_BUDGET_SEC:-10800}"
+trial_timeout_sec="${GPU_SWEEP_TRIAL_TIMEOUT_SEC:-1800}"
+walltime_hours="${GPU_SWEEP_WALLTIME_HOURS:-24}"
+record_resources="${GPU_SWEEP_RECORD_RESOURCES:-0}"
+for value in "$budget_sec" "$trial_timeout_sec" "$walltime_hours"; do
+    [[ "$value" =~ ^[1-9][0-9]{0,5}$ ]] || { echo 'Invalid time limit' >&2; exit 2; }
+done
+(( walltime_hours <= 24 && budget_sec >= trial_timeout_sec + 10 && budget_sec <= walltime_hours * 3600 - 300 )) || {
+    echo 'Require timeout + 10 <= budget <= PBS walltime - 300 seconds.' >&2; exit 2;
+}
+[[ "$record_resources" == 0 || "$record_resources" == 1 ]] || { echo 'GPU_SWEEP_RECORD_RESOURCES must be 0 or 1' >&2; exit 2; }
 case "$phase" in
     prefetch1|persistent-off|feature-cache) worker=4 ;;
     tune|workers)
@@ -24,7 +35,9 @@ args=(--dataset "$dataset"
     --workers "$worker"
     --phase "$phase"
     --backend "$backend"
-    --worker-suffix "w${worker}")
+    --worker-suffix "w${worker}"
+    --budget-sec "$budget_sec"
+    --trial-timeout-sec "$trial_timeout_sec")
 if [[ -n "${GPU_SWEEP_PYG_CONFIG:-}" ]]; then
     args+=(--pyg-base-config "$GPU_SWEEP_PYG_CONFIG")
 fi
@@ -33,4 +46,54 @@ case "${GPU_SWEEP_COMPILE:-0}" in
     1) args+=(--compile) ;;
     *) echo 'GPU_SWEEP_COMPILE must be 0 or 1' >&2; exit 2 ;;
 esac
-exec ./benchmark_scripts/pegasus/run_gpu_input_sweep.sh "${args[@]}"
+if (( ! record_resources )); then
+    exec ./benchmark_scripts/pegasus/run_gpu_input_sweep.sh "${args[@]}"
+fi
+
+# Capture limits before training and peak/OOM counters after the client exits.
+# Ancestors may impose a tighter cgroup limit than the current process group.
+resource_dir="${GPU_SWEEP_OUTPUT}/${dataset}/${backend}/${phase}/w${worker}/resources"
+mkdir -p "$resource_dir"
+resource_log="${resource_dir}/${PBS_JOBID:-local}_$$.log"
+snapshot_resources() {
+    local hierarchy controllers relative base current file
+    date --iso-8601=seconds
+    hostname
+    printf 'PBS_JOBID=%s worker=%s timeout=%s budget=%s walltime_hours=%s\n' "${PBS_JOBID:-}" "$worker" "$trial_timeout_sec" "$budget_sec" "$walltime_hours"
+    cat /proc/self/limits
+    awk '/Cpus_allowed_list/ {print}' /proc/self/status
+    awk '/^(MemTotal|MemAvailable|SwapTotal|SwapFree):/ {print}' /proc/meminfo
+    df -B1 /dev/shm
+    while IFS=: read -r hierarchy controllers relative; do
+        if [[ -z "$controllers" ]]; then
+            base=/sys/fs/cgroup
+        elif [[ ",$controllers," == *,memory,* ]]; then
+            base=/sys/fs/cgroup/memory
+        else
+            continue
+        fi
+        current="${base}${relative}"
+        # Resolve mount namespace paths without escaping the cgroup tree.
+        current="$(realpath -m -- "$current")"
+        while [[ "$current" == "$base" || "$current" == "$base/"* ]]; do
+            for file in memory.max memory.high memory.current memory.peak memory.events memory.swap.max memory.limit_in_bytes memory.max_usage_in_bytes memory.failcnt memory.oom_control; do
+                if [[ -r "$current/$file" ]]; then
+                    printf '%s\n' "$current/$file"
+                    cat "$current/$file"
+                fi
+            done
+            [[ "$current" != "$base" ]] || break
+            current="${current%/*}"
+        done
+    done < /proc/self/cgroup
+    if command -v nvidia-smi >/dev/null 2>&1; then
+        nvidia-smi --query-gpu=name,memory.total,memory.used --format=csv
+    fi
+    return 0
+}
+snapshot_resources >> "$resource_log" 2>&1 || true
+status=0
+./benchmark_scripts/pegasus/run_gpu_input_sweep.sh "${args[@]}" || status=$?
+printf 'runner_exit=%s\n' "$status" >> "$resource_log"
+snapshot_resources >> "$resource_log" 2>&1 || true
+exit "$status"

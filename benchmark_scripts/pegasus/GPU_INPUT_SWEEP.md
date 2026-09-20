@@ -103,9 +103,39 @@ GPUの40 workersを除外しない。dry-runは現在のCPU割当を反映する
 GraphSAGEパラメータ化を持つ実用経路の比較、固定形状GPUはCS-3と表現・モデル条件を
 揃えた比較として、別々の結果表とランキングを使う。
 
-各段階の予算は既定10800秒、試行timeoutは1800秒。run入口では
-`--budget-sec` と `--trial-timeout-sec` で変更できる。各予算は経路・段階ごとで、both/allの最大予算合計は30時間になる。
-PBS上限は24時間で、長い測定は `--backend` / `--phase` で分けて投入する。
+各段階の予算は既定10800秒、試行timeoutは1800秒。run入口とsubmit入口の両方で
+`--budget-sec` と `--trial-timeout-sec` を指定できる。分割submitでは各PBSジョブへ個別に適用する。
+submitの `--walltime-hours` は1〜24時間（既定24）。PBSの終了前に300秒を残し、
+`timeout + 10 <= budget <= PBS walltime - 300` を検証する。
+3反復すべてに十分な時間を確保する場合は、budgetを `3 * (timeout + 10)` より大きくする。
+既存の結果がある出力先では試行が再利用されるため、再測定は新しい出力先を指定する。
+
+固定形状productsの時間切れ・失敗を再測定する場合の設定例。各行は別PBSジョブで3反復する。
+workers=48は終了コード `-9` の原因を記録する同条件の再実行で、試行timeoutは変更しない。
+
+| workers | `--trial-timeout-sec` | `--budget-sec` | `--walltime-hours` |
+| ---: | ---: | ---: | ---: |
+| 2 | 10800 | 33300 | 10 |
+| 4 | 7200 | 22500 | 7 |
+| 8 | 3600 | 11700 | 4 |
+| 48 | 1800 | 6300 | 2 |
+
+workers=2での投入確認例（実投入時は `--dry-run` を外す）：
+
+```bash
+./benchmark_scripts/pegasus/submit_gpu_input_sweep_nqsv.sh \
+  --dataset products --backend fixed_shape --phase workers --workers 2 \
+  --output model_dirs/hpcasia_gpu_input/fixed_shape_retry \
+  --compile --trial-timeout-sec 10800 --budget-sec 33300 --walltime-hours 10 \
+  --record-resources --dry-run
+```
+
+`--record-resources` は各ジョブの開始・終了時に、CPU affinity、ulimit、ホストメモリ、
+共有メモリ領域、読取り可能なcgroupのメモリ上限・peak・OOMカウンタ、GPUメモリを
+`<study>/resources/<jobid>_<pid>.log` に保存する。cgroupの親階層も読む。
+学習中の周期的な計測は追加しない。ジョブ全体がkillされた場合は終了時の記録が残らない場合がある。
+これらのオプションはCPU/GPU/ホストメモリの割当量を変更しない。
+終了コード `-9` だけからOOMを断定せず、保存したカウンタとスケジューラの終了理由を照合する。
 
 コンパイル等により未完了になる場合は同一条件・同一出力先で再開する。
 予算不足や中断時には後続段階へ進まない。感度測定のOOM/timeoutは記録して次の
