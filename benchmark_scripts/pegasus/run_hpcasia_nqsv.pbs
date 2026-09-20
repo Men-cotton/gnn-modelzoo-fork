@@ -1,0 +1,39 @@
+#!/bin/bash
+#PBS -A AC2
+#PBS -q gpu
+#PBS -b 1
+#PBS -l elapstim_req=04:00:00
+
+set -euo pipefail
+cd "${PBS_O_WORKDIR:?Submit from the gnn-modelzoo checkout}"
+dataset="${HPCASIA_DATASET:?Missing dataset}"
+case "$dataset" in
+    arxiv) measure_steps=800 ;;
+    products) measure_steps=1600 ;;
+    *) echo 'Unsupported dataset' >&2; exit 2 ;;
+esac
+run_id="${HPCASIA_RUN_ID:?Missing run ID}"
+[[ "$run_id" =~ ^seed_(42|43|44)/(learning_r1|throughput_r[123]|cache_r1)$ ]] || {
+    echo 'Invalid run ID' >&2; exit 2;
+}
+timeout="${HPCASIA_TIMEOUT:-14100}"
+[[ "$timeout" =~ ^[0-9]+$ ]] && (( timeout > 0 && timeout <= 14100 )) || {
+    echo 'Invalid client timeout' >&2; exit 2;
+}
+source ./common.sh
+source ./benchmark_scripts/pegasus/gpu_env.sh
+load_cuda_module
+require_cuda_toolkit
+case "${HPCASIA_COMPILE:-1}" in
+    1) unset NO_COMPILE ;;
+    0) export NO_COMPILE=1 ;;
+    *) echo 'HPCASIA_COMPILE must be 0 or 1' >&2; exit 2 ;;
+esac
+export PYTHONPATH="${PWD}/src${PYTHONPATH:+:${PYTHONPATH}}"
+exec uv run --no-sync --project "$PWD" python -u \
+    src/cerebras/modelzoo/models/gnn/tools/hpcasia_campaign.py \
+    --backend pyg --dataset "$dataset" --run-id "$run_id" \
+    --output "${HPCASIA_OUTPUT:?Missing output}/${dataset}/${run_id}" \
+    --warmup-steps 40 --measure-steps "$measure_steps" \
+    --trial-timeout-sec "$timeout" --budget-sec "$((timeout + 60))" \
+    --foreground

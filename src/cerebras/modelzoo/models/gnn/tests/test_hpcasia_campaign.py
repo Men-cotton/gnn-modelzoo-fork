@@ -15,6 +15,141 @@ from test_learning_campaign import learning_log
 
 
 class HPCAsiaCampaignTests(unittest.TestCase):
+    def test_pyg_single_run_configs_cover_thirty_jobs(self):
+        paths = set()
+        for dataset in ("arxiv", "products"):
+            for seed in (42, 43, 44):
+                for kind in (
+                    "learning_r1",
+                    "throughput_r1",
+                    "throughput_r2",
+                    "throughput_r3",
+                    "cache_r1",
+                ):
+                    output = self.output / dataset / f"seed_{seed}" / kind
+                    args = campaign.parse_args(
+                        [
+                            "--backend",
+                            "pyg",
+                            "--dataset",
+                            dataset,
+                            "--run-id",
+                            f"seed_{seed}/{kind}",
+                            "--output",
+                            str(output),
+                            "--measure-steps",
+                            "800" if dataset == "arxiv" else "1600",
+                            "--trial-timeout-sec",
+                            "3600",
+                        ]
+                    )
+                    runs = campaign.plan(
+                        args, campaign.learning_campaign.shared_base(dataset)
+                    )
+                    self.assertEqual(len(runs), 1)
+                    row = runs[0]
+                    self.assertEqual(row["directory"], str(output))
+                    paths.add(row["directory"])
+                    init = row["config"]["trainer"]["init"]
+                    fit = row["config"]["trainer"]["fit"]
+                    self.assertEqual(init["optimizer"]["AdamW"]["eps"], 1e-6)
+                    self.assertEqual(init["optimizer"]["AdamW"]["betas"], [0.9, 0.999])
+                    self.assertEqual(init["seed"], seed)
+                    self.assertEqual(fit["train_dataloader"]["sampler_seed"], seed)
+                    self.assertNotIn("backend", init)
+                    self.assertIn("--config", row["command"])
+                    self.assertEqual(
+                        fit["train_dataloader"]["cache_fraction"],
+                        1.0 if kind == "cache_r1" else 0.0,
+                    )
+                    if kind == "learning_r1":
+                        self.assertTrue(init["record_learning"])
+                        self.assertNotIn("benchmark", init)
+                        self.assertEqual(fit["val_dataloader"]["sampler_seed"], seed)
+                        self.assertEqual(
+                            init["loop"]["max_steps"],
+                            500 if dataset == "arxiv" else 1000,
+                        )
+                    else:
+                        self.assertIsNone(fit["val_dataloader"])
+                        self.assertEqual(init["benchmark"]["warmup_steps"], 40)
+                        self.assertEqual(
+                            init["loop"]["max_steps"],
+                            840 if dataset == "arxiv" else 1640,
+                        )
+        self.assertEqual(len(paths), 30)
+
+    def pyg_learning_log(self):
+        lines = []
+        for step in range(10, 61, 10):
+            lines.append(
+                "[Learning] "
+                + json.dumps(
+                    dict(
+                        event="train",
+                        step=step,
+                        loss=0.5,
+                        window_mean_loss=0.5,
+                        all_losses_finite=True,
+                        optimizer_steps=step,
+                        skipped_optimizer_steps=0,
+                        loss_scale=32768.0,
+                    )
+                )
+            )
+            if step % 20 == 0:
+                lines.append(
+                    "[Learning] "
+                    + json.dumps(
+                        dict(event="validation", step=step, accuracy=0.7123456789)
+                    )
+                )
+        lines.append("Training Completed. Total Steps: 60 (Active: 50)")
+        return "\n".join(lines)
+
+    def test_pyg_learning_collection_and_missing_or_nonfinite_records(self):
+        log = self.output / "train.log"
+        text = self.pyg_learning_log()
+        log.write_text(text)
+        result = campaign.collect_pyg_learning(log, self.args)
+        self.assertEqual(result["final_validation_accuracy"], 0.7123456789)
+        self.assertEqual(len(result["evaluations"]), 3)
+        for bad in (
+            text.replace("0.7123456789", "NaN"),
+            text.replace("0.5", "Infinity"),
+            "\n".join(text.splitlines()[1:]),
+            "\n".join(text.splitlines()[:-1]),
+            text + "\n" + text,
+        ):
+            with self.subTest(bad=bad):
+                log.write_text(bad)
+                with self.assertRaises(ValueError):
+                    campaign.collect_pyg_learning(log, self.args)
+
+    def test_pyg_single_learning_execution_and_resume(self):
+        args = campaign.parse_args(
+            self.cli + ["--backend", "pyg", "--run-id", "seed_43/learning_r1"]
+        )
+        runs = campaign.plan(args, campaign.learning_campaign.shared_base("arxiv"))
+
+        def execute(command, log, timeout):
+            self.assertIn("--config", command)
+            log.write_text(self.pyg_learning_log())
+            return dict(status="completed", returncode=0)
+
+        with patch.object(campaign.autotune, "execute", side_effect=execute) as call:
+            self.assertEqual(campaign.execute(args, runs, self.provenance), 0)
+            self.assertEqual(campaign.execute(args, runs, self.provenance), 0)
+            self.assertEqual(call.call_count, 1)
+        result = json.loads((self.output / "result.json").read_text())
+        self.assertEqual(result["seed"], 43)
+        self.assertEqual(result["curves"]["final_validation_accuracy"], 0.7123456789)
+
+    def test_invalid_single_run_does_not_expand_to_full_campaign(self):
+        for run_id in ("seed_42/throughput_r4", "seed_45/cache_r1", "../learning_r1"):
+            with self.subTest(run_id=run_id), self.assertRaises(SystemExit):
+                campaign.parse_args(self.cli + ["--run-id", run_id])
+
     def setUp(self):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)

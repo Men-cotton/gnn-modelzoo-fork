@@ -24,7 +24,14 @@ from cerebras.modelzoo.models.gnn.data_processing.samplers.neighbor_tree import 
     NeighborSamplingDataProcessor,
 )
 from cerebras.modelzoo.models.gnn.model import GNNModel
-from cerebras.modelzoo.models.gnn.gpu_policy import adamw_kwargs, precision_dtype
+from cerebras.modelzoo.models.gnn.gpu_policy import (
+    adamw_kwargs,
+    adamw_param_groups,
+    grad_scaler_kwargs,
+    optimizer_policy,
+    precision_dtype,
+    OptimizerStepCounter,
+)
 from cerebras.modelzoo.models.gnn.gpu_measurements import (
     logical_tensor_bytes,
     save_provenance,
@@ -157,17 +164,13 @@ def train(
     native_model_cfg = copy.deepcopy(model_cfg)
     native_model_cfg.setdefault("task", {})["compute_eval_metrics"] = False
     model = GNNModel(native_model_cfg).to(device)
-    optimizer = torch.optim.AdamW(model.parameters(), **adamw)
+    optimizer = torch.optim.AdamW(adamw_param_groups(model), **adamw)
     save_provenance(output_dir, optimizer=optimizer, device=device)
-    optimizer_steps = 0
-
-    def optimizer_completed(*_):
-        nonlocal optimizer_steps
-        optimizer_steps += 1
-
-    # GradScaler does not call optimizer.step when it skips an overflowing update.
-    optimizer.register_step_post_hook(optimizer_completed)
-    scaler = torch.amp.GradScaler(device.type, enabled=dtype == torch.float16)
+    update_counter = OptimizerStepCounter(optimizer)
+    scaler_options = grad_scaler_kwargs(init, dtype)
+    scaler = torch.amp.GradScaler(device.type, **scaler_options)
+    with (output_dir / "gpu_policy.json").open("x") as stream:
+        json.dump(optimizer_policy(model, optimizer, scaler_options), stream, indent=2)
     training_model = torch.compile(model) if compile_model else model
     model.train()
 
@@ -271,6 +274,7 @@ def train(
                 synchronize()
                 boundary = time.perf_counter()
                 elapsed = boundary - window_start
+                optimizer_steps = update_counter.steps
                 window_optimizer_steps = optimizer_steps - window_optimizer_start
                 input_metrics = {}
                 if measure_input:

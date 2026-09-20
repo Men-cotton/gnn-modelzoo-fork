@@ -18,6 +18,8 @@ class Point:
     step: int
     seconds: float
     seeds: int
+    optimizer_steps: int | None = None
+    skipped_optimizer_steps: int | None = None
 
 
 def read_points(path: Path) -> list[Point]:
@@ -35,7 +37,7 @@ def read_points(path: Path) -> list[Point]:
             continue
         try:
             row = json.loads(line[len(PREFIX) :])
-            if row.get("version") != 1:
+            if row.get("version") not in (1, 2):
                 raise ValueError("Unsupported PyG measurement version")
             step, seeds = row["step"], row["seed_nodes"]
             if (
@@ -47,7 +49,23 @@ def read_points(path: Path) -> list[Point]:
                 raise ValueError(
                     "Step and cumulative seed count must be positive integers"
                 )
-            point = Point(step, float(row["wall_seconds"]), seeds)
+            updates = skipped = None
+            if row["version"] == 2:
+                updates, skipped = (
+                    row["optimizer_steps"],
+                    row["skipped_optimizer_steps"],
+                )
+                scale = row["loss_scale"]
+                if (
+                    type(updates) is not int
+                    or type(skipped) is not int
+                    or min(updates, skipped) < 0
+                    or updates + skipped != step
+                    or not math.isfinite(scale)
+                    or scale <= 0
+                ):
+                    raise ValueError("Invalid PyG optimizer update accounting")
+            point = Point(step, float(row["wall_seconds"]), seeds, updates, skipped)
             finite = row["all_losses_finite"] is True and math.isfinite(
                 float(row["loss"])
             )
@@ -63,6 +81,15 @@ def read_points(path: Path) -> list[Point]:
             raise ValueError(
                 "Steps, wall times and seed counts must increase; use one fresh log"
             )
+        if points:
+            previous = points[-1]
+            if (previous.optimizer_steps is None) != (point.optimizer_steps is None):
+                raise ValueError("Mixed PyG measurement versions")
+            if point.optimizer_steps is not None and (
+                point.optimizer_steps < previous.optimizer_steps
+                or point.skipped_optimizer_steps < previous.skipped_optimizer_steps
+            ):
+                raise ValueError("Optimizer counters must not decrease")
         points.append(point)
     if len(points) < 2 or completed != [points[-1].step]:
         raise ValueError("Expected one completed run with a final measurement record")
@@ -79,7 +106,7 @@ def measure(points: list[Point], start: int, end: int) -> dict:
         raise ValueError("Nonpositive measurement duration")
     count = b.seeds - a.seeds
     metric = "seed_nodes_per_second"
-    return {
+    result = {
         "start_step": start,
         "end_step": end,
         "measured_steps": end - start,
@@ -90,6 +117,15 @@ def measure(points: list[Point], start: int, end: int) -> dict:
         "metric": metric,
         "throughput": count / seconds,
     }
+    result["optimizer_update_check"] = "unavailable_legacy_log"
+    if a.optimizer_steps is not None:
+        result.update(
+            optimizer_update_check="recorded",
+            optimizer_steps=b.optimizer_steps - a.optimizer_steps,
+            skipped_optimizer_steps=b.skipped_optimizer_steps
+            - a.skipped_optimizer_steps,
+        )
+    return result
 
 
 def summarize(path: Path, start: int, end: int, tolerance: float = 2.0) -> dict:

@@ -1,5 +1,49 @@
 # HPC Asia の固定設定・3 seed 測定
 
+## Pegasus: 30 runと既存worker比較54 run
+
+[GPU比較方針と一次資料](gpu_comparison_policy.md)に従い、PyG標準のモデル・
+サンプリング・AdamWを維持して、公称設定・biasの正則化対象・初期AMP scaleを揃える。
+CS-3固有の更新式・固定近傍選択・二重biasには追従しない。完全に同じ学習軌道の比較とは区別する。
+
+Pegasusで更新後、以下を実行する。`--dry-run`を付けると投入コマンドだけを表示する。
+30 runは各runを独立したPBS jobにする。各jobの制限は4時間、クライアントは3時間55分。
+`--hours 3`も選べる。待ち時間を含むSDK制限をGPU側に流用しない。
+
+```bash
+git pull --ff-only origin main
+bash benchmark_scripts/pegasus/submit_hpcasia_nqsv.sh \
+  --dataset all --hours 4 --compile \
+  --output "model_dirs/hpcasia_final/pegasus_native_$(date -u +%Y%m%dT%H%M%SZ)"
+```
+
+2 dataset × 3 seed × (learning 1 + throughput 3 + cache 1) = 30 run。
+productsの性能測定は40 step除外後の1600 step、arxivは800 step。
+出力は `<output>/<dataset>/seed_N/<kind>_rN/` に分かれ、それぞれに
+`campaign.json`、`params.yaml`、`train.log`、`result.json`、`summary.json`を保存する。
+各jobのsummaryはそのrunだけを含み、30 job全体の自動集計ではない。
+学習runには `learning_curves.json` も保存し、当該stepのlossと区間平均を分ける。
+
+既存worker比較54 runの再実行は別の18 PBS job（各3反復）である。
+新規30 runと両方実行する場合は計84 run。旧結果は上書きしない。
+
+```bash
+bash benchmark_scripts/pegasus/submit_gpu_input_sweep_nqsv.sh \
+  --dataset all --backend pyg --phase workers \
+  --workers '2 4 8 12 16 24 32 40 48' --compile \
+  --output "model_dirs/hpcasia_gpu_input/pyg_native_$(date -u +%Y%m%dT%H%M%SZ)"
+```
+
+両方ともcompileを明示し、可変サイズ入力向けのdynamic shapeを使う。
+30 run側は `--no-compile`、worker比較側は `--compile` の省略でeagerにできる。
+混ぜて集計しない。worker比較の既存PBS上限は24時間のまま、各クライアントの既定は1800秒。
+30 runの3/4時間指定とは独立している。実際のGPU性能は実行後のログで確認する。
+
+各jobの失敗・timeoutや途中のqsub失敗では、まず投入済みjobと出力を確認する。
+一括コマンドを新しい出力先で繰り返すと、投入済みjobも重複して投入される。
+
+## CS-3: 既存の逐次campaign
+
 ```bash
 bash benchmark_scripts/cerebras/run_hpcasia_campaign.sh
 ```

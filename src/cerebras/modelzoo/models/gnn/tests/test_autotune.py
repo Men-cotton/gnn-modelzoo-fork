@@ -119,7 +119,13 @@ class AutotuneTests(unittest.TestCase):
             init = config["trainer"]["init"]
             fit = config["trainer"]["fit"]
             self.assertEqual(init["model"], base["trainer"]["init"]["model"])
-            self.assertEqual(init["optimizer"], base["trainer"]["init"]["optimizer"])
+            expected_optimizer = deepcopy(base["trainer"]["init"]["optimizer"])
+            expected_optimizer["AdamW"].setdefault("eps", 1e-6)
+            expected_optimizer["AdamW"].setdefault("betas", [0.9, 0.999])
+            expected_optimizer["AdamW"].setdefault("weight_decay", 0.0)
+            self.assertEqual(init["optimizer"], expected_optimizer)
+            self.assertEqual(init["precision"]["initial_loss_scale"], 32768)
+            self.assertEqual(init["precision"]["steps_per_increase"], 2000)
             self.assertEqual(fit["train_dataloader"]["fanouts"], [15, 10, 5])
             self.assertEqual(init["loop"]["max_steps"], 240)
             self.assertIsNone(init["loop"]["steps_per_epoch"])

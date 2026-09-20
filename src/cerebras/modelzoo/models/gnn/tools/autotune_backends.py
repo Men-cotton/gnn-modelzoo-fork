@@ -34,6 +34,13 @@ class CSXBackend:
         config = deepcopy(base)
         trainer = config["trainer"]
         init = trainer["init"]
+        # Persist effective optimizer defaults in every resolved trial config.
+        init["optimizer"]["AdamW"].setdefault("eps", 1e-6)
+        init["optimizer"]["AdamW"].setdefault("betas", [0.9, 0.999])
+        init["optimizer"]["AdamW"].setdefault("weight_decay", 0.0)
+        if init.get("precision", {}).get("fp16_type") == "float16":
+            init["precision"].setdefault("initial_loss_scale", 32768.0)
+            init["precision"].setdefault("steps_per_increase", 2000)
         # A custom callback can change the data stream or global-step origin.
         # Preserve the ordinary ModelZoo observers, while requiring an explicit
         # audit before admitting another callback to schedule-based accounting.
@@ -177,7 +184,10 @@ class PyGBackend:
 
     @staticmethod
     def measure(log: Path, start: int, end: int, tolerance: float) -> dict:
-        return measure_pyg.summarize(log, start, end, tolerance)
+        result = measure_pyg.summarize(log, start, end, tolerance)
+        if result.get("skipped_optimizer_steps", 0):
+            raise ValueError("AMP skipped optimizer updates in the throughput window")
+        return result
 
 
 class FixedShapeBackend:

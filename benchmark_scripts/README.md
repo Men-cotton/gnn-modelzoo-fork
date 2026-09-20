@@ -17,6 +17,10 @@ tmuxが必要な実行では、外側の一箇所で
 
 Worker実験の既存コマンド、監視、CSX job labelは
 [Worker実験の起動と監視](../src/cerebras/modelzoo/models/gnn/docs/worker_launch.md)を参照する。
+Pegasusの独立した30 runと54-run worker再実行は
+[HPC Asia測定](../src/cerebras/modelzoo/models/gnn/docs/hpcasia_campaign.md)、
+揃える設定と残す実装差は
+[GPU比較方針](../src/cerebras/modelzoo/models/gnn/docs/gpu_comparison_policy.md)を参照する。
 
 ## 別のbenchmarkをtmuxで実行する
 

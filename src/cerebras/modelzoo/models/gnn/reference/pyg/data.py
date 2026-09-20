@@ -568,6 +568,9 @@ def make_loaders(data, split_idx, cfg, rank=0, world_size=1):
         shuffle=train_c["shuffle"],
         drop_last=train_c["drop_last_batch"],
         generator=_build_generator(train_c, "train_dataloader"),
+        replace=False,
+        subgraph_type="directional",
+        disjoint=False,
         **train_kwargs,
     )
 
@@ -582,6 +585,9 @@ def make_loaders(data, split_idx, cfg, rank=0, world_size=1):
         shuffle=val_c["shuffle"],
         drop_last=val_c["drop_last_batch"],
         generator=_build_generator(val_c, "val_dataloader"),
+        replace=False,
+        subgraph_type="directional",
+        disjoint=False,
         **val_kwargs,
     )
     return train_loader, val_loader

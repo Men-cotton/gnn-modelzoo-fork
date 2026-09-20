@@ -331,7 +331,7 @@ class FixedShapeTests(unittest.TestCase):
             for count in ("seed_nodes", "supervised_targets", "nominal_slots"):
                 self.assertEqual(csx_counts[count], measured[count])
             metadata = json.loads((Path(output) / "run_metadata.json").read_text())
-            self.assertEqual(metadata["optimizer_defaults"]["eps"], 1e-8)
+            self.assertEqual(metadata["optimizer_defaults"]["eps"], 1e-6)
             self.assertTrue(metadata["gnn_source_sha256"])
 
     def test_neighbor_padding_disabled_by_default(self):

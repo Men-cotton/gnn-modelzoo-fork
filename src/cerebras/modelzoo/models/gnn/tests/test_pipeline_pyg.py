@@ -56,6 +56,16 @@ def gz(path, value):
 
 
 class PipelineTests(unittest.TestCase):
+    def test_adamw_default_matches_csx_and_preserves_explicit_epsilon(self):
+        init = {"optimizer": {"AdamW": {"learning_rate": 0.003}}}
+        optimizer = torch.optim.AdamW(
+            torch.nn.Linear(2, 2).parameters(), **adamw_kwargs(init)
+        )
+        self.assertEqual(optimizer.defaults["eps"], 1e-6)
+        self.assertNotIn("eps", init["optimizer"]["AdamW"])
+        init["optimizer"]["AdamW"]["eps"] = 1e-5
+        self.assertEqual(adamw_kwargs(init)["eps"], 1e-5)
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
@@ -108,7 +118,7 @@ class PipelineTests(unittest.TestCase):
                         )
                 self.assertEqual(
                     optimizer.call_args.kwargs,
-                    {"lr": 0.01, "betas": [0.6, 0.8], "eps": 0.03},
+                    {"lr": 0.01, "betas": [0.6, 0.8], "eps": 0.03, "weight_decay": 0.0},
                 )
                 self.assertEqual(
                     precision_dtype(

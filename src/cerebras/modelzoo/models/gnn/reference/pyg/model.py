@@ -28,6 +28,10 @@ class GraphSAGEWrapper(torch.nn.Module):
             norm=None,
             jk=None,
             aggr=aggregator,
+            normalize=False,
+            root_weight=True,
+            project=False,
+            bias=True,
         )
         self.classifier = torch.nn.Linear(hidden_channels, out_channels)
         self.dropout_p = dropout

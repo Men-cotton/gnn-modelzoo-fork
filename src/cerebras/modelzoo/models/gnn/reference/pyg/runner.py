@@ -1,4 +1,5 @@
 import argparse
+import json
 import os
 import sys
 import torch
@@ -25,6 +26,15 @@ from cerebras.modelzoo.models.gnn.reference.pyg.model import get_model
 from cerebras.modelzoo.models.gnn.reference.pyg.train import train_model
 from cerebras.modelzoo.models.gnn.reference.pyg.caching import GraphCache
 from torch_geometric.data import Data
+
+
+def compile_model(model):
+    # Variable-sized NeighborLoader batches are the ordinary PyG GPU path.
+    enabled = not bool(os.getenv("NO_COMPILE"))
+    if enabled:
+        model = torch.compile(model, dynamic=True)
+    print("[Compile] " + json.dumps(dict(enabled=enabled, dynamic=enabled)), flush=True)
+    return model
 
 
 def _architecture_type(cfg):
@@ -184,8 +194,7 @@ def main(expected_architecture=None, enable_graphsage_options=True):
             model = wrap_ddp(model, device)
             print(f"[ddp] Rank {rank}: Wrapped model in DDP")
 
-        if hasattr(torch, "compile") and not os.getenv("NO_COMPILE"):
-            model = torch.compile(model)
+        model = compile_model(model)
 
         # ---- Train ----
         train_model(

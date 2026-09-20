@@ -20,6 +20,8 @@ from cerebras.modelzoo.models.gnn.reference.pyg.data import make_loaders
 from cerebras.modelzoo.models.gnn.reference.pyg.train import train_model
 from cerebras.modelzoo.models.gnn.tools import autotune as tune
 from cerebras.modelzoo.models.gnn.tools import measure_pyg
+from cerebras.modelzoo.models.gnn.tools.hpcasia_campaign import collect_pyg_learning
+from types import SimpleNamespace
 
 
 def write_log(path, end=440, seconds=1.0, unstable=False):
@@ -221,12 +223,19 @@ print("imports succeeded without SDK")
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("imports succeeded without SDK", result.stdout)
 
-    def run_tiny_training(self, device, mock_cuda):
+    def run_tiny_training(self, device, mock_cuda, learning=False):
         cfg = self.backend.prepare_config(
             self.base, tune.candidate(0), self.output, 60, 7200, 20
         )
         cfg["trainer"]["init"]["model"]["task"]["to_float16"] = False
         cfg["trainer"]["init"]["model_dir"] = str(self.output)
+        cfg["trainer"]["init"]["precision"] = {"enabled": False}
+        if learning:
+            init = cfg["trainer"]["init"]
+            init.pop("benchmark")
+            init["record_learning"] = True
+            init["model"]["task"]["compute_eval_metrics"] = True
+            init["loop"]["eval_frequency"] = 20
 
         class Model(torch.nn.Module):
             def __init__(self):
@@ -247,14 +256,45 @@ print("imports succeeded without SDK")
             for n in (2, 1)
         ]
         stream = io.StringIO()
-        with redirect_stdout(stream):
-            train_model(cfg, model, (batches, None), None, None, device)
+        losses = []
+        nll_loss = torch.nn.functional.nll_loss
+
+        def capture_loss(*args, **kwargs):
+            loss = nll_loss(*args, **kwargs)
+            losses.append(loss.detach().item())
+            return loss
+
+        with (
+            redirect_stdout(stream),
+            patch.dict(sys.modules, {"cerebras.pytorch": None}),
+            patch.object(torch.nn.functional, "nll_loss", side_effect=capture_loss),
+        ):
+            train_model(
+                cfg, model, (batches, batches if learning else None), None, None, device
+            )
         path = self.output / "train.log"
         path.write_text(stream.getvalue())
-        result = measure_pyg.summarize(path, 20, 60)
-        self.assertEqual(result["count"], 60)
+        if learning:
+            curves = collect_pyg_learning(
+                path, SimpleNamespace(learning_steps=60, eval_every=20)
+            )
+            self.assertEqual(curves["optimizer_steps"], 60)
+            self.assertEqual(curves["skipped_optimizer_steps"], 0)
+            self.assertEqual(len(curves["evaluations"]), 3)
+            self.assertAlmostEqual(curves["training_losses"][0][1], losses[9])
+            self.assertAlmostEqual(
+                curves["training_events"][0]["window_mean_loss"],
+                sum(losses[:10]) / 10,
+                places=6,
+            )
+        else:
+            result = measure_pyg.summarize(path, 20, 60)
+            self.assertEqual(result["count"], 60)
+            self.assertEqual(result["optimizer_steps"], 40)
+            self.assertEqual(result["skipped_optimizer_steps"], 0)
+            self.assertNotIn("[Eval]", stream.getvalue())
+        self.assertIn("[GPU policy]", stream.getvalue())
         self.assertFalse((self.output / "last.pt").exists())
-        self.assertNotIn("[Eval]", stream.getvalue())
 
     def test_real_host_training_with_mock_cuda_timing(self):
         # Execute actual forward/backward/optimizer steps on CPU. This is not GPU evidence.
@@ -279,6 +319,7 @@ print("imports succeeded without SDK")
         ):
             event.return_value.elapsed_time.return_value = 0.0
             self.run_tiny_training(torch.device("cuda"), mock_cuda=True)
+            self.run_tiny_training(torch.device("cuda"), mock_cuda=True, learning=True)
 
     @unittest.skipUnless(torch.cuda.is_available(), "No CUDA GPU available")
     def test_cuda_pyg_runner_with_tiny_graph(self):

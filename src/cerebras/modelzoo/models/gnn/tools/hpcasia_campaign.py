@@ -1,4 +1,4 @@
-"""Run fixed-input CSX learning and throughput measurements in seed-major order."""
+"""Run matched CSX/PyG learning and throughput measurements in seed-major order."""
 
 from __future__ import annotations
 
@@ -6,6 +6,7 @@ import argparse
 from copy import deepcopy
 from datetime import datetime, timezone
 import json
+import math
 from pathlib import Path
 import re
 import signal
@@ -14,7 +15,7 @@ import sys
 import time
 
 from cerebras.modelzoo.models.gnn.tools import autotune, learning_campaign
-from cerebras.modelzoo.models.gnn.tools.autotune_backends import CSXBackend
+from cerebras.modelzoo.models.gnn.tools.autotune_backends import CSXBackend, PyGBackend
 from cerebras.modelzoo.models.gnn.tools.job_labels import apply_job_labels
 from cerebras.modelzoo.models.gnn.worker_validation import get_available_cpu_cores
 from cerebras.modelzoo.tools import benchmark_launcher
@@ -24,6 +25,7 @@ KNOBS = dict(num_workers=4, prefetch_factor=2, persistent_workers=True)
 
 def plan(args, base: dict) -> list[dict]:
     runs = []
+    backend = CSXBackend if args.backend == "csx" else PyGBackend
     for seed in args.seeds:
         seeded = deepcopy(base)
         seeded["trainer"]["init"]["seed"] = seed
@@ -37,30 +39,38 @@ def plan(args, base: dict) -> list[dict]:
             ("cache", 1),
         ]:
             name = f"seed_{seed}/{kind}_r{repeat}"
-            folder = args.output / name
+            if args.run_id and args.run_id != name:
+                continue
+            folder = args.output if args.run_id else args.output / name
             if kind == "learning":
                 config = learning_campaign.learning_config(seeded, args, KNOBS, folder)
+                if args.backend == "pyg":
+                    config["trainer"]["init"].pop("backend", None)
+                    config["trainer"]["init"]["record_learning"] = True
+                    config["trainer"]["fit"]["train_dataloader"]["cache_fraction"] = 0.0
             else:
-                config = CSXBackend.prepare_config(
+                config = backend.prepare_config(
                     seeded,
                     KNOBS,
                     folder / "model",
                     args.warmup_steps + args.measure_steps,
                     args.job_time_sec,
+                    args.warmup_steps,
                 )
-                config["trainer"]["init"]["model"]["task"][
-                    "compute_eval_metrics"
-                ] = False
+                config["trainer"]["init"]["model"]["task"]["compute_eval_metrics"] = (
+                    False
+                )
                 # prepare_config intentionally disables cache; apply this control last.
                 if kind == "cache":
                     config["trainer"]["fit"]["train_dataloader"]["cache_fraction"] = 1.0
-            apply_job_labels(
-                config,
-                mode=kind,
-                repeat=repeat,
-                trial_dir=folder,
-                study_dir=args.output,
-            )
+            if args.backend == "csx":
+                apply_job_labels(
+                    config,
+                    mode=kind,
+                    repeat=repeat,
+                    trial_dir=folder,
+                    study_dir=args.output,
+                )
             runs.append(
                 dict(
                     id=name,
@@ -69,18 +79,78 @@ def plan(args, base: dict) -> list[dict]:
                     repeat=repeat,
                     directory=str(folder),
                     config=config,
-                    command=CSXBackend.command(
-                        folder / "params.yaml", folder / "model"
-                    ),
+                    command=backend.command(folder / "params.yaml", folder / "model"),
                 )
             )
     return runs
+
+
+def collect_pyg_learning(log: Path, args) -> dict:
+    """Validate the PyG completion record and full-precision learning events."""
+    text = log.read_text()
+    events = [
+        json.loads(line.removeprefix("[Learning] "))
+        for line in text.splitlines()
+        if line.startswith("[Learning] ")
+    ]
+    training = [row for row in events if row["event"] == "train"]
+    evaluations = [row for row in events if row["event"] == "validation"]
+    expected_training = list(range(10, args.learning_steps + 1, 10))
+    expected_eval = list(
+        range(args.eval_every, args.learning_steps + 1, args.eval_every)
+    )
+    if [row["step"] for row in training] != expected_training:
+        raise ValueError("Missing, duplicate or out-of-order PyG training steps")
+    if [row["step"] for row in evaluations] != expected_eval:
+        raise ValueError("Missing, duplicate or unexpected PyG evaluations")
+    if any(not math.isfinite(row["loss"]) or row["loss"] < 0 for row in training):
+        raise ValueError("Nonfinite or negative PyG training loss")
+    previous_updates = previous_skips = 0
+    for row in training:
+        updates, skips = row.get("optimizer_steps"), row.get("skipped_optimizer_steps")
+        if (
+            type(updates) is not int
+            or type(skips) is not int
+            or updates < previous_updates
+            or skips < previous_skips
+            or updates + skips != row["step"]
+            or row.get("all_losses_finite") is not True
+            or not math.isfinite(row["window_mean_loss"])
+            or row["window_mean_loss"] < 0
+            or not math.isfinite(row["loss_scale"])
+            or row["loss_scale"] <= 0
+        ):
+            raise ValueError("Invalid PyG learning optimizer/loss accounting")
+        previous_updates, previous_skips = updates, skips
+    if any(
+        not math.isfinite(row["accuracy"]) or not 0 <= row["accuracy"] <= 1
+        for row in evaluations
+    ):
+        raise ValueError("Invalid PyG validation accuracy")
+    completed = re.findall(
+        r"^Training Completed\. Total Steps: (\d+) \(Active: \d+\)$", text, re.MULTILINE
+    )
+    if completed != [str(args.learning_steps)]:
+        raise ValueError("Expected one completed PyG learning run")
+    return dict(
+        review_status="pending_human_review",
+        final_validation_accuracy=evaluations[-1]["accuracy"],
+        evaluations=evaluations,
+        training_losses=[(row["step"], row["loss"]) for row in training],
+        training_events=training,
+        optimizer_steps=previous_updates,
+        skipped_optimizer_steps=previous_skips,
+        training_loss_definition="current_step_mean_over_supervised_seed_nodes",
+        interpretation="Current-step training loss (window mean separately retained) and sampled-neighbor full valid-split accuracy. PyG does not report validation loss. AMP skipped updates are recorded. No automated accuracy judgment.",
+    )
 
 
 def summarize(output: Path, state: dict) -> None:
     seeds = []
     for seed in state["settings"]["seeds"]:
         rows = [r for r in state["runs"] if r["seed"] == seed]
+        if not rows:
+            continue
         learning = [
             r for r in rows if r["kind"] == "learning" and r["status"] == "completed"
         ]
@@ -130,6 +200,7 @@ def settings(args) -> dict:
 
 
 def execute(args, runs: list[dict], provenance: dict) -> int:
+    backend = CSXBackend if args.backend == "csx" else PyGBackend
     fingerprint = autotune.digest(
         dict(
             settings=settings(args),
@@ -191,12 +262,15 @@ def execute(args, runs: list[dict], provenance: dict) -> int:
             row.update(result, client_status=result["status"])
             if row["status"] == "completed":
                 if row["kind"] == "learning":
-                    row["curves"] = learning_campaign.collect_learning(
-                        folder / "train.log", args
+                    collect = (
+                        learning_campaign.collect_learning
+                        if args.backend == "csx"
+                        else collect_pyg_learning
                     )
+                    row["curves"] = collect(folder / "train.log", args)
                     autotune.write_json(folder / "learning_curves.json", row["curves"])
                 else:
-                    row["measurement"] = CSXBackend.measure(
+                    row["measurement"] = backend.measure(
                         folder / "train.log",
                         args.warmup_steps,
                         args.warmup_steps + args.measure_steps,
@@ -237,8 +311,13 @@ def execute(args, runs: list[dict], provenance: dict) -> int:
 def parse_args(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     benchmark_launcher.add_arguments(parser)
+    parser.add_argument("--backend", choices=("csx", "pyg"), default="csx")
     parser.add_argument("--dataset", choices=("arxiv", "products"), default="arxiv")
     parser.add_argument("--seeds", type=int, nargs=3, default=[42, 43, 44])
+    parser.add_argument(
+        "--run-id",
+        help="Run only seed_N/learning_r1, throughput_r1..3, or cache_r1; --output is that run's directory",
+    )
     parser.add_argument("--output", type=Path)
     parser.add_argument("--learning-steps", type=int)
     parser.add_argument("--eval-every", type=int)
@@ -256,6 +335,21 @@ def parse_args(argv=None):
         or any(s < 0 or s >= 2**32 for s in args.seeds)
     ):
         parser.error("Require three distinct seeds in [0, 2**32), starting with 42")
+    allowed = {
+        f"seed_{seed}/{kind}"
+        for seed in args.seeds
+        for kind in (
+            "learning_r1",
+            "throughput_r1",
+            "throughput_r2",
+            "throughput_r3",
+            "cache_r1",
+        )
+    }
+    if args.run_id and args.run_id not in allowed:
+        parser.error(
+            "--run-id must identify a planned seed and learning/throughput/cache run"
+        )
     if args.learning_steps is None:
         args.learning_steps = 500 if args.dataset == "arxiv" else 1000
     if args.eval_every is None:
@@ -284,11 +378,12 @@ def parse_args(argv=None):
         parser.error("Stability tolerance must be between 0 and 100 percent")
     if (
         args.job_time_sec <= 0
-        or args.trial_timeout_sec <= args.job_time_sec
+        or args.trial_timeout_sec <= 0
+        or (args.backend == "csx" and args.trial_timeout_sec <= args.job_time_sec)
         or args.budget_sec < args.trial_timeout_sec + 10
     ):
         parser.error(
-            "Require 0 < job time < client timeout and budget >= client timeout + 10"
+            "Require positive job/client timeouts and budget >= client timeout + 10; CSX also requires client timeout > job time"
         )
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S.%fZ")
     args.output = (
@@ -347,7 +442,7 @@ def main(argv=None) -> int:
         cores = get_available_cpu_cores()
         if cores is not None and cores < KNOBS["num_workers"]:
             raise ValueError(f"Four workers exceed launch affinity ({cores})")
-        return execute(args, runs, autotune.environment("csx"))
+        return execute(args, runs, autotune.environment(args.backend))
 
 
 if __name__ == "__main__":

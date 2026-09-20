@@ -7,7 +7,14 @@ import torch.nn.functional as F
 from torch.optim import AdamW
 import torch.distributed as dist
 from cerebras.modelzoo.models.gnn.reference.pyg.eval import evaluate
-from cerebras.modelzoo.models.gnn.gpu_policy import adamw_kwargs, precision_dtype
+from cerebras.modelzoo.models.gnn.gpu_policy import (
+    adamw_kwargs,
+    adamw_param_groups,
+    grad_scaler_kwargs,
+    optimizer_policy,
+    precision_dtype,
+    OptimizerStepCounter,
+)
 
 
 def _get_task_cfg(model_cfg: Dict[str, Any]) -> Dict[str, Any]:
@@ -63,11 +70,20 @@ def train_model(
     eval_frequency = int(eval_frequency) if eval_frequency else None
     grad_accum_steps = int(loop_cfg.get("grad_accum_steps", 1))
     benchmark = train_cfg.get("benchmark")
-    if benchmark is not None and (world_size != 1 or grad_accum_steps != 1):
+    record_learning = train_cfg.get("record_learning", False)
+    if train_cfg.get("schedulers"):
+        raise ValueError("PyG training does not implement configured schedulers")
+    if record_learning and benchmark is not None:
+        raise ValueError(
+            "Learning records and training-only benchmarks are separate modes"
+        )
+    if (benchmark is not None or record_learning) and (
+        world_size != 1 or grad_accum_steps != 1
+    ):
         raise ValueError("PyG input tuning requires one GPU and grad_accum_steps=1")
 
     # --- Optimizer & AMP ---
-    optimizer = AdamW(model.parameters(), **adamw_kwargs(train_cfg))
+    optimizer = AdamW(adamw_param_groups(model), **adamw_kwargs(train_cfg))
 
     task_cfg = _get_task_cfg(model_cfg)
     dtype = precision_dtype(
@@ -75,7 +91,17 @@ def train_model(
         default=torch.float16 if task_cfg.get("to_float16", False) else torch.float32,
     )
     use_amp = dtype != torch.float32
-    scaler = torch.amp.GradScaler("cuda", enabled=dtype == torch.float16)
+    scaler_options = grad_scaler_kwargs(train_cfg, dtype)
+    scaler = torch.amp.GradScaler("cuda", **scaler_options)
+    update_counter = OptimizerStepCounter(optimizer)
+    if rank == 0:
+        print(
+            "[GPU policy] "
+            + json.dumps(
+                optimizer_policy(model, optimizer, scaler_options), allow_nan=False
+            ),
+            flush=True,
+        )
     disable_log_softmax = task_cfg.get("disable_log_softmax", False)
     compute_eval_metrics = bool(task_cfg.get("compute_eval_metrics", True))
     if benchmark is not None and (compute_eval_metrics or eval_frequency is not None):
@@ -120,7 +146,7 @@ def train_model(
     # Rate tracker for throughput (samples/sec and edges/sec)
     # Benchmark measurements use synchronized wall time and actual seed counts.
     # Keep the legacy profiler's SDK tracker out of the GPU tuner import path.
-    if benchmark is None:
+    if benchmark is None and not record_learning:
         from cerebras.pytorch.utils.tracker import RateTracker
 
         rate_tracker = RateTracker()
@@ -219,11 +245,11 @@ def train_model(
         running_loss_tensor += loss.detach()
         if benchmark is not None:
             seed_nodes += int(y.numel())
-            all_losses_finite.logical_and_(torch.isfinite(loss.detach()))
-        else:
+        elif rate_tracker is not None:
             rate_tracker.add(batch.batch_size)
             if hasattr(batch, "num_edges"):
                 edge_rate_tracker.add(batch.num_edges)
+        all_losses_finite.logical_and_(torch.isfinite(loss.detach()))
         step += 1
 
         # Reset profiler after warmup to exclude compilation/allocation overhead
@@ -238,6 +264,7 @@ def train_model(
         # --- Logging ---
         if step % log_steps == 0 or (benchmark is not None and step == max_steps):
             flush_profiler_buffer()
+            optimizer_steps = update_counter.steps
 
             if dist.is_initialized():
                 dist.all_reduce(running_loss_tensor, op=dist.ReduceOp.SUM)
@@ -270,12 +297,15 @@ def train_model(
                         "[Autotune] "
                         + json.dumps(
                             {
-                                "version": 1,
+                                "version": 2,
                                 "step": step,
                                 "wall_seconds": wall_time,
                                 "seed_nodes": seed_nodes,
                                 "loss": world_avg_loss if finite else None,
                                 "all_losses_finite": finite,
+                                "optimizer_steps": optimizer_steps,
+                                "skipped_optimizer_steps": step - optimizer_steps,
+                                "loss_scale": scaler.get_scale(),
                             },
                             allow_nan=False,
                         ),
@@ -284,10 +314,31 @@ def train_model(
                     if not finite:
                         raise ValueError(f"Nonfinite loss through step {step}")
                 else:
-                    print(
-                        f"[Throughput] Samples: {rate_tracker.global_rate():.2f} samples/s ({rate_tracker.rate():.2f}) | "
-                        f"Edges: {edge_rate_tracker.global_rate():.2f} edges/s ({edge_rate_tracker.rate():.2f})"
-                    )
+                    if record_learning:
+                        print(
+                            "[Learning] "
+                            + json.dumps(
+                                {
+                                    "event": "train",
+                                    "step": step,
+                                    "loss": loss.detach().item(),
+                                    "window_mean_loss": world_avg_loss,
+                                    "all_losses_finite": bool(all_losses_finite.item()),
+                                    "optimizer_steps": optimizer_steps,
+                                    "skipped_optimizer_steps": step - optimizer_steps,
+                                    "loss_scale": scaler.get_scale(),
+                                },
+                                allow_nan=False,
+                            ),
+                            flush=True,
+                        )
+                        if not bool(all_losses_finite.item()):
+                            raise ValueError(f"Nonfinite loss through step {step}")
+                    if rate_tracker is not None:
+                        print(
+                            f"[Throughput] Samples: {rate_tracker.global_rate():.2f} samples/s ({rate_tracker.rate():.2f}) | "
+                            f"Edges: {edge_rate_tracker.global_rate():.2f} edges/s ({edge_rate_tracker.rate():.2f})"
+                        )
 
             running_loss_tensor = torch.zeros(1, device=device)
 
@@ -302,6 +353,15 @@ def train_model(
                 print(
                     f"[Eval] Step={step:04d}, Wall={wall_time:.4f}s, Val_Acc={val_acc:.4f}"
                 )
+                if record_learning:
+                    print(
+                        "[Learning] "
+                        + json.dumps(
+                            {"event": "validation", "step": step, "accuracy": val_acc},
+                            allow_nan=False,
+                        ),
+                        flush=True,
+                    )
 
     # --- Final Processing ---
     flush_profiler_buffer()
