@@ -12,9 +12,9 @@ import math
 from pathlib import Path
 
 try:
-    from .measure_window import account_window, validate_input_contract
+    from .measure_window import count_scheduled_targets, validate_input_contract
 except ImportError:
-    from measure_window import account_window, validate_input_contract
+    from measure_window import count_scheduled_targets, validate_input_contract
 
 
 def summarize(
@@ -104,15 +104,22 @@ def summarize(
         if row["steps"] != row["step"] - row["start_step"]:
             raise ValueError("Window step count does not match its boundaries")
         expected = dict(
-            start_step=row["start_step"],
-            end_step=row["step"],
-            measured_steps=row["steps"],
-            nominal_batch_size=contract["batch_size"],
-            training_window_seconds=row["seconds"],
+            seed_nodes=count_scheduled_targets(
+                contract["seed_nodes_by_batch"], row["start_step"], row["step"]
+            ),
+            nominal_slots=contract["batch_size"] * row["steps"],
         )
-        account_window(expected, contract)
-        for field in ("seed_nodes", "supervised_targets", "nominal_slots"):
-            if row[field] != expected[field]:
+        # Reshuffling ignored labels changes supervision per batch. In that
+        # case use the consumed counters, whose bounds and totals we validate.
+        if (
+            contract.get("supervised_targets_by_batch_scope", "all_epochs")
+            == "all_epochs"
+        ):
+            expected["supervised_targets"] = count_scheduled_targets(
+                contract["supervised_targets_by_batch"], row["start_step"], row["step"]
+            )
+        for field, count in expected.items():
+            if row[field] != count:
                 raise ValueError(
                     "Observed batch counters disagree with runtime input contract"
                 )

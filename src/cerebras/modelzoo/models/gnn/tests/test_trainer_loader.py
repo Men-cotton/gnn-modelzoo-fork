@@ -110,9 +110,11 @@ class TrainerLoaderTests(unittest.TestCase):
                             else []
                         )
                         self.assertEqual(len(set(pids)), workers)
-                        for _ in range(2):
+                        for epoch in range(3):
+                            if epoch:
+                                expected = list(local)
+                                actual = list(remote)
                             self.assert_batches_equal(expected, actual)
-                            actual = list(remote)
                         if workers:
                             self.assertEqual(
                                 pids, [p.pid for p in remote._iterator._workers]

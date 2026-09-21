@@ -334,6 +334,35 @@ class FixedShapeTests(unittest.TestCase):
             self.assertEqual(metadata["optimizer_defaults"]["eps"], 1e-6)
             self.assertTrue(metadata["gnn_source_sha256"])
 
+    def test_reshuffled_ignored_labels_can_be_measured(self):
+        config = tiny_config()
+        config["trainer"]["init"]["loop"]["eval_frequency"] = None
+        config["trainer"]["fit"]["train_dataloader"]["shuffle"] = True
+        graph = tiny_graph()
+        graph.y[1] = -100
+        with (
+            tempfile.TemporaryDirectory() as output,
+            patch.object(BaseGraphDataSource, "load_graph", return_value=graph),
+        ):
+            result = runner.train(
+                config,
+                output,
+                device=torch.device("cpu"),
+                dtype=torch.float32,
+                warmup_steps=1,
+            )
+            measured = measure_fixed_shape.summarize(
+                Path(output) / "metrics.jsonl", 1, 5
+            )
+            self.assertEqual(
+                measured["input_contract"]["supervised_targets_by_batch_scope"],
+                "first_epoch",
+            )
+            self.assertEqual(measured["seed_nodes"], 6)
+            self.assertEqual(measured["supervised_targets"], 4)
+            for count in ("seed_nodes", "supervised_targets", "nominal_slots"):
+                self.assertEqual(measured[count], result[count])
+
     def test_neighbor_padding_disabled_by_default(self):
         with (
             tempfile.TemporaryDirectory() as output,

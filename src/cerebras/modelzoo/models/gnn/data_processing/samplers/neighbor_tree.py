@@ -9,7 +9,7 @@ from typing import Dict, List, Optional, Sequence, Tuple
 import numpy as np
 import torch
 from torch import Tensor
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import DataLoader, Dataset, Sampler
 from torch_geometric.data import Data
 
 import cerebras.pytorch as cstorch
@@ -23,6 +23,30 @@ from ..worker_diagnostics_config import WorkerDiagnosticsConfig
 
 def _first_batch(batch):
     return batch[0]
+
+
+class EpochBatchSampler(Sampler):
+    """Carry the input pass to workers, including persistent worker copies.
+
+    Model Zoo's HDF5 map input uses the SDK ShuffleSampler's seed + epoch
+    convention. Here each dataset item is already a logical GNN batch, so
+    permuting item indices would keep the same targets in the small tail.
+    Instead, the dataset reshuffles targets before forming each pass's batches.
+    The SDK Repeater advances this sampler when it exhausts the torch loader.
+    """
+
+    def __init__(self, dataset: Dataset):
+        self.num_batches = len(dataset)
+        self.epoch = 0
+
+    def __len__(self):
+        return self.num_batches
+
+    def __iter__(self):
+        epoch = self.epoch
+        self.epoch += 1
+        for index in range(self.num_batches):
+            yield epoch, index
 
 
 @dataclass(frozen=True)
@@ -127,6 +151,8 @@ class GraphSAGENeighborSamplerDataset(Dataset):
             raise ValueError("Split has no target nodes; cannot construct batches.")
 
         self._ordered_targets = self._order_targets(self._target_nodes)
+        self._epoch = 0
+        self._epoch_targets = self._ordered_targets
         self._num_batches = (
             self._ordered_targets.size // self.batch_size
             if drop_last
@@ -141,20 +167,36 @@ class GraphSAGENeighborSamplerDataset(Dataset):
     def __len__(self) -> int:
         return self._num_batches
 
-    def __getitem__(self, index: int) -> Dict[str, List[Tensor] | Tensor]:
+    def __getitem__(
+        self, index: int | Tuple[int, int]
+    ) -> Dict[str, List[Tensor] | Tensor]:
+        # Plain integer lookup keeps its original, first-pass meaning for
+        # static replay and direct dataset consumers. Only the loader sampler
+        # supplies epoch-tagged indices; worker execution order is irrelevant.
+        epoch = 0
+        if isinstance(index, tuple):
+            epoch, index = index
+        if epoch < 0:
+            raise IndexError(f"Input epoch must be nonnegative, got {epoch}.")
         if index < 0 or index >= len(self):
             raise IndexError(
                 f"Batch index {index} out of range for dataset length {len(self)}."
             )
 
+        ordered_targets = self._ordered_targets
+        if self.shuffle and epoch:
+            if epoch != self._epoch:
+                self._epoch_targets = self._order_targets(self._target_nodes, epoch)
+                self._epoch = epoch
+            ordered_targets = self._epoch_targets
         start = index * self.batch_size
-        end = min(start + self.batch_size, self._ordered_targets.size)
+        end = min(start + self.batch_size, ordered_targets.size)
         real_count = end - start
 
         target_nodes = np.full(self.batch_size, self.pad_id, dtype=np.int64)
         target_mask = np.zeros(self.batch_size, dtype=bool)
         if real_count > 0:
-            target_nodes[:real_count] = self._ordered_targets[start:end]
+            target_nodes[:real_count] = ordered_targets[start:end]
             target_mask[:real_count] = True
 
         layer_nodes, layer_masks, neighbor_masks = self._sample_layers(
@@ -195,10 +237,10 @@ class GraphSAGENeighborSamplerDataset(Dataset):
             "target_mask": target_mask_tensor,
         }
 
-    def _order_targets(self, targets: np.ndarray) -> np.ndarray:
+    def _order_targets(self, targets: np.ndarray, epoch: int = 0) -> np.ndarray:
         ordered = targets.copy()
         if self.shuffle and ordered.size > 0:
-            rng = np.random.default_rng(self.seed)
+            rng = np.random.default_rng(self.seed + epoch)
             rng.shuffle(ordered)
         return ordered
 
@@ -376,8 +418,11 @@ def batch_accounting_contract(
 ) -> dict:
     """Describe emitted target counts without sampling neighbors or features.
 
-    Counts refer to consumed occurrences, not unique graph nodes. The SDK's
-    Repeater and MegaBatcher preserve this order within one data executor.
+    Counts refer to consumed occurrences, not unique graph nodes. The target
+    digest describes the first pass. Seed counts repeat even when target order
+    changes; supervised counts can vary if the split includes ignored labels.
+    The SDK's Repeater and MegaBatcher preserve batch positions within one data
+    executor, including the padded tail at the end of each input pass.
     A resumed checkpoint or a new train executor may restart at batch zero;
     the measurement consumer must establish the corresponding global step.
     """
@@ -399,9 +444,14 @@ def batch_accounting_contract(
         supervised_counts = [
             supervised_counts[index % cached] for index in range(len(dataset))
         ]
+    reshuffle = dataset.shuffle and not static_batch_cache_size
+    # Check the full split, including targets that drop_last may omit on the
+    # first pass: shuffling can bring them into a later pass.
+    valid = dataset.labels[torch.from_numpy(dataset._target_nodes)].reshape(-1) != -100
+    counts_repeat = not reshuffle or bool(valid.all()) or not bool(valid.any())
     return {
         "event": "gnn_input_contract",
-        "version": 1,
+        "version": 2,
         "dataset_name": dataset_name,
         "split": split,
         "batch_size": dataset.batch_size,
@@ -413,6 +463,11 @@ def batch_accounting_contract(
         "static_batch_cache_size": static_batch_cache_size,
         "sampler_seed": dataset.seed,
         "shuffle": dataset.shuffle,
+        "target_order": "reshuffle_each_epoch" if reshuffle else "fixed",
+        "ordered_targets_and_labels_epoch": 0,
+        "supervised_targets_by_batch_scope": (
+            "all_epochs" if counts_repeat else "first_epoch"
+        ),
         "ordered_targets_and_labels_sha256": digest.hexdigest(),
         "traversal": "continuous_sequential_batches",
         "traversal_scope": "single_data_executor",
@@ -592,6 +647,11 @@ class NeighborSamplingDataProcessor(BaseGraphDataSource):
             dataloader_dataset,
             batch_size=1,
             shuffle=False,
+            sampler=(
+                EpochBatchSampler(dataset)
+                if dataset.shuffle and not self.static_batch_cache_size
+                else None
+            ),
             drop_last=False,
             num_workers=self.num_workers,
             prefetch_factor=self.prefetch_factor,

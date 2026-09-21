@@ -103,6 +103,24 @@ class MeasurementTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "batch size differs"):
             measure_window.summarize(self.log, 2, 10, 8)
 
+    def test_reshuffled_contract_requires_counts_valid_beyond_first_pass(self):
+        contract = self.contract()
+        contract.update(
+            version=2,
+            target_order="reshuffle_each_epoch",
+            ordered_targets_and_labels_epoch=0,
+            supervised_targets_by_batch_scope="all_epochs",
+            supervised_targets_by_batch=[4, 4, 1],
+        )
+        self.csx_log(contract)
+        result = measure_window.summarize(self.log, 2, 10)
+        self.assertEqual(result["supervised_targets"], result["seed_nodes"])
+        for scope, message in (("first_epoch", "consumed-count"), (None, "count scope")):
+            contract["supervised_targets_by_batch_scope"] = scope
+            self.csx_log(contract)
+            with self.assertRaisesRegex(ValueError, message):
+                measure_window.summarize(self.log, 2, 10)
+
     def native_records(self):
         contract = self.contract()
         contract.update(
@@ -192,6 +210,48 @@ class MeasurementTests(unittest.TestCase):
             self.log.write_text("\n".join(map(json.dumps, rows)))
             with self.subTest(mutation=mutation), self.assertRaises(ValueError):
                 measure_fixed_shape.summarize(self.log, 1, 5)
+
+    def test_gpu_reshuffled_ignored_labels_use_consumed_counts(self):
+        rows = self.native_records()
+        rows[0]["input_contract"].update(
+            version=2,
+            target_order="reshuffle_each_epoch",
+            ordered_targets_and_labels_epoch=0,
+            supervised_targets_by_batch_scope="first_epoch",
+        )
+        # The first pass has [1, 1] supervised targets; later passes differ.
+        for row, count in zip(rows[1:-1], [1, 1, 2, 0, 2]):
+            row["supervised_targets"] = count
+        rows[-1]["supervised_targets"] = 5
+        self.log.write_text("\n".join(map(json.dumps, rows)))
+        result = measure_fixed_shape.summarize(self.log, 1, 5)
+        self.assertEqual(result["supervised_targets"], 5)
+        self.assertEqual(result["seed_nodes"], 6)
+        self.assertEqual(result["nominal_slots"], 8)
+        # Nonperiodic supervision must not disable the other count checks.
+        for field, value in (
+            ("seed_nodes", 2),
+            ("nominal_slots", 3),
+            ("supervised_targets", 2),
+        ):
+            with self.subTest(field=field):
+                original = rows[2][field]
+                rows[2][field] = value
+                self.log.write_text("\n".join(map(json.dumps, rows)))
+                with self.assertRaises(ValueError):
+                    measure_fixed_shape.summarize(self.log, 1, 5)
+                rows[2][field] = original
+
+        rows[-1]["supervised_targets"] = 4
+        self.log.write_text("\n".join(map(json.dumps, rows)))
+        with self.assertRaisesRegex(ValueError, "Summary counters"):
+            measure_fixed_shape.summarize(self.log, 1, 5)
+
+        rows[-1]["supervised_targets"] = 5
+        rows[0]["input_contract"]["supervised_targets_by_batch_scope"] = "all_epochs"
+        self.log.write_text("\n".join(map(json.dumps, rows)))
+        with self.assertRaisesRegex(ValueError, "Observed batch counters"):
+            measure_fixed_shape.summarize(self.log, 1, 5)
 
 
 if __name__ == "__main__":

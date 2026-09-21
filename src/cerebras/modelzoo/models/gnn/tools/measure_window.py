@@ -131,7 +131,7 @@ def validate_input_contract(contract: dict) -> dict:
         raise ValueError("Input contract must be an object")
     if (
         type(contract.get("version")) is not int
-        or contract["version"] != 1
+        or contract["version"] not in (1, 2)
         or type(contract.get("num_streamers")) is not int
         or contract["num_streamers"] != 1
         or type(contract.get("batch_index_origin")) is not int
@@ -146,6 +146,14 @@ def validate_input_contract(contract: dict) -> dict:
         )
     ):
         raise ValueError("Unsupported input contract traversal or streamer count")
+    if contract["version"] == 2:
+        if (
+            contract.get("target_order") not in ("fixed", "reshuffle_each_epoch")
+            or contract.get("ordered_targets_and_labels_epoch") != 0
+            or contract.get("supervised_targets_by_batch_scope")
+            not in ("all_epochs", "first_epoch")
+        ):
+            raise ValueError("Unsupported input contract target order or count scope")
     size = contract.get("batch_size")
     seeds = contract.get("seed_nodes_by_batch")
     supervised = contract.get("supervised_targets_by_batch")
@@ -208,19 +216,31 @@ def _check_fresh_continuous_run(path: Path, end: int) -> None:
         )
 
 
-def account_window(result: dict, contract: dict) -> None:
-    def count(values, steps):
+def count_scheduled_targets(values: list[int], start: int, end: int) -> int:
+    """Count targets in (start, end] using a periodic batch schedule."""
+
+    def count(steps):
         epochs, remainder = divmod(steps, len(values))
         return epochs * sum(values) + sum(values[:remainder])
 
+    return count(end) - count(start)
+
+
+def account_window(result: dict, contract: dict) -> None:
+    if (
+        contract.get("supervised_targets_by_batch_scope", "all_epochs")
+        != "all_epochs"
+    ):
+        raise ValueError(
+            "Input contract cannot establish repeated supervised target counts; "
+            "reshuffled ignored labels require consumed-count measurements"
+        )
     start, end = result["start_step"], result["end_step"]
     for field, schedule in (
         ("seed_nodes", "seed_nodes_by_batch"),
         ("supervised_targets", "supervised_targets_by_batch"),
     ):
-        result[field] = count(contract[schedule], end) - count(
-            contract[schedule], start
-        )
+        result[field] = count_scheduled_targets(contract[schedule], start, end)
         result[field + "_per_second"] = (
             result[field] / result["training_window_seconds"]
         )

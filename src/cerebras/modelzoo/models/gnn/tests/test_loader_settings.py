@@ -37,6 +37,7 @@ class LoaderSettingsTests(unittest.TestCase):
                                 fanouts=[1],
                                 batch_size=2,
                                 split="train",
+                                shuffle=False,
                                 num_workers=workers,
                                 prefetch_factor=prefetch,
                                 persistent_workers=persistent,

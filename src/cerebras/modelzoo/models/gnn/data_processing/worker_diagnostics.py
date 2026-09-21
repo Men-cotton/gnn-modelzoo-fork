@@ -304,7 +304,7 @@ class ObservedDataset(Dataset):
     def __len__(self) -> int:
         return len(self.source)
 
-    def __getitem__(self, index: int) -> Any:
+    def __getitem__(self, index: int | tuple[int, int]) -> Any:
         if self.pid != os.getpid():
             self.pid, self.count = os.getpid(), 0
         if self.count >= self.max_batches:
@@ -324,7 +324,8 @@ class ObservedDataset(Dataset):
         info = get_worker_info()
         self.recorder.emit(
             "batch_generated",
-            batch_index=int(index),
+            batch_index=int(index[1] if isinstance(index, tuple) else index),
+            input_epoch=int(index[0]) if isinstance(index, tuple) else 0,
             process_batch_ordinal=ordinal,
             phases=phases,
             worker_id=info.id if info else None,
