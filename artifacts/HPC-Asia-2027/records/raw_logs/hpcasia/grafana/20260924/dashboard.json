@@ -1,0 +1,3374 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": false,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": 1361,
+  "links": [
+    {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": true,
+      "keepTime": true,
+      "tags": [
+        "wsjob-resources"
+      ],
+      "targetBlank": false,
+      "title": "WsJob Resources Dashboards",
+      "type": "dashboards",
+      "url": ""
+    }
+  ],
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "panels": [],
+      "title": "overview",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "uid": "$datasource"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 5,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 3,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "decimals": 2,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": []
+          },
+          "unit": "bytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 1
+      },
+      "id": 2,
+      "options": {
+        "legend": {
+          "calcs": [
+            "max",
+            "mean"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "sortBy": "Max",
+          "sortDesc": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "pluginVersion": "12.1.1",
+      "targets": [
+        {
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "expr": "sum(container_memory_working_set_bytes{job=\"kubelet\", metrics_path=\"/metrics/cadvisor\", pod=~\"$wsjob-.*\", container!=\"\", image!=\"\"}) by (pod, node)",
+          "format": "time_series",
+          "legendFormat": "{{node}}/{{pod}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Memory Usage (WSS)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 5,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 3,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": 3600000,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "decimals": 2,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": []
+          },
+          "unit": "megabytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 7
+      },
+      "id": 3,
+      "options": {
+        "legend": {
+          "calcs": [
+            "max",
+            "mean"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "sortBy": "Max",
+          "sortDesc": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "pluginVersion": "12.1.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "P8E80F9AEF21F6940"
+          },
+          "expr": "max(max_over_time({metric=\"rt_iter_perf\", wsjob=\"$wsjob\"} |= `` | json | unwrap pa [$__interval])) by (replica_type, replica_id)",
+          "format": "time_series",
+          "legendFormat": "{{replica_type}}-{{replica_id}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Memory Usage (Pool allocator)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 5,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 3,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": 3600000,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "decimals": 2,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": []
+          },
+          "unit": "megabytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 13
+      },
+      "id": 4,
+      "options": {
+        "legend": {
+          "calcs": [
+            "max",
+            "mean"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "sortBy": "Max",
+          "sortDesc": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "pluginVersion": "12.1.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "P8E80F9AEF21F6940"
+          },
+          "expr": "max(max_over_time({metric=\"rt_iter_perf\", wsjob=\"$wsjob\"} |= `` | json | unwrap ppa [$__interval])) by (replica_type, replica_id)",
+          "format": "time_series",
+          "legendFormat": "{{replica_type}}-{{replica_id}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Peak Memory Usage (Pool allocator)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "uid": "$datasource"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 5,
+            "lineWidth": 3,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            }
+          },
+          "decimals": 2,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": []
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 19
+      },
+      "id": 5,
+      "options": {
+        "legend": {
+          "calcs": [
+            "max",
+            "mean"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "sortBy": "Max",
+          "sortDesc": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "expr": "sum(node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate{pod=~\"$wsjob-.*\", container=~\".+\"}) by (pod, node)",
+          "format": "time_series",
+          "legendFormat": "{{node}}/{{pod}}",
+          "refId": "A"
+        }
+      ],
+      "title": "CPU Usage",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "uid": "$datasource"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 5,
+            "lineWidth": 3,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            }
+          },
+          "decimals": 2,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": []
+          },
+          "unit": "Bps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 25
+      },
+      "id": 6,
+      "options": {
+        "legend": {
+          "calcs": [
+            "max",
+            "mean"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "sortBy": "Max",
+          "sortDesc": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "expr": "sum(irate(container_network_transmit_bytes_total{pod=~\"$wsjob-.*\", interface=~\"e.*|net.*\"}[$__rate_interval])) by (pod, interface)",
+          "format": "time_series",
+          "legendFormat": "{{pod}}/{{interface}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Egress Bandwidth",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "uid": "$datasource"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 5,
+            "lineWidth": 3,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            }
+          },
+          "decimals": 2,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": []
+          },
+          "unit": "Bps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 31
+      },
+      "id": 7,
+      "options": {
+        "legend": {
+          "calcs": [
+            "max",
+            "mean"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "sortBy": "Max",
+          "sortDesc": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "expr": "sum(irate(container_network_receive_bytes_total{pod=~\"$wsjob-.*\", interface=~\"e.*|net.*\"}[$__rate_interval])) by (pod, interface)",
+          "format": "time_series",
+          "legendFormat": "{{pod}}/{{interface}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Ingress Bandwidth",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": true,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 37
+      },
+      "id": 8,
+      "panels": [
+        {
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "description": "Display info about failed pod errors. No data means no error.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "drawStyle": "line",
+                "fillOpacity": 100,
+                "lineWidth": 0,
+                "pointSize": 5,
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                }
+              },
+              "decimals": 2,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": []
+              },
+              "unit": "none"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 6,
+            "w": 24,
+            "x": 0,
+            "y": 0
+          },
+          "id": 9,
+          "options": {
+            "legend": {
+              "displayMode": "list",
+              "showLegend": false
+            },
+            "showValue": "never",
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "expr": "sum by (pod, reason)\n(\n  kube_pod_container_status_terminated_reason{pod=~\"$wsjob-.*\", reason!=\"Completed\"} offset -5m\n) > 0\n",
+              "format": "time_series",
+              "legendFormat": "{{pod}}/{{reason}}",
+              "refId": "A"
+            }
+          ],
+          "title": "Failed Pods Errors",
+          "type": "state-timeline"
+        },
+        {
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "description": "Display info about whether assigned Systems had internal errors. No data means no error.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "drawStyle": "line",
+                "fillOpacity": 100,
+                "lineWidth": 0,
+                "pointSize": 5,
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                }
+              },
+              "decimals": 2,
+              "mappings": [
+                {
+                  "options": {
+                    "-1": {
+                      "color": "#11469a",
+                      "index": 1,
+                      "text": "ADMIN_SVC_UNKNOWN"
+                    },
+                    "-2": {
+                      "color": "#ed0a0a",
+                      "index": 0,
+                      "text": "SYSTEM_NOT_REACHABLE"
+                    },
+                    "0": {
+                      "color": "#bf1aef",
+                      "index": 2,
+                      "text": "UNKNOWN"
+                    },
+                    "1": {
+                      "color": "green",
+                      "index": 3,
+                      "text": "OK"
+                    },
+                    "10": {
+                      "color": "#f1750a",
+                      "index": 12,
+                      "text": "HARDWARE_ERROR"
+                    },
+                    "11": {
+                      "color": "super-light-orange",
+                      "index": 13,
+                      "text": "DISABLED"
+                    },
+                    "12": {
+                      "color": "super-light-red",
+                      "index": 14,
+                      "text": "UNAVAILABLE"
+                    },
+                    "13": {
+                      "color": "#be2b2b",
+                      "index": 15,
+                      "text": "UPDATING_SW"
+                    },
+                    "14": {
+                      "color": "purple",
+                      "index": 16,
+                      "text": "PUMP_BLEEDING"
+                    },
+                    "15": {
+                      "color": "blue",
+                      "index": 17,
+                      "text": "SERVICES_NOT_READY"
+                    },
+                    "16": {
+                      "color": "light-blue",
+                      "index": 18,
+                      "text": "FPGA_UPDATE"
+                    },
+                    "17": {
+                      "color": "#2eddcf",
+                      "index": 19,
+                      "text": "PUMP_LIMPING"
+                    },
+                    "18": {
+                      "color": "#8ced0e",
+                      "index": 20,
+                      "text": "DOOR_OPEN"
+                    },
+                    "19": {
+                      "color": "#0ecef8",
+                      "index": 21,
+                      "text": "DOOR_CLOSED"
+                    },
+                    "2": {
+                      "color": "dark-yellow",
+                      "index": 4,
+                      "text": "DEGRADED"
+                    },
+                    "3": {
+                      "color": "red",
+                      "index": 5,
+                      "text": "CRITICAL"
+                    },
+                    "4": {
+                      "color": "#18dbd680",
+                      "index": 6,
+                      "text": "CRITICAL_EMERGENCY_SHUTDOWN"
+                    },
+                    "5": {
+                      "color": "super-light-blue",
+                      "index": 7,
+                      "text": "STANDBY"
+                    },
+                    "6": {
+                      "color": "#0d7cea",
+                      "index": 8,
+                      "text": "PENDING_STANDBY"
+                    },
+                    "7": {
+                      "color": "#12e280",
+                      "index": 9,
+                      "text": "PENDING_ACTIVE"
+                    },
+                    "8": {
+                      "color": "#dbaa12",
+                      "index": 10,
+                      "text": "MISSING"
+                    },
+                    "9": {
+                      "color": "#410be3",
+                      "index": 11,
+                      "text": "NO_POWER"
+                    }
+                  },
+                  "type": "value"
+                }
+              ],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": []
+              },
+              "unit": "none"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 6,
+            "w": 24,
+            "x": 0,
+            "y": 0
+          },
+          "id": 10,
+          "options": {
+            "legend": {
+              "calcs": [
+                "max",
+                "mean"
+              ],
+              "displayMode": "table",
+              "placement": "right",
+              "showLegend": true,
+              "sortBy": "Max",
+              "sortDesc": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "expr": "max(max_over_time(system_overall_health[$__rate_interval]) != 1) by (system) * on (system) group_left group(wsjob_system_grant{name=\"$wsjob\"}) by (name, system)",
+              "format": "time_series",
+              "legendFormat": "{{system}}",
+              "refId": "A"
+            }
+          ],
+          "title": "Assigned Systems Internal Errors",
+          "type": "state-timeline"
+        },
+        {
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "description": "Display info about whether assigned Systems had network errors. No data means no error.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "drawStyle": "line",
+                "fillOpacity": 100,
+                "lineWidth": 0,
+                "pointSize": 5,
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                }
+              },
+              "decimals": 2,
+              "mappings": [
+                {
+                  "options": {
+                    "1": {
+                      "color": "orange",
+                      "index": 0,
+                      "text": "Flapping"
+                    }
+                  },
+                  "type": "value"
+                },
+                {
+                  "options": {
+                    "from": 2,
+                    "result": {
+                      "color": "red",
+                      "index": 1,
+                      "text": "Error"
+                    },
+                    "to": 3
+                  },
+                  "type": "range"
+                }
+              ],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": []
+              },
+              "unit": "none"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 6,
+            "w": 24,
+            "x": 0,
+            "y": 0
+          },
+          "id": 11,
+          "options": {
+            "legend": {
+              "calcs": [
+                "max",
+                "mean"
+              ],
+              "displayMode": "table",
+              "placement": "right",
+              "showLegend": true,
+              "sortBy": "Max",
+              "sortDesc": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "expr": "max(((increase(system_network_flap_count[$__rate_interval]) >= bool 2) + 2 * (max_over_time(system_network_health[$__rate_interval]) != bool 1)) != 0) by (system) * on (system) group_left group(wsjob_system_grant{name=\"$wsjob\"}) by (name, system)",
+              "format": "time_series",
+              "legendFormat": "{{system}}",
+              "refId": "A"
+            }
+          ],
+          "title": "Assigned Systems Network Errors",
+          "type": "state-timeline"
+        },
+        {
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "description": "Network Counters that indicate job-fatal networking problems, increase over time. No data means no errors.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "drawStyle": "line",
+                "fillOpacity": 100,
+                "lineWidth": 0,
+                "pointSize": 5,
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                }
+              },
+              "decimals": 2,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": []
+              },
+              "unit": "none"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 6,
+            "w": 24,
+            "x": 0,
+            "y": 0
+          },
+          "id": 12,
+          "options": {
+            "legend": {
+              "displayMode": "list",
+              "showLegend": false
+            },
+            "showValue": "never",
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "expr": "(increase(system_network_err_qps[$__rate_interval]) > 0) * on (system) group_left group(wsjob_system_grant{name=~\"$wsjob\"}) by (name, system)",
+              "format": "time_series",
+              "legendFormat": "{{system}}/{{port}} QP error state counters",
+              "refId": "A"
+            }
+          ],
+          "title": "Assigned Systems - Network Error Counters - Fatal",
+          "type": "state-timeline"
+        },
+        {
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "description": "Network Counters that may indicate the root cause of networking problems or performance issues, increase over time. No data means no errors. If the job succeeded, no action is needed for these.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "drawStyle": "line",
+                "fillOpacity": 100,
+                "lineWidth": 0,
+                "pointSize": 5,
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                }
+              },
+              "decimals": 2,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": []
+              },
+              "unit": "none"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 6,
+            "w": 24,
+            "x": 0,
+            "y": 0
+          },
+          "id": 13,
+          "options": {
+            "legend": {
+              "displayMode": "list",
+              "showLegend": false
+            },
+            "showValue": "never",
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "expr": "(increase(system_network_rx_pkt_bad_fcs[$__rate_interval]) > 0) * on (system) group_left group(wsjob_system_grant{name=~\"$wsjob\"}) by (name, system)",
+              "format": "time_series",
+              "legendFormat": "{{system}}/{{port}} CRC errors",
+              "refId": "A"
+            },
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "expr": "(increase(system_network_ack_timeouts[$__rate_interval]) > 0) * on (system) group_left group(wsjob_system_grant{name=~\"$wsjob\"}) by (name, system)",
+              "format": "time_series",
+              "legendFormat": "{{system}}/{{port}} Local ACK Timeouts",
+              "refId": "B"
+            },
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "expr": "(increase(system_network_rx_fec_uncorrected_pkts[$__rate_interval]) > 0) * on (system) group_left group(wsjob_system_grant{name=~\"$wsjob\"}) by (name, system)",
+              "format": "time_series",
+              "legendFormat": "{{system}}/{{port}} FEC Uncorrected Errors",
+              "refId": "C"
+            }
+          ],
+          "title": "Assigned Systems - Network Error Counters - Debug",
+          "type": "state-timeline"
+        },
+        {
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "drawStyle": "line",
+                "fillOpacity": 5,
+                "lineWidth": 3,
+                "pointSize": 5,
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                }
+              },
+              "decimals": 2,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": []
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 6,
+            "w": 24,
+            "x": 0,
+            "y": 0
+          },
+          "id": 14,
+          "options": {
+            "legend": {
+              "calcs": [
+                "max",
+                "mean"
+              ],
+              "displayMode": "table",
+              "placement": "right",
+              "showLegend": true,
+              "sortBy": "Max",
+              "sortDesc": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "expr": "system_dev_stats{system=~\"$system_list\", component=~\"^GLTCH_(EXCUR|TRANS).*($system_wafter_die)\"} * on (system) group_left wsjob_system_grant{name=\"$wsjob\"} > 0",
+              "format": "time_series",
+              "legendFormat": "{{system}}/{{component}}",
+              "refId": "A"
+            }
+          ],
+          "title": "Assigned Systems - Glitch Counter Errors On Selected Die",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "drawStyle": "line",
+                "fillOpacity": 5,
+                "lineWidth": 3,
+                "pointSize": 5,
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                }
+              },
+              "decimals": 2,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": []
+              },
+              "unit": "Amperes"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 6,
+            "w": 24,
+            "x": 0,
+            "y": 0
+          },
+          "id": 15,
+          "options": {
+            "legend": {
+              "calcs": [
+                "max",
+                "mean"
+              ],
+              "displayMode": "table",
+              "placement": "right",
+              "showLegend": true,
+              "sortBy": "Max",
+              "sortDesc": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "expr": "system_dev_stats{system=~\"$system_list\", component=~\"^VDDC.*($system_wafter_die)_IOUT\"} * on (system) group_left wsjob_system_grant{name=\"$wsjob\"}",
+              "format": "time_series",
+              "legendFormat": "{{system}}/{{component}}",
+              "refId": "A"
+            }
+          ],
+          "title": "Assigned Systems - VDDC_IOUT On Selected Die",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "drawStyle": "line",
+                "fillOpacity": 5,
+                "lineWidth": 3,
+                "pointSize": 5,
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                }
+              },
+              "decimals": 2,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": []
+              },
+              "unit": "Volts"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 6,
+            "w": 24,
+            "x": 0,
+            "y": 0
+          },
+          "id": 16,
+          "options": {
+            "legend": {
+              "calcs": [
+                "max",
+                "mean"
+              ],
+              "displayMode": "table",
+              "placement": "right",
+              "showLegend": true,
+              "sortBy": "Max",
+              "sortDesc": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "expr": "system_dev_stats{system=~\"$system_list\", component=~\"^VDDC_ASIC.*($system_wafter_die).*\"} * on (system) group_left wsjob_system_grant{name=\"$wsjob\"}",
+              "format": "time_series",
+              "legendFormat": "{{system}}/{{component}}",
+              "refId": "A"
+            }
+          ],
+          "title": "Assigned Systems - VDDC_ASIC On Selected Die",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "description": "Display info about whether assigned Systems had warning/error events. No data means no warning/error.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "drawStyle": "line",
+                "fillOpacity": 100,
+                "lineWidth": 0,
+                "pointSize": 5,
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                }
+              },
+              "decimals": 2,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": []
+              },
+              "unit": "none"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 6,
+            "w": 24,
+            "x": 0,
+            "y": 0
+          },
+          "id": 17,
+          "options": {
+            "legend": {
+              "displayMode": "list",
+              "showLegend": false
+            },
+            "showValue": "never",
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "expr": "(group by (system, severity, type, component) (system_events{severity=~\"CRITICAL|ERROR|WARN\"})) * on (system) group_left group(wsjob_system_grant{name=\"$wsjob\"}) by (name, system)",
+              "format": "time_series",
+              "legendFormat": "{{system}}/{{severity}}/{{type}}/{{component}}",
+              "refId": "A"
+            }
+          ],
+          "title": "Assigned Systems Warning/Error Events",
+          "type": "state-timeline"
+        },
+        {
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "description": "System dev metrics for debuging purpose. System name, metric category/type can be changed from the top menu.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "drawStyle": "line",
+                "fillOpacity": 5,
+                "lineWidth": 3,
+                "pointSize": 5,
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                }
+              },
+              "decimals": 2,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": []
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 6,
+            "w": 24,
+            "x": 0,
+            "y": 0
+          },
+          "id": 18,
+          "options": {
+            "legend": {
+              "calcs": [
+                "max",
+                "mean"
+              ],
+              "displayMode": "table",
+              "placement": "right",
+              "showLegend": true,
+              "sortBy": "Max",
+              "sortDesc": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "expr": "system_dev_stats{system=~\"$system_list\", category=\"$system_metrics_category\", type=\"$system_metrics_type\", component=~\"$system_metrics_component\"}",
+              "format": "time_series",
+              "legendFormat": "{{system}}/{{category}}/{{type}}/{{component}}",
+              "refId": "A"
+            }
+          ],
+          "title": "Assigned Systems Internal Metrics",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "description": "Display info about whether assigned nodes had internal errors. No data means no error.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "drawStyle": "line",
+                "fillOpacity": 100,
+                "lineWidth": 0,
+                "pointSize": 5,
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                }
+              },
+              "decimals": 2,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": []
+              },
+              "unit": "none"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 6,
+            "w": 24,
+            "x": 0,
+            "y": 0
+          },
+          "id": 19,
+          "options": {
+            "legend": {
+              "displayMode": "list",
+              "showLegend": false
+            },
+            "showValue": "never",
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "expr": "(max_over_time(kube_node_status_condition{condition=~\"ClusterMgmt.*|ClusterDeploy.*|Csadm.*\", status=\"true\"}[$__rate_interval]) > 0) * on (node) group_left group by(node) (kube_pod_info{pod=~\"$wsjob-.*\", pod_ip!=\"\"})",
+              "format": "time_series",
+              "legendFormat": "{{node}}/{{condition}}",
+              "refId": "A"
+            },
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "expr": "((min_over_time(node_health_overall[$__rate_interval]) == bool 0) > 0) * on (node) group_left group by(node) (kube_pod_info{pod=~\"$wsjob-.*\", pod_ip!=\"\"})",
+              "format": "time_series",
+              "legendFormat": "{{node}}/IPMIUnhealthy",
+              "refId": "B"
+            }
+          ],
+          "title": "Assigned Nodes Internal Errors",
+          "type": "state-timeline"
+        },
+        {
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "description": "Display info about whether assigned nodes had network errors. No data means no error.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "drawStyle": "line",
+                "fillOpacity": 100,
+                "lineWidth": 0,
+                "pointSize": 5,
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                }
+              },
+              "decimals": 2,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": []
+              },
+              "unit": "none"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 6,
+            "w": 24,
+            "x": 0,
+            "y": 0
+          },
+          "id": 20,
+          "options": {
+            "legend": {
+              "displayMode": "list",
+              "showLegend": false
+            },
+            "showValue": "never",
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "expr": "((increase(interface_watch_list:status_changes_total[$__rate_interval]) >= bool 2) > 0) * on (instance) group_left label_replace(group(kube_pod_info{pod=~\"$wsjob-.*\", pod_ip!=\"\"}) by (node, host_ip), \"instance\", \"$1:9100\", \"host_ip\", \"(.*)\")",
+              "format": "time_series",
+              "legendFormat": "{{node}}/{{device}} flapping",
+              "refId": "A"
+            },
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "expr": "((min_over_time(interface_watch_list:status[$__rate_interval]) == bool 0) > 0) * on (instance) group_left group by(node, instance) (label_replace(kube_pod_info{pod=~\"$wsjob-.*\", pod_ip!=\"\"}, \"instance\", \"$1:9100\", \"host_ip\", \"(.*)\"))",
+              "format": "time_series",
+              "legendFormat": "{{node}}/{{device}} down",
+              "refId": "B"
+            }
+          ],
+          "title": "Assigned Nodes Network Errors",
+          "type": "state-timeline"
+        },
+        {
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "description": "Network Counters that indicate job-fatal networking problems, increase over time. No data means no errors.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "drawStyle": "line",
+                "fillOpacity": 100,
+                "lineWidth": 0,
+                "pointSize": 5,
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                }
+              },
+              "decimals": 2,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": []
+              },
+              "unit": "none"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 6,
+            "w": 24,
+            "x": 0,
+            "y": 0
+          },
+          "id": 21,
+          "options": {
+            "legend": {
+              "displayMode": "list",
+              "showLegend": false
+            },
+            "showValue": "never",
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "expr": "(increase(node_nic_stats_resp_cqe_error[$__rate_interval]) > 0) * on (node) group_left group by(node) (kube_pod_info{pod=~\"$wsjob-.*\", pod_ip!=\"\"})",
+              "format": "time_series",
+              "legendFormat": "{{node}}/{{interface}} RX CQE Errors",
+              "refId": "A"
+            },
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "expr": "(increase(node_nic_stats_req_cqe_error[$__rate_interval]) > 0) * on (node) group_left group by(node) (kube_pod_info{pod=~\"$wsjob-.*\", pod_ip!=\"\"})",
+              "format": "time_series",
+              "legendFormat": "{{node}}/{{interface}} TX CQE Errors",
+              "refId": "B"
+            }
+          ],
+          "title": "Assigned Nodes - Network Error Counters - Fatal",
+          "type": "state-timeline"
+        },
+        {
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "description": "Network Counters that indicate networking congestion or errors, or problems with nodes, increase over time. No data means no errors. If errors occur, notify the cluster operator to check for defective links.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "drawStyle": "line",
+                "fillOpacity": 100,
+                "lineWidth": 0,
+                "pointSize": 5,
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                }
+              },
+              "decimals": 2,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": []
+              },
+              "unit": "none"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 6,
+            "w": 24,
+            "x": 0,
+            "y": 0
+          },
+          "id": 22,
+          "options": {
+            "legend": {
+              "displayMode": "list",
+              "showLegend": false
+            },
+            "showValue": "never",
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "expr": "(increase(node_nic_stats_local_ack_timeout_err[$__rate_interval]) > 0) * on (node) group_left group by(node) (kube_pod_info{pod=~\"$wsjob-.*\", pod_ip!=\"\"})",
+              "format": "time_series",
+              "legendFormat": "{{node}}/{{interface}} Local ACK Timeouts",
+              "refId": "A"
+            }
+          ],
+          "title": "Assigned Nodes - Network Error Counters - Warning",
+          "type": "state-timeline"
+        },
+        {
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "description": "Network Counters that may indicate the root cause of networking problems or performance issues, increase over time. No data means no errors. If the job succeeded, no action is needed for these.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "drawStyle": "line",
+                "fillOpacity": 100,
+                "lineWidth": 0,
+                "pointSize": 5,
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                }
+              },
+              "decimals": 2,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": []
+              },
+              "unit": "none"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 6,
+            "w": 24,
+            "x": 0,
+            "y": 0
+          },
+          "id": 23,
+          "options": {
+            "legend": {
+              "displayMode": "list",
+              "showLegend": false
+            },
+            "showValue": "never",
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "expr": "(increase(node_nic_stats_rx_crc_errors_phy[$__rate_interval]) > 0) * on (node) group_left group by(node) (kube_pod_info{pod=~\"$wsjob-.*\", pod_ip!=\"\"})",
+              "format": "time_series",
+              "legendFormat": "{{node}}/{{interface}} RX CRC Errors",
+              "refId": "A"
+            },
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "expr": "(increase(node_nic_stats_rx_pcs_symbol_err_phy[$__rate_interval]) > 0) * on (node) group_left group by(node) (kube_pod_info{pod=~\"$wsjob-.*\", pod_ip!=\"\"})",
+              "format": "time_series",
+              "legendFormat": "{{node}}/{{interface}} RX FEC Uncorrected Errors",
+              "refId": "B"
+            }
+          ],
+          "title": "Assigned Nodes - Network Error Counters - Debug",
+          "type": "state-timeline"
+        },
+        {
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "description": "Network congestion. If the job succeeded, no action is needed for these.",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "thresholdsStyle": {
+                  "mode": "dashed"
+                }
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "red"
+                  },
+                  {
+                    "color": "red",
+                    "value": 600000
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 6,
+            "w": 24,
+            "x": 0,
+            "y": 0
+          },
+          "id": 24,
+          "options": {
+            "legend": {
+              "calcs": [],
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": false
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "expr": "(increase(node_nic_stats_rx_pfc_duration[$__rate_interval]) > 0) * on (node) group_left group by(node) (kube_pod_info{pod=~\"$wsjob-.*\", pod_ip!=\"\"})",
+              "format": "time_series",
+              "legendFormat": "{{node}}/{{interface}} PFC Pause Duration increase",
+              "refId": "A"
+            }
+          ],
+          "title": "Assigned Nodes - Network PFC Pause Duration Increase",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "P8E80F9AEF21F6940"
+          },
+          "description": "Job status from coordinator logs. Possible states: UNKNOWN, CKPT_IN_PROGRESS, IDLE, INPUT_STARVATION, DEADLOCKED, COMPLETED, TERMINATED, PROGRESSING.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "drawStyle": "line",
+                "fillOpacity": 100,
+                "lineWidth": 0,
+                "pointSize": 5,
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                }
+              },
+              "decimals": 2,
+              "mappings": [
+                {
+                  "options": {
+                    "1": {
+                      "color": "super-light-green",
+                      "index": 0,
+                      "text": "CKPT_IN_PROGRESS"
+                    },
+                    "2": {
+                      "color": "yellow",
+                      "index": 1,
+                      "text": "IDLE"
+                    },
+                    "3": {
+                      "color": "red",
+                      "index": 2,
+                      "text": "INPUT_STARVATION"
+                    },
+                    "4": {
+                      "color": "red",
+                      "index": 3,
+                      "text": "DEADLOCKED"
+                    },
+                    "5": {
+                      "color": "dark-green",
+                      "index": 4,
+                      "text": "COMPLETED"
+                    },
+                    "6": {
+                      "color": "dark-green",
+                      "index": 5,
+                      "text": "TERMINATED"
+                    },
+                    "7": {
+                      "color": "green",
+                      "index": 6,
+                      "text": "PROGRESSING"
+                    }
+                  },
+                  "type": "value"
+                }
+              ],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": []
+              },
+              "unit": "none"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 6,
+            "w": 24,
+            "x": 0,
+            "y": 0
+          },
+          "id": 25,
+          "options": {
+            "legend": {
+              "calcs": [
+                "max",
+                "mean"
+              ],
+              "displayMode": "table",
+              "placement": "right",
+              "showLegend": true,
+              "sortBy": "Max",
+              "sortDesc": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "loki",
+                "uid": "P8E80F9AEF21F6940"
+              },
+              "expr": "{wsjob=\"$wsjob\", metric=\"stall_detect\"} | json status",
+              "format": "time_series",
+              "legendFormat": "state",
+              "refId": "A"
+            }
+          ],
+          "title": "Training Status",
+          "transformations": [
+            {
+              "id": "extractFields",
+              "options": {
+                "source": "labels"
+              }
+            },
+            {
+              "id": "organize",
+              "options": {
+                "excludeByName": {
+                  "Line": true,
+                  "id": true,
+                  "iteration": true,
+                  "labels": true,
+                  "metric": true,
+                  "metric_extracted": true,
+                  "namespace": true,
+                  "namespace_extracted": true,
+                  "replica_id": true,
+                  "replica_id_extracted": true,
+                  "replica_type": true,
+                  "replica_type_extracted": true,
+                  "tsNs": true,
+                  "wsjob": true,
+                  "wsjob_extracted": true
+                },
+                "indexByName": {},
+                "renameByName": {
+                  "labels": ""
+                }
+              }
+            }
+          ],
+          "type": "state-timeline"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "P8E80F9AEF21F6940"
+          },
+          "description": "Summary of a deadlock, if detected.",
+          "fieldConfig": {
+            "defaults": {
+              "noValue": "Deadlock not detected"
+            },
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Fault"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 112
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Summary"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 861
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Debug Viz Link"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 383
+                  },
+                  {
+                    "id": "links",
+                    "value": [
+                      {
+                        "targetBlank": true,
+                        "title": "Debug Viz: ${__data.fields[\"Debug Viz Link\"]}",
+                        "url": "${__data.fields[\"Debug Viz Link\"]}"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 24,
+            "x": 0,
+            "y": 0
+          },
+          "id": 26,
+          "options": {},
+          "targets": [
+            {
+              "datasource": {
+                "type": "loki",
+                "uid": "P8E80F9AEF21F6940"
+              },
+              "expr": "{wsjob=~\"$wsjob\", metric=\"deadlock\"}",
+              "format": "table",
+              "instant": true,
+              "legendFormat": "",
+              "refId": "A"
+            },
+            {
+              "datasource": {
+                "type": "loki",
+                "uid": "P8E80F9AEF21F6940"
+              },
+              "expr": "{wsjob=~\"$wsjob\", metric=\"debugviz\"}",
+              "format": "table",
+              "instant": true,
+              "legendFormat": "",
+              "refId": "B"
+            }
+          ],
+          "title": "Deadlock Status",
+          "transformations": [
+            {
+              "id": "extractFields",
+              "options": {
+                "source": "Line"
+              }
+            },
+            {
+              "id": "concatenate",
+              "options": {}
+            },
+            {
+              "id": "filterFieldsByName",
+              "options": {
+                "include": {
+                  "pattern": "(fault)|(summary)|(link)"
+                }
+              }
+            },
+            {
+              "id": "organize",
+              "options": {
+                "excludeByName": {},
+                "includeByName": {},
+                "indexByName": {
+                  "fault": 0,
+                  "link": 2,
+                  "summary": 1
+                },
+                "renameByName": {
+                  "fault": "Fault",
+                  "link": "Debug Viz Link",
+                  "summary": "Summary"
+                }
+              }
+            }
+          ],
+          "type": "table"
+        }
+      ],
+      "title": "errors and debugging",
+      "type": "row"
+    },
+    {
+      "collapsed": true,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 38
+      },
+      "id": 27,
+      "panels": [
+        {
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "drawStyle": "line",
+                "fillOpacity": 5,
+                "lineWidth": 3,
+                "pointSize": 5,
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                }
+              },
+              "decimals": 2,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": []
+              },
+              "unit": "bytes"
+            },
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byRegexp",
+                  "options": "request|limit"
+                },
+                "properties": [
+                  {
+                    "id": "color",
+                    "value": {
+                      "fixedColor": "red",
+                      "mode": "fixed"
+                    }
+                  },
+                  {
+                    "id": "custom.lineStyle",
+                    "value": {
+                      "dash": [
+                        10,
+                        10
+                      ],
+                      "fill": "dash"
+                    }
+                  },
+                  {
+                    "id": "custom.stacking",
+                    "value": {
+                      "group": "A",
+                      "mode": "none"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "gridPos": {
+            "h": 6,
+            "w": 24,
+            "x": 0,
+            "y": 0
+          },
+          "id": 28,
+          "options": {
+            "legend": {
+              "calcs": [
+                "max",
+                "mean"
+              ],
+              "displayMode": "table",
+              "placement": "right",
+              "showLegend": true,
+              "sortBy": "Max",
+              "sortDesc": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "repeat": "replica_id",
+          "repeatDirection": "h",
+          "targets": [
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "expr": "sum(container_memory_rss{job=\"kubelet\", metrics_path=\"/metrics/cadvisor\", pod=~\"$wsjob-$replica_type-$replica_id\", container!=\"\", image!=\"\"})",
+              "format": "time_series",
+              "legendFormat": "usage (RSS)",
+              "refId": "A"
+            },
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "expr": "sum(container_memory_working_set_bytes{job=\"kubelet\", metrics_path=\"/metrics/cadvisor\", pod=~\"$wsjob-$replica_type-$replica_id\", container!=\"\", image!=\"\"})",
+              "format": "time_series",
+              "legendFormat": "usage (WSS)",
+              "refId": "B"
+            },
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "expr": "max(kube_pod_container_resource_limits{job=\"kube-state-metrics\", pod=~\"$wsjob-$replica_type-$replica_id\", resource=\"memory\"})",
+              "format": "time_series",
+              "legendFormat": "limit",
+              "refId": "C"
+            },
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "expr": "max(kube_pod_container_resource_requests{job=\"kube-state-metrics\", pod=~\"$wsjob-$replica_type-$replica_id\", resource=\"memory\"})",
+              "format": "time_series",
+              "legendFormat": "request",
+              "refId": "D"
+            }
+          ],
+          "title": "$replica_type-$replica_id Memory Usage",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "drawStyle": "line",
+                "fillOpacity": 5,
+                "lineWidth": 3,
+                "pointSize": 5,
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                }
+              },
+              "decimals": 2,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": []
+              },
+              "unit": "short"
+            },
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byRegexp",
+                  "options": "request|limit"
+                },
+                "properties": [
+                  {
+                    "id": "color",
+                    "value": {
+                      "fixedColor": "red",
+                      "mode": "fixed"
+                    }
+                  },
+                  {
+                    "id": "custom.lineStyle",
+                    "value": {
+                      "dash": [
+                        10,
+                        10
+                      ],
+                      "fill": "dash"
+                    }
+                  },
+                  {
+                    "id": "custom.stacking",
+                    "value": {
+                      "group": "A",
+                      "mode": "none"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "gridPos": {
+            "h": 6,
+            "w": 24,
+            "x": 0,
+            "y": 0
+          },
+          "id": 29,
+          "options": {
+            "legend": {
+              "calcs": [
+                "max",
+                "mean"
+              ],
+              "displayMode": "table",
+              "placement": "right",
+              "showLegend": true,
+              "sortBy": "Max",
+              "sortDesc": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "repeat": "replica_id",
+          "repeatDirection": "h",
+          "targets": [
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "expr": "sum(node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate{pod=~\"$wsjob-$replica_type-$replica_id\"})",
+              "format": "time_series",
+              "legendFormat": "usage",
+              "refId": "A"
+            },
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "expr": "max(kube_pod_container_resource_limits{job=\"kube-state-metrics\", pod=~\"$wsjob-$replica_type-$replica_id\", resource=\"cpu\"})",
+              "format": "time_series",
+              "legendFormat": "limit",
+              "refId": "B"
+            },
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "expr": "max(kube_pod_container_resource_requests{job=\"kube-state-metrics\", pod=~\"$wsjob-$replica_type-$replica_id\", resource=\"cpu\"})",
+              "format": "time_series",
+              "legendFormat": "request",
+              "refId": "C"
+            }
+          ],
+          "title": "$replica_type-$replica_id CPU Usage (Cores)",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "drawStyle": "line",
+                "fillOpacity": 5,
+                "lineWidth": 3,
+                "pointSize": 5,
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                }
+              },
+              "decimals": 2,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": []
+              },
+              "unit": "Bps"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 6,
+            "w": 24,
+            "x": 0,
+            "y": 0
+          },
+          "id": 30,
+          "options": {
+            "legend": {
+              "calcs": [
+                "max",
+                "mean"
+              ],
+              "displayMode": "table",
+              "placement": "right",
+              "showLegend": true,
+              "sortBy": "Max",
+              "sortDesc": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "repeat": "replica_id",
+          "repeatDirection": "h",
+          "targets": [
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "expr": "sum(irate(container_network_transmit_bytes_total{pod=~\"$wsjob-$replica_type-$replica_id\", interface=~\"e.*|net.*\"}[$__rate_interval])) by (pod, interface)",
+              "format": "time_series",
+              "legendFormat": "{{interface}} egress",
+              "refId": "A"
+            },
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "expr": "sum(irate(container_network_receive_bytes_total{pod=~\"$wsjob-$replica_type-$replica_id\", interface=~\"e.*|net.*\"}[$__rate_interval])) by (pod, interface)",
+              "format": "time_series",
+              "legendFormat": "{{interface}} ingress",
+              "refId": "B"
+            }
+          ],
+          "title": "$replica_type-$replica_id Network Usage",
+          "type": "timeseries"
+        }
+      ],
+      "title": "$replica_type type view",
+      "type": "row"
+    },
+    {
+      "collapsed": true,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 39
+      },
+      "id": 31,
+      "panels": [
+        {
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "drawStyle": "line",
+                "fillOpacity": 5,
+                "lineWidth": 3,
+                "pointSize": 5,
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "normal"
+                }
+              },
+              "decimals": 2,
+              "min": 0,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": []
+              },
+              "unit": "bytes"
+            },
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byRegexp",
+                  "options": ".*total.*"
+                },
+                "properties": [
+                  {
+                    "id": "color",
+                    "value": {
+                      "fixedColor": "red",
+                      "mode": "fixed"
+                    }
+                  },
+                  {
+                    "id": "custom.lineStyle",
+                    "value": {
+                      "dash": [
+                        10,
+                        10
+                      ],
+                      "fill": "dash"
+                    }
+                  },
+                  {
+                    "id": "custom.stacking",
+                    "value": {
+                      "group": "A",
+                      "mode": "none"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "gridPos": {
+            "h": 6,
+            "w": 24,
+            "x": 0,
+            "y": 0
+          },
+          "id": 32,
+          "options": {
+            "legend": {
+              "calcs": [
+                "max",
+                "mean"
+              ],
+              "displayMode": "table",
+              "placement": "right",
+              "showLegend": true,
+              "sortBy": "Max",
+              "sortDesc": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "repeat": "replica_id",
+          "repeatDirection": "h",
+          "targets": [
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "expr": "max(kube_node_status_capacity{resource=\"memory\"} * on (node) group_left group by (node) (kube_pod_info{pod=~\"$wsjob-$replica_type-$replica_id\", pod_ip!=\"\"})) by (node)",
+              "format": "time_series",
+              "legendFormat": "{{node}} total capactiy",
+              "refId": "A"
+            },
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "expr": "max(label_replace(node_memory_Cached_bytes,\"host_ip\", \"$1\", \"instance\", \"([^:]+):.*\") * on (host_ip) group_left(node) (kube_pod_info{pod=~\"$wsjob-$replica_type-$replica_id\", pod_ip!=\"\"})) by (node)",
+              "format": "time_series",
+              "legendFormat": "{{node}} cache used",
+              "refId": "B"
+            },
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "expr": "sum(node_namespace_pod_container:container_memory_cache{container!=\"\"} * on (node) group_left group by (node) (kube_pod_info{pod=~\"$wsjob-$replica_type-$replica_id\", pod_ip!=\"\"})) by (node)",
+              "format": "time_series",
+              "legendFormat": "{{node}} total container cache",
+              "refId": "C"
+            },
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "expr": "sum(node_namespace_pod_container:container_memory_working_set_bytes{container!=\"\"} * on (node) group_left group by (node) (kube_pod_info{pod=~\"$wsjob-$replica_type-$replica_id\", pod_ip!=\"\"})) by (pod, node)",
+              "format": "time_series",
+              "legendFormat": "{{pod}}",
+              "refId": "D"
+            }
+          ],
+          "title": "$replica_type-$replica_id node Memory Usage",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "drawStyle": "line",
+                "fillOpacity": 5,
+                "lineWidth": 3,
+                "pointSize": 5,
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "normal"
+                }
+              },
+              "decimals": 2,
+              "min": 0,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": []
+              },
+              "unit": "short"
+            },
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byRegexp",
+                  "options": ".*total.*"
+                },
+                "properties": [
+                  {
+                    "id": "color",
+                    "value": {
+                      "fixedColor": "red",
+                      "mode": "fixed"
+                    }
+                  },
+                  {
+                    "id": "custom.lineStyle",
+                    "value": {
+                      "dash": [
+                        10,
+                        10
+                      ],
+                      "fill": "dash"
+                    }
+                  },
+                  {
+                    "id": "custom.stacking",
+                    "value": {
+                      "group": "A",
+                      "mode": "none"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "gridPos": {
+            "h": 6,
+            "w": 24,
+            "x": 0,
+            "y": 0
+          },
+          "id": 33,
+          "options": {
+            "legend": {
+              "calcs": [
+                "max",
+                "mean"
+              ],
+              "displayMode": "table",
+              "placement": "right",
+              "showLegend": true,
+              "sortBy": "Max",
+              "sortDesc": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "repeat": "replica_id",
+          "repeatDirection": "h",
+          "targets": [
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "expr": "max(kube_node_status_capacity{resource=\"cpu\"} * on (node) group_left group by (node) (kube_pod_info{pod=~\"$wsjob-$replica_type-$replica_id\", pod_ip!=\"\"})) by (node)",
+              "format": "time_series",
+              "legendFormat": "{{node}} total capacity",
+              "refId": "A"
+            },
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "expr": "sum(node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate * on (node) group_left group by (node) (kube_pod_info{pod=~\"$wsjob-$replica_type-$replica_id\", pod_ip!=\"\"})) by (pod, node)",
+              "format": "time_series",
+              "legendFormat": "{{pod}}",
+              "refId": "B"
+            }
+          ],
+          "title": "$replica_type-$replica_id node CPU Usage",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "drawStyle": "line",
+                "fillOpacity": 5,
+                "lineWidth": 3,
+                "pointSize": 5,
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                }
+              },
+              "decimals": 2,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": []
+              },
+              "unit": "Bps"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 6,
+            "w": 24,
+            "x": 0,
+            "y": 0
+          },
+          "id": 34,
+          "options": {
+            "legend": {
+              "calcs": [
+                "max",
+                "mean"
+              ],
+              "displayMode": "table",
+              "placement": "right",
+              "showLegend": true,
+              "sortBy": "Max",
+              "sortDesc": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "repeat": "replica_id",
+          "repeatDirection": "h",
+          "targets": [
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "expr": "rate(node_network_transmit_bytes_total{device=~\"e.*\"}[$__rate_interval]) * on (instance) group_left (node) label_replace(group by (node, host_ip) (kube_pod_info{pod=~\"$wsjob-$replica_type-$replica_id\", pod_ip!=\"\"}), \"instance\", \"$1:9100\", \"host_ip\", \"(.*)\")",
+              "format": "time_series",
+              "legendFormat": "{{node}}/{{device}} egress",
+              "refId": "A"
+            },
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "expr": "rate(node_network_receive_bytes_total{device=~\"e.*\"}[$__rate_interval]) * on (instance) group_left (node) label_replace(group by (node, host_ip) (kube_pod_info{pod=~\"$wsjob-$replica_type-$replica_id\", pod_ip!=\"\"}), \"instance\", \"$1:9100\", \"host_ip\", \"(.*)\")",
+              "format": "time_series",
+              "legendFormat": "{{node}}/{{device}} ingress",
+              "refId": "B"
+            }
+          ],
+          "title": "$replica_type-$replica_id node Network Usage",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "drawStyle": "line",
+                "fillOpacity": 5,
+                "lineWidth": 3,
+                "pointSize": 5,
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                }
+              },
+              "decimals": 2,
+              "min": 0,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": []
+              },
+              "unit": "percent"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 6,
+            "w": 24,
+            "x": 0,
+            "y": 0
+          },
+          "id": 35,
+          "options": {
+            "legend": {
+              "calcs": [
+                "max",
+                "mean"
+              ],
+              "displayMode": "table",
+              "placement": "right",
+              "showLegend": true,
+              "sortBy": "Max",
+              "sortDesc": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "repeat": "replica_id",
+          "repeatDirection": "h",
+          "targets": [
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "expr": "max(label_replace((((node_filesystem_size_bytes{mountpoint=\"/n0\"}-node_filesystem_avail_bytes{mountpoint=\"/n0\"})/node_filesystem_size_bytes{mountpoint=\"/n0\"})*100), \"host_ip\", \"$1\", \"instance\", \"([^:]+):.*\") * on (host_ip) group_right kube_pod_info{pod=~\"$wsjob-$replica_type-$replica_id\", pod_ip!=\"\"}) by (node)",
+              "format": "time_series",
+              "legendFormat": "{{node}}:/n0",
+              "refId": "A"
+            },
+            {
+              "datasource": {
+                "uid": "$datasource"
+              },
+              "expr": "max(label_replace((((node_filesystem_size_bytes{mountpoint=\"/\"}-node_filesystem_avail_bytes{mountpoint=\"/\"})/node_filesystem_size_bytes{mountpoint=\"/\"})*100), \"host_ip\", \"$1\", \"instance\", \"([^:]+):.*\") * on (host_ip) group_right kube_pod_info{pod=~\"$wsjob-$replica_type-$replica_id\", pod_ip!=\"\"}) by (node)",
+              "format": "time_series",
+              "legendFormat": "{{node}}:/",
+              "refId": "B"
+            }
+          ],
+          "title": "$replica_type-$replica_id node Disk Usage",
+          "type": "timeseries"
+        }
+      ],
+      "title": "$replica_type assigned nodes",
+      "type": "row"
+    },
+    {
+      "collapsed": true,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 40
+      },
+      "id": 36,
+      "panels": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "P8E80F9AEF21F6940"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "drawStyle": "line",
+                "fillOpacity": 5,
+                "lineWidth": 3,
+                "pointSize": 5,
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                }
+              },
+              "decimals": 2,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": []
+              },
+              "unit": "\u00b5s"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 6,
+            "w": 24,
+            "x": 0,
+            "y": 0
+          },
+          "id": 37,
+          "options": {
+            "legend": {
+              "calcs": [
+                "max",
+                "mean"
+              ],
+              "displayMode": "table",
+              "placement": "right",
+              "showLegend": true,
+              "sortBy": "Max",
+              "sortDesc": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "repeat": "replica_id",
+          "repeatDirection": "h",
+          "targets": [
+            {
+              "datasource": {
+                "type": "loki",
+                "uid": "P8E80F9AEF21F6940"
+              },
+              "expr": "max(max_over_time({metric=\"rt_iter_perf\", replica_type=\"$replica_type\", replica_id=\"$replica_id\", wsjob=\"$wsjob\"} |= `` | json | unwrap it [$__interval]))",
+              "format": "time_series",
+              "legendFormat": "iteration time",
+              "refId": "A"
+            },
+            {
+              "datasource": {
+                "type": "loki",
+                "uid": "P8E80F9AEF21F6940"
+              },
+              "expr": "max(max_over_time({metric=\"rt_iter_perf\", replica_type=\"$replica_type\", replica_id=\"$replica_id\", wsjob=\"$wsjob\"} |= `` | json | unwrap ct [$__interval]))",
+              "format": "time_series",
+              "legendFormat": "cross-iteration time",
+              "refId": "B"
+            },
+            {
+              "datasource": {
+                "type": "loki",
+                "uid": "P8E80F9AEF21F6940"
+              },
+              "expr": "max(max_over_time({metric=\"rt_iter_perf\", replica_type=\"$replica_type\", replica_id=\"$replica_id\", wsjob=\"$wsjob\"} |= `` | json | unwrap ft [$__interval]))",
+              "format": "time_series",
+              "legendFormat": "forward iteration time",
+              "refId": "C"
+            },
+            {
+              "datasource": {
+                "type": "loki",
+                "uid": "P8E80F9AEF21F6940"
+              },
+              "expr": "max(max_over_time({metric=\"rt_iter_perf\", replica_type=\"$replica_type\", replica_id=\"$replica_id\", wsjob=\"$wsjob\"} |= `` | json | unwrap bt [$__interval]))",
+              "format": "time_series",
+              "legendFormat": "backward iteration time",
+              "refId": "D"
+            }
+          ],
+          "title": "$replica_type-$replica_id iteration performance",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "P8E80F9AEF21F6940"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "drawStyle": "line",
+                "fillOpacity": 5,
+                "lineWidth": 3,
+                "pointSize": 5,
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                }
+              },
+              "decimals": 2,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": []
+              },
+              "unit": "\u00b5s"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 6,
+            "w": 24,
+            "x": 0,
+            "y": 0
+          },
+          "id": 38,
+          "options": {
+            "legend": {
+              "calcs": [
+                "max",
+                "mean"
+              ],
+              "displayMode": "table",
+              "placement": "right",
+              "showLegend": true,
+              "sortBy": "Max",
+              "sortDesc": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "repeat": "replica_id",
+          "repeatDirection": "h",
+          "targets": [
+            {
+              "datasource": {
+                "type": "loki",
+                "uid": "P8E80F9AEF21F6940"
+              },
+              "expr": "max by(metric) (max_over_time({metric=\"rt_iter_perf\", replica_type=\"$replica_type\", replica_id=\"$replica_id\", wsjob=\"$wsjob\"} |= `` | json | unwrap is [$__interval]))",
+              "format": "time_series",
+              "legendFormat": "input starvation",
+              "refId": "A"
+            }
+          ],
+          "title": "$replica_type-$replica_id input starvation",
+          "type": "timeseries"
+        }
+      ],
+      "title": "$replica_type iteration performance",
+      "type": "row"
+    },
+    {
+      "collapsed": true,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 41
+      },
+      "id": 39,
+      "panels": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "P8E80F9AEF21F6940"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "drawStyle": "line",
+                "fillOpacity": 1,
+                "lineWidth": 1,
+                "pointSize": 5,
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                }
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": []
+              },
+              "unit": "s"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 15,
+            "w": 24,
+            "x": 0,
+            "y": 0
+          },
+          "id": 40,
+          "options": {
+            "dedupStrategy": "none",
+            "enableLogDetails": false,
+            "prettifyLogMessage": false,
+            "showCommonLabels": false,
+            "showLabels": false,
+            "showTime": true,
+            "sortOrder": "Descending",
+            "wrapLogMessage": true
+          },
+          "repeat": "replica_id",
+          "repeatDirection": "h",
+          "targets": [
+            {
+              "datasource": {
+                "type": "loki",
+                "uid": "P8E80F9AEF21F6940"
+              },
+              "expr": "{replica_type=\"$replica_type\", replica_id=\"$replica_id\", wsjob=\"$wsjob\"} | json | line_format \"{{.stream}} {{.message}}\"",
+              "format": "time_series",
+              "legendFormat": "logs",
+              "refId": "A"
+            }
+          ],
+          "title": "$replica_type-$replica_id logs",
+          "type": "logs"
+        }
+      ],
+      "title": "$replica_type logs",
+      "type": "row"
+    }
+  ],
+  "preload": false,
+  "refresh": "",
+  "schemaVersion": 41,
+  "tags": [
+    "cluster-mgmt"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "text": "default",
+          "value": "default"
+        },
+        "hide": 2,
+        "label": "Data Source",
+        "name": "datasource",
+        "options": [],
+        "query": "prometheus",
+        "refresh": 1,
+        "type": "datasource"
+      },
+      {
+        "allValue": ".*",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": "$datasource",
+        "includeAll": true,
+        "name": "namespace",
+        "options": [],
+        "query": "label_values(namespace_reservation, namespace)",
+        "refresh": 2,
+        "regex": "",
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "allValue": ".*",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": "$datasource",
+        "includeAll": true,
+        "name": "workflow",
+        "options": [],
+        "query": "label_values(wsjob_annotation{namespace=~\"$namespace\"}, cerebras_workflow_id)",
+        "refresh": 2,
+        "regex": "",
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "allValue": ".*",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": "$datasource",
+        "includeAll": true,
+        "multi": true,
+        "name": "model",
+        "options": [],
+        "query": "label_values(wsjob_annotation, labels_k8s_cerebras_com_Model)",
+        "refresh": 2,
+        "regex": "",
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "allValue": ".*",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": "$datasource",
+        "includeAll": true,
+        "name": "job_type",
+        "options": [],
+        "query": "label_values(wsjob_annotation, job_type)",
+        "refresh": 2,
+        "regex": "",
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "allValue": ".*",
+        "current": {
+          "text": "wsjob-3ajolkjqwjyshiy6vx5nnt",
+          "value": "wsjob-3ajolkjqwjyshiy6vx5nnt"
+        },
+        "datasource": "$datasource",
+        "includeAll": false,
+        "name": "wsjob",
+        "options": [],
+        "query": "label_values(wsjob_annotation{cerebras_workflow_id=~\"$workflow\", labels_k8s_cerebras_com_Model=~\"$model\", job_type=~\"$job_type\", namespace=~\"$namespace\", start!=\"\", end=\"\"}, name)",
+        "refresh": 2,
+        "regex": "",
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "allValue": ".*",
+        "current": {
+          "text": "worker",
+          "value": "worker"
+        },
+        "datasource": "$datasource",
+        "includeAll": false,
+        "name": "replica_type",
+        "options": [],
+        "query": "label_values(kube_pod_info{created_by_name=\"$wsjob\", pod=~\"$wsjob-.*\", pod_ip!=\"\"}, pod)",
+        "refresh": 2,
+        "regex": ".*-(.*)-.*",
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "allValue": ".*",
+        "current": {
+          "text": [
+            "0"
+          ],
+          "value": [
+            "0"
+          ]
+        },
+        "datasource": "$datasource",
+        "includeAll": false,
+        "multi": true,
+        "name": "replica_id",
+        "options": [],
+        "query": "label_values(kube_pod_info{created_by_name=\"$wsjob\", pod=~\"$wsjob-$replica_type.*\", pod_ip!=\"\"}, pod)",
+        "refresh": 2,
+        "regex": "$wsjob-$replica_type-(.*)",
+        "sort": 3,
+        "type": "query"
+      },
+      {
+        "allValue": ".*",
+        "current": {
+          "text": "2026-02-16T15:08:39Z",
+          "value": "2026-02-16T15:08:39Z"
+        },
+        "datasource": "$datasource",
+        "includeAll": false,
+        "name": "utc_start",
+        "options": [],
+        "query": "label_values(wsjob_annotation{name=\"$wsjob\"}, start)",
+        "refresh": 1,
+        "regex": "",
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "allValue": ".*",
+        "current": {
+          "text": "2026-02-16T15:22:01Z",
+          "value": "2026-02-16T15:22:01Z"
+        },
+        "datasource": "$datasource",
+        "includeAll": false,
+        "name": "utc_end",
+        "options": [],
+        "query": "label_values(wsjob_annotation{name=\"$wsjob\"}, end)",
+        "refresh": 1,
+        "regex": "",
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "allValue": ".*",
+        "current": {
+          "text": "1",
+          "value": "1"
+        },
+        "datasource": "$datasource",
+        "includeAll": false,
+        "name": "system_count",
+        "options": [],
+        "query": "label_values(wsjob_annotation{name=\"$wsjob\"}, system_count)",
+        "refresh": 1,
+        "regex": "",
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "allValue": ".*",
+        "current": {
+          "text": [
+            "cer-anl-wse001-cs-sy01"
+          ],
+          "value": [
+            "cer-anl-wse001-cs-sy01"
+          ]
+        },
+        "datasource": "$datasource",
+        "includeAll": false,
+        "multi": true,
+        "name": "system_list",
+        "options": [],
+        "query": "label_values(wsjob_system_grant{name=\"$wsjob\"}, system)",
+        "refresh": 1,
+        "regex": "",
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "allValue": ".*",
+        "current": {
+          "text": "NetworkInterface",
+          "value": "NetworkInterface"
+        },
+        "datasource": "$datasource",
+        "includeAll": false,
+        "name": "system_metrics_category",
+        "options": [],
+        "query": "label_values(system_dev_stats_labels, category)",
+        "refresh": 1,
+        "regex": "",
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "allValue": ".*",
+        "current": {
+          "text": "ack_timeouts",
+          "value": "ack_timeouts"
+        },
+        "datasource": "$datasource",
+        "includeAll": false,
+        "name": "system_metrics_type",
+        "options": [],
+        "query": "label_values(system_dev_stats_labels{category=\"$system_metrics_category\"}, type)",
+        "refresh": 1,
+        "regex": "",
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "allValue": ".*",
+        "current": {
+          "text": [
+            "DATA_CTRL_IF"
+          ],
+          "value": [
+            "DATA_CTRL_IF"
+          ]
+        },
+        "datasource": "$datasource",
+        "includeAll": false,
+        "multi": true,
+        "name": "system_metrics_component",
+        "options": [],
+        "query": "label_values(system_dev_stats_labels{category=\"$system_metrics_category\", type=\"$system_metrics_type\"}, component)",
+        "refresh": 1,
+        "regex": "",
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "allValue": ".*",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": "$datasource",
+        "includeAll": true,
+        "multi": true,
+        "name": "system_wafter_die",
+        "options": [],
+        "query": "label_values(system_dev_stats_labels{system=~\"$system_list\", component=~\"GLTCH_EXCUR_.*\"}, component)",
+        "refresh": 1,
+        "regex": ".*_(..)",
+        "sort": 1,
+        "type": "query"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "WsJob Dashboard",
+  "uid": "123dasasjdaskldjaslkdj12iu3h34e191",
+  "version": 1
+}

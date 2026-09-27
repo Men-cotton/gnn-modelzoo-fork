@@ -1,0 +1,94 @@
+$REPO_ROOT/.venv/lib/python3.11/site-packages/outdated/__init__.py:36: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import parse_version
+2026-09-18 09:40:42,362 INFO:   Current Working Directory: $REPO_ROOT/src/cerebras/modelzoo/models/gnn
+2026-09-18 09:40:42,363 INFO:   Running command: $REPO_ROOT/.venv/bin/cszoo fit $REPO_ROOT/model_dirs/hpcasia_r04/campaign_20260918T032805.576636Z/diagnostic_w08/params.yaml --target_device CSX --model_dir $REPO_ROOT/model_dirs/hpcasia_r04/campaign_20260918T032805.576636Z/diagnostic_w08/model
+2026-09-18 09:40:42,894 INFO:   Connectivity check: running command: ping -c 1 -W 3 10.125.8.2
+2026-09-18 09:40:42,900 INFO:   Connectivity check succeeded.
+2026-09-18 09:40:42,921 INFO:   Appliance client semantic version: 1.14.0, cluster server semantic version: 1.20.2, job operator semantic version: 1.20.2
+2026-09-18 09:40:42,924 INFO:   Successfully initialized workflow with id: wflow-empyex3xgsbsiwzpfqhp8d
+2026-09-18 09:40:42,924 INFO:   No checkpoint was provided. Using randomly initialized model parameters.
+2026-09-18 09:40:42,925 INFO:   Ordinal 0: Initializing GNNDataProcessor for dataset 'ogbn-arxiv' (split=train, mode=neighbor).
+$REPO_ROOT/.venv/lib/python3.11/site-packages/ogb/nodeproppred/dataset_pyg.py:69: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  self.data, self.slices = torch.load(self.processed_paths[0])
+2026-09-18 09:40:43,156 INFO:   GNN worker diagnostics: $REPO_ROOT/model_dirs/hpcasia_r04/campaign_20260918T032805.576636Z/diagnostic_w08/worker_diagnostics/loader-cer-anl-net001-us-sr02-1691132-4cb97de6b0e8455aa837d7fec6237af0
+2026-09-18 09:40:43,158 INFO:   ===========================================================================
+2026-09-18 09:40:43,158 INFO:   Trainer Fit Summary
+2026-09-18 09:40:43,158 INFO:   ---------------------------------------------------------------------------
+2026-09-18 09:40:43,158 INFO:   Trainer will run 1 train loop.
+2026-09-18 09:40:43,158 INFO:   
+2026-09-18 09:40:43,158 INFO:   Train steps per train loop:
+2026-09-18 09:40:43,158 INFO:   * 1 loop of 80 steps
+2026-09-18 09:40:43,158 INFO:   for a total of 80 train steps.
+2026-09-18 09:40:43,158 INFO:   
+2026-09-18 09:40:43,158 INFO:   Progress will be logged every 10 steps.
+2026-09-18 09:40:43,158 INFO:   ===========================================================================
+2026-09-18 09:40:43,158 INFO:   ---------------------------------------------------------------------------
+2026-09-18 09:40:43,158 INFO:   Starting train loop 1 of 1, from global step 1 to 80 (80 steps)
+2026-09-18 09:40:43,158 INFO:   ---------------------------------------------------------------------------
+2026-09-18 09:40:47,935 INFO:   Compiling the model. This may take a few minutes.
+2026-09-18 09:40:47,936 INFO:   Connectivity check: running command: ping -c 1 -W 3 10.125.8.2
+2026-09-18 09:40:47,941 INFO:   Connectivity check succeeded.
+2026-09-18 09:40:47,957 INFO:   Appliance client semantic version: 1.14.0, cluster server semantic version: 1.20.2, job operator semantic version: 1.20.2
+2026-09-18 09:40:49,008 INFO:   Initiating a new image build job against the cluster server.
+2026-09-18 09:40:49,025 INFO:   Job id: imgjob-42280d4f85d91291dacb2ef766350f15, workflow id: wflow-empyex3xgsbsiwzpfqhp8d, namespace: job-operator, remote log path: /n1/wsjob/workdir/job-operator/imgjob-42280d4f85d91291dacb2ef766350f15
+2026-09-18 09:40:49,028 INFO:   Connectivity check: running command: ping -c 1 -W 3 10.125.8.2
+2026-09-18 09:40:49,033 INFO:   Connectivity check succeeded.
+2026-09-18 09:40:49,047 INFO:   Appliance client semantic version: 1.14.0, cluster server semantic version: 1.20.2, job operator semantic version: 1.20.2
+2026-09-18 09:40:49,069 INFO:   Initiating a new compile wsjob against the cluster server.
+2026-09-18 09:40:49,092 INFO:   Job id: wsjob-udjz6uktaj9xvjk39brzd9, workflow id: wflow-empyex3xgsbsiwzpfqhp8d, namespace: job-operator, remote log path: /n1/wsjob/workdir/job-operator/wsjob-udjz6uktaj9xvjk39brzd9
+2026-09-18 09:41:09,092 INFO:   Poll ingress status: Waiting for job to be scheduled, current job status: Queueing, msg: job queueing to be scheduled. Job queue status: 1 compile job(s) queued before current job. For more information, please run 'csctl get job wsjob-udjz6uktaj9xvjk39brzd9 --pending-status'.
+2026-09-18 09:51:09,098 INFO:   Poll ingress status: Waiting for job to be scheduled, current job status: Queueing, msg: job queueing to be scheduled. Job queue status: 1 compile job(s) queued before current job. For more information, please run 'csctl get job wsjob-udjz6uktaj9xvjk39brzd9 --pending-status'.
+2026-09-18 09:56:49,102 INFO:   Poll ingress status: Waiting for job to be scheduled, current job status: Queueing, msg: job queueing to be scheduled. Job queue status: current job is top of queue but likely blocked by running/reserved jobs, 1 execute job(s) running/reserved using 1 system(s) and 1 nodegroup(s)[1 pop and 0 depop], 2 compile job(s) running/reserved using 160Gi memory. For more information, please run 'csctl get job wsjob-udjz6uktaj9xvjk39brzd9 --pending-status'.
+2026-09-18 09:59:29,103 INFO:   Poll ingress status: Waiting for all Coordinator pods to be running, current running: 0/1.
+2026-09-18 09:59:29,107 INFO:   Recording the timestamp when jobs is scheduled.
+2026-09-18 09:59:29,144 WARNING:   Event 2026-09-18 09:59:13 +0000 UTC reason=InconsistentVersion wsjob=wsjob-udjz6uktaj9xvjk39brzd9 message='Warning: client semantic version 1.14.0 is inconsistent with cluster server semantic version 1.20.2, there's a risk job could fail due to inconsistent setup.'
+2026-09-18 09:59:49,144 INFO:   Poll ingress status: Waiting for job ingress readiness.
+2026-09-18 10:00:09,177 INFO:   Poll ingress status: Job ingress ready, dashboard: <internal-dashboard-url>
+2026-09-18 10:00:09,212 INFO:   Poll ingress success: Job ingress ready, dashboard: <internal-dashboard-url>
+2026-09-18 10:00:09,222 INFO:   Finalizing out-of-cluster job handle with ingress service url: 
+2026-09-18 10:00:09,222 WARNING:   Empty ingress service url. Falling back to default server: 10.125.8.2:443
+2026-09-18 10:00:09,288 INFO:   Found existing cached compile with hash: "cs_1827028249484550059"
+2026-09-18 10:00:11,108 INFO:   Using power profile none
+
+2026-09-18 10:00:11,121 INFO:   Compile artifacts successfully written to remote compile directory. Compile hash is: cs_1827028249484550059
+2026-09-18 10:00:19,238 ERROR:   Image build job imgjob-42280d4f85d91291dacb2ef766350f15 failed. Please check the error log in $REPO_ROOT/model_dirs/hpcasia_r04/campaign_20260918T032805.576636Z/diagnostic_w08/model/cerebras_logs/20260918_094042/executors/000001/custom_worker_build.out. 
+2026-09-18 10:00:19,238 INFO:   Falling back to venv mounting.
+2026-09-18 10:00:19,241 INFO:   Compile was successful!
+2026-09-18 10:00:19,241 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+2026-09-18 10:00:21,251 INFO:   Connectivity check: running command: ping -c 1 -W 3 10.125.8.2
+2026-09-18 10:00:21,257 INFO:   Connectivity check succeeded.
+2026-09-18 10:00:21,274 INFO:   Appliance client semantic version: 1.14.0, cluster server semantic version: 1.20.2, job operator semantic version: 1.20.2
+2026-09-18 10:00:21,276 INFO:   Initiating a new execute wsjob against the cluster server.
+2026-09-18 10:00:21,313 INFO:   Job id: wsjob-vtzwqj2gkmrepqd3jzrcfn, workflow id: wflow-empyex3xgsbsiwzpfqhp8d, namespace: job-operator, remote log path: /n1/wsjob/workdir/job-operator/wsjob-vtzwqj2gkmrepqd3jzrcfn
+2026-09-18 10:00:41,313 INFO:   Poll ingress status: Waiting for all Activation pods to be running, current running: 0/21.
+2026-09-18 10:00:41,321 INFO:   Recording the timestamp when jobs is scheduled.
+2026-09-18 10:00:41,357 WARNING:   Event 2026-09-18 10:00:31 +0000 UTC reason=InconsistentVersion wsjob=wsjob-vtzwqj2gkmrepqd3jzrcfn message='Warning: client semantic version 1.14.0 is inconsistent with cluster server semantic version 1.20.2, there's a risk job could fail due to inconsistent setup.'
+2026-09-18 10:00:41,357 INFO:   Infrastructure setup started for job wsjob-vtzwqj2gkmrepqd3jzrcfn
+2026-09-18 10:00:51,357 INFO:   Poll ingress status: Waiting for all Weight pods to be running, current running: 0/2.
+2026-09-18 10:00:51,386 INFO:   Infrastructure setup completed successfully for job wsjob-vtzwqj2gkmrepqd3jzrcfn
+2026-09-18 10:01:01,386 INFO:   Poll ingress status: Job ingress ready, dashboard: <internal-dashboard-url>
+2026-09-18 10:01:01,416 INFO:   Infrastructure setup completed successfully for job wsjob-vtzwqj2gkmrepqd3jzrcfn
+2026-09-18 10:01:01,416 INFO:   Poll ingress success: Job ingress ready, dashboard: <internal-dashboard-url>
+2026-09-18 10:01:01,445 INFO:   Finalizing out-of-cluster job handle with ingress service url: 
+2026-09-18 10:01:01,445 WARNING:   Empty ingress service url. Falling back to default server: 10.125.8.2:443
+2026-09-18 10:01:01,526 INFO:   Preparing to execute using 1 CSX
+2026-09-18 10:01:18,790 INFO:   About to send initial weights
+2026-09-18 10:01:18,987 INFO:   Finished sending initial weights
+2026-09-18 10:01:18,987 INFO:   Finalizing appliance staging for the run
+2026-09-18 10:01:24,146 INFO:   Waiting for device programming to complete
+2026-09-18 10:01:40,357 INFO:   Device programming is complete
+2026-09-18 10:01:40,623 INFO:   Using network type: ROCE
+2026-09-18 10:01:40,624 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+2026-09-18 10:01:40,635 INFO:   Input workers have begun streaming input data
+2026-09-18 10:01:40,827 INFO:   Appliance staging is complete
+2026-09-18 10:01:40,827 INFO:   Beginning appliance run
+2026-09-18 10:01:52,083 INFO:   | Train Device=CSX, Step=10, Loss=3.37735, Rate=2656.18 samples/sec, GlobalRate=32.35 samples/sec, LoopTimeRemaining=0:01:49, TimeRemaining=0:01:49
+2026-09-18 10:02:07,672 INFO:   | Train Device=CSX, Step=20, Loss=2.77050, Rate=2644.51 samples/sec, GlobalRate=63.91 samples/sec, LoopTimeRemaining=0:01:33, TimeRemaining=0:01:33
+2026-09-18 10:02:27,347 INFO:   | Train Device=CSX, Step=30, Loss=2.45144, Rate=2639.31 samples/sec, GlobalRate=94.42 samples/sec, LoopTimeRemaining=0:01:17, TimeRemaining=0:01:17
+2026-09-18 10:02:42,654 INFO:   | Train Device=CSX, Step=40, Loss=2.23498, Rate=2674.03 samples/sec, GlobalRate=124.43 samples/sec, LoopTimeRemaining=0:01:02, TimeRemaining=0:01:02
+2026-09-18 10:03:02,098 INFO:   | Train Device=CSX, Step=50, Loss=1.97032, Rate=2497.09 samples/sec, GlobalRate=153.27 samples/sec, LoopTimeRemaining=0:00:46, TimeRemaining=0:00:46
+2026-09-18 10:03:17,591 INFO:   | Train Device=CSX, Step=60, Loss=1.74339, Rate=2676.47 samples/sec, GlobalRate=181.82 samples/sec, LoopTimeRemaining=0:00:31, TimeRemaining=0:00:31
+2026-09-18 10:03:36,764 INFO:   | Train Device=CSX, Step=70, Loss=1.60173, Rate=1536.79 samples/sec, GlobalRate=209.16 samples/sec, LoopTimeRemaining=0:00:15, TimeRemaining=0:00:15
+2026-09-18 10:03:52,901 INFO:   | Train Device=CSX, Step=80, Loss=1.46741, Rate=2701.41 samples/sec, GlobalRate=236.26 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:00:00
+2026-09-18 10:03:53,020 INFO:   Training completed successfully!
+2026-09-18 10:03:53,024 INFO:   Processed 327680 training sample(s) in 1389.866666032 seconds.

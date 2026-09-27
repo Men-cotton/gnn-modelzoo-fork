@@ -1,0 +1,32 @@
+{
+  "from": "1789708040782",
+  "queries": [
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "expr": "kube_pod_container_info{pod=\"wsjob-op8bhnj67etnbhggctqaaf-worker-0\"}",
+      "format": "time_series",
+      "instant": false,
+      "intervalMs": 30000,
+      "maxDataPoints": 2000,
+      "range": true,
+      "refId": "container_info"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "expr": "irate(container_network_transmit_bytes_total{pod=\"wsjob-op8bhnj67etnbhggctqaaf-worker-0\", interface=\"net1\"}[120s])",
+      "format": "time_series",
+      "instant": false,
+      "intervalMs": 30000,
+      "maxDataPoints": 2000,
+      "range": true,
+      "refId": "network_series"
+    }
+  ],
+  "to": "1789708578131"
+}

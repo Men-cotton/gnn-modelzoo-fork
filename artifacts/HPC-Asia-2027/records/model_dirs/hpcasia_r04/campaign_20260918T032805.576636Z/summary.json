@@ -1,0 +1,531 @@
+{
+  "groups": {
+    "diagnostic/w12/none": {
+      "mean": null,
+      "measured": 0,
+      "rates": [],
+      "runs": 1,
+      "sample_stddev": null
+    },
+    "diagnostic/w16/none": {
+      "mean": 2446.5416318241546,
+      "measured": 1,
+      "rates": [
+        2446.5416318241546
+      ],
+      "runs": 1,
+      "sample_stddev": null
+    },
+    "diagnostic/w4/none": {
+      "mean": 2338.800622385908,
+      "measured": 1,
+      "rates": [
+        2338.800622385908
+      ],
+      "runs": 1,
+      "sample_stddev": null
+    },
+    "diagnostic/w8/none": {
+      "mean": 2332.3415946588466,
+      "measured": 1,
+      "rates": [
+        2332.3415946588466
+      ],
+      "runs": 1,
+      "sample_stddev": null
+    },
+    "intervention/w4/feature_cache": {
+      "mean": 2359.3473992260447,
+      "measured": 3,
+      "rates": [
+        2355.315704884002,
+        2361.5487285631507,
+        2361.1777642309817
+      ],
+      "runs": 3,
+      "sample_stddev": 3.4964729492275195
+    },
+    "intervention/w4/persistent_off": {
+      "mean": 2361.161725266842,
+      "measured": 3,
+      "rates": [
+        2351.364190204467,
+        2360.062170583058,
+        2372.058815013001
+      ],
+      "runs": 3,
+      "sample_stddev": 10.39103649153793
+    },
+    "intervention/w4/prefetch1": {
+      "mean": 2368.0941242369527,
+      "measured": 3,
+      "rates": [
+        2375.360276506782,
+        2360.40898004227,
+        2368.513116161806
+      ],
+      "runs": 3,
+      "sample_stddev": 7.484449356315661
+    },
+    "intervention/w4/static_batch": {
+      "mean": 3036.255996827936,
+      "measured": 3,
+      "rates": [
+        3049.0426147624726,
+        3039.8892696584394,
+        3019.836106062896
+      ],
+      "runs": 3,
+      "sample_stddev": 14.938391519848063
+    },
+    "workers_w04/w4/none": {
+      "mean": 2375.2424710153805,
+      "measured": 3,
+      "rates": [
+        2383.2624687073157,
+        2379.6935912109366,
+        2362.7713531278887
+      ],
+      "runs": 3,
+      "sample_stddev": 10.946725888082977
+    },
+    "workers_w08/w4/none": {
+      "mean": 2369.294844562394,
+      "measured": 3,
+      "rates": [
+        2387.4124610573745,
+        2352.1541074404963,
+        2368.317965189311
+      ],
+      "runs": 3,
+      "sample_stddev": 17.649464437352542
+    },
+    "workers_w08/w8/none": {
+      "mean": 2385.8925651817194,
+      "measured": 3,
+      "rates": [
+        2380.9558410002805,
+        2386.261518765739,
+        2390.4603357791393
+      ],
+      "runs": 3,
+      "sample_stddev": 4.762977042849243
+    },
+    "workers_w12/w12/none": {
+      "mean": 2352.800939464327,
+      "measured": 3,
+      "rates": [
+        2405.5063543893443,
+        2326.3309597677076,
+        2326.565504235928
+      ],
+      "runs": 3,
+      "sample_stddev": 45.64437889368854
+    },
+    "workers_w12/w4/none": {
+      "mean": 2374.437453225565,
+      "measured": 2,
+      "rates": [
+        2378.408510242951,
+        2370.4663962081795
+      ],
+      "runs": 3,
+      "sample_stddev": 5.615922690943633
+    },
+    "workers_w16/w4/none": {
+      "mean": null,
+      "measured": 0,
+      "rates": [],
+      "runs": 1,
+      "sample_stddev": null
+    }
+  },
+  "interpretation": "Diagnostics include instrumentation overhead. Static-batch runs reuse one batch and are mechanism probes, not accuracy results. Missing measurements are not zero.",
+  "runs": [
+    {
+      "control": null,
+      "kind": "sensitivity",
+      "nominal_slots_per_second": 2383.2624687073157,
+      "repeat": 1,
+      "source": "$REPO_ROOT/model_dirs/hpcasia_r04/campaign_20260918T032805.576636Z/workers_w04",
+      "stage": "workers_w04",
+      "status": "completed",
+      "unstable": false,
+      "window_seconds": 687.461,
+      "workers": 4
+    },
+    {
+      "control": null,
+      "kind": "sensitivity",
+      "nominal_slots_per_second": 2379.6935912109366,
+      "repeat": 2,
+      "source": "$REPO_ROOT/model_dirs/hpcasia_r04/campaign_20260918T032805.576636Z/workers_w04",
+      "stage": "workers_w04",
+      "status": "completed",
+      "unstable": false,
+      "window_seconds": 688.492,
+      "workers": 4
+    },
+    {
+      "control": null,
+      "kind": "sensitivity",
+      "nominal_slots_per_second": 2362.7713531278887,
+      "repeat": 3,
+      "source": "$REPO_ROOT/model_dirs/hpcasia_r04/campaign_20260918T032805.576636Z/workers_w04",
+      "stage": "workers_w04",
+      "status": "completed",
+      "unstable": false,
+      "window_seconds": 693.423,
+      "workers": 4
+    },
+    {
+      "control": "prefetch1",
+      "kind": "intervention",
+      "nominal_slots_per_second": 2375.360276506782,
+      "repeat": 1,
+      "source": "$REPO_ROOT/model_dirs/hpcasia_r04/campaign_20260918T032805.576636Z/control_prefetch1_r1",
+      "stage": "control_prefetch1_r1",
+      "status": "completed",
+      "unstable": false,
+      "window_seconds": 689.748,
+      "workers": 4
+    },
+    {
+      "control": "persistent_off",
+      "kind": "intervention",
+      "nominal_slots_per_second": 2351.364190204467,
+      "repeat": 1,
+      "source": "$REPO_ROOT/model_dirs/hpcasia_r04/campaign_20260918T032805.576636Z/control_persistent_off_r1",
+      "stage": "control_persistent_off_r1",
+      "status": "completed",
+      "unstable": false,
+      "window_seconds": 696.787,
+      "workers": 4
+    },
+    {
+      "control": "feature_cache",
+      "kind": "intervention",
+      "nominal_slots_per_second": 2355.315704884002,
+      "repeat": 1,
+      "source": "$REPO_ROOT/model_dirs/hpcasia_r04/campaign_20260918T032805.576636Z/control_feature_cache_r1",
+      "stage": "control_feature_cache_r1",
+      "status": "completed",
+      "unstable": false,
+      "window_seconds": 695.618,
+      "workers": 4
+    },
+    {
+      "control": "static_batch",
+      "kind": "intervention",
+      "nominal_slots_per_second": 3049.0426147624726,
+      "repeat": 1,
+      "source": "$REPO_ROOT/model_dirs/hpcasia_r04/campaign_20260918T032805.576636Z/control_static_batch_r1",
+      "stage": "control_static_batch_r1",
+      "status": "completed",
+      "unstable": false,
+      "window_seconds": 537.349,
+      "workers": 4
+    },
+    {
+      "control": "static_batch",
+      "kind": "intervention",
+      "nominal_slots_per_second": 3039.8892696584394,
+      "repeat": 2,
+      "source": "$REPO_ROOT/model_dirs/hpcasia_r04/campaign_20260918T032805.576636Z/control_static_batch_r2",
+      "stage": "control_static_batch_r2",
+      "status": "completed",
+      "unstable": false,
+      "window_seconds": 538.967,
+      "workers": 4
+    },
+    {
+      "control": "feature_cache",
+      "kind": "intervention",
+      "nominal_slots_per_second": 2361.5487285631507,
+      "repeat": 2,
+      "source": "$REPO_ROOT/model_dirs/hpcasia_r04/campaign_20260918T032805.576636Z/control_feature_cache_r2",
+      "stage": "control_feature_cache_r2",
+      "status": "completed",
+      "unstable": false,
+      "window_seconds": 693.782,
+      "workers": 4
+    },
+    {
+      "control": "persistent_off",
+      "kind": "intervention",
+      "nominal_slots_per_second": 2360.062170583058,
+      "repeat": 2,
+      "source": "$REPO_ROOT/model_dirs/hpcasia_r04/campaign_20260918T032805.576636Z/control_persistent_off_r2",
+      "stage": "control_persistent_off_r2",
+      "status": "completed",
+      "unstable": false,
+      "window_seconds": 694.219,
+      "workers": 4
+    },
+    {
+      "control": "prefetch1",
+      "kind": "intervention",
+      "nominal_slots_per_second": 2360.40898004227,
+      "repeat": 2,
+      "source": "$REPO_ROOT/model_dirs/hpcasia_r04/campaign_20260918T032805.576636Z/control_prefetch1_r2",
+      "stage": "control_prefetch1_r2",
+      "status": "completed",
+      "unstable": false,
+      "window_seconds": 694.117,
+      "workers": 4
+    },
+    {
+      "control": "prefetch1",
+      "kind": "intervention",
+      "nominal_slots_per_second": 2368.513116161806,
+      "repeat": 3,
+      "source": "$REPO_ROOT/model_dirs/hpcasia_r04/campaign_20260918T032805.576636Z/control_prefetch1_r3",
+      "stage": "control_prefetch1_r3",
+      "status": "completed",
+      "unstable": false,
+      "window_seconds": 691.742,
+      "workers": 4
+    },
+    {
+      "control": "persistent_off",
+      "kind": "intervention",
+      "nominal_slots_per_second": 2372.058815013001,
+      "repeat": 3,
+      "source": "$REPO_ROOT/model_dirs/hpcasia_r04/campaign_20260918T032805.576636Z/control_persistent_off_r3",
+      "stage": "control_persistent_off_r3",
+      "status": "completed",
+      "unstable": false,
+      "window_seconds": 690.708,
+      "workers": 4
+    },
+    {
+      "control": "feature_cache",
+      "kind": "intervention",
+      "nominal_slots_per_second": 2361.1777642309817,
+      "repeat": 3,
+      "source": "$REPO_ROOT/model_dirs/hpcasia_r04/campaign_20260918T032805.576636Z/control_feature_cache_r3",
+      "stage": "control_feature_cache_r3",
+      "status": "completed",
+      "unstable": false,
+      "window_seconds": 693.891,
+      "workers": 4
+    },
+    {
+      "control": "static_batch",
+      "kind": "intervention",
+      "nominal_slots_per_second": 3019.836106062896,
+      "repeat": 3,
+      "source": "$REPO_ROOT/model_dirs/hpcasia_r04/campaign_20260918T032805.576636Z/control_static_batch_r3",
+      "stage": "control_static_batch_r3",
+      "status": "completed",
+      "unstable": false,
+      "window_seconds": 542.546,
+      "workers": 4
+    },
+    {
+      "control": null,
+      "kind": "diagnostic",
+      "nominal_slots_per_second": 2338.800622385908,
+      "repeat": 1,
+      "source": "$REPO_ROOT/model_dirs/hpcasia_r04/campaign_20260918T032805.576636Z/diagnostic_w04",
+      "stage": "diagnostic_w04",
+      "status": "completed",
+      "unstable": false,
+      "window_seconds": 70.053,
+      "workers": 4
+    },
+    {
+      "control": null,
+      "kind": "sensitivity",
+      "nominal_slots_per_second": 2387.4124610573745,
+      "repeat": 1,
+      "source": "$REPO_ROOT/model_dirs/hpcasia_r04/campaign_20260918T032805.576636Z/workers_w08",
+      "stage": "workers_w08",
+      "status": "completed",
+      "unstable": false,
+      "window_seconds": 686.266,
+      "workers": 4
+    },
+    {
+      "control": null,
+      "kind": "sensitivity",
+      "nominal_slots_per_second": 2380.9558410002805,
+      "repeat": 1,
+      "source": "$REPO_ROOT/model_dirs/hpcasia_r04/campaign_20260918T032805.576636Z/workers_w08",
+      "stage": "workers_w08",
+      "status": "completed",
+      "unstable": false,
+      "window_seconds": 688.127,
+      "workers": 8
+    },
+    {
+      "control": null,
+      "kind": "sensitivity",
+      "nominal_slots_per_second": 2386.261518765739,
+      "repeat": 2,
+      "source": "$REPO_ROOT/model_dirs/hpcasia_r04/campaign_20260918T032805.576636Z/workers_w08",
+      "stage": "workers_w08",
+      "status": "completed",
+      "unstable": false,
+      "window_seconds": 686.597,
+      "workers": 8
+    },
+    {
+      "control": null,
+      "kind": "sensitivity",
+      "nominal_slots_per_second": 2352.1541074404963,
+      "repeat": 2,
+      "source": "$REPO_ROOT/model_dirs/hpcasia_r04/campaign_20260918T032805.576636Z/workers_w08",
+      "stage": "workers_w08",
+      "status": "completed",
+      "unstable": false,
+      "window_seconds": 696.553,
+      "workers": 4
+    },
+    {
+      "control": null,
+      "kind": "sensitivity",
+      "nominal_slots_per_second": 2368.317965189311,
+      "repeat": 3,
+      "source": "$REPO_ROOT/model_dirs/hpcasia_r04/campaign_20260918T032805.576636Z/workers_w08",
+      "stage": "workers_w08",
+      "status": "completed",
+      "unstable": false,
+      "window_seconds": 691.799,
+      "workers": 4
+    },
+    {
+      "control": null,
+      "kind": "sensitivity",
+      "nominal_slots_per_second": 2390.4603357791393,
+      "repeat": 3,
+      "source": "$REPO_ROOT/model_dirs/hpcasia_r04/campaign_20260918T032805.576636Z/workers_w08",
+      "stage": "workers_w08",
+      "status": "completed",
+      "unstable": false,
+      "window_seconds": 685.391,
+      "workers": 8
+    },
+    {
+      "control": null,
+      "kind": "diagnostic",
+      "nominal_slots_per_second": 2332.3415946588466,
+      "repeat": 1,
+      "source": "$REPO_ROOT/model_dirs/hpcasia_r04/campaign_20260918T032805.576636Z/diagnostic_w08",
+      "stage": "diagnostic_w08",
+      "status": "completed",
+      "unstable": false,
+      "window_seconds": 70.247,
+      "workers": 8
+    },
+    {
+      "control": null,
+      "kind": "sensitivity",
+      "nominal_slots_per_second": 2378.408510242951,
+      "repeat": 1,
+      "source": "$REPO_ROOT/model_dirs/hpcasia_r04/campaign_20260918T032805.576636Z/workers_w12",
+      "stage": "workers_w12",
+      "status": "completed",
+      "unstable": false,
+      "window_seconds": 688.864,
+      "workers": 4
+    },
+    {
+      "control": null,
+      "kind": "sensitivity",
+      "nominal_slots_per_second": 2405.5063543893443,
+      "repeat": 1,
+      "source": "$REPO_ROOT/model_dirs/hpcasia_r04/campaign_20260918T032805.576636Z/workers_w12",
+      "stage": "workers_w12",
+      "status": "completed",
+      "unstable": false,
+      "window_seconds": 681.104,
+      "workers": 12
+    },
+    {
+      "control": null,
+      "kind": "sensitivity",
+      "nominal_slots_per_second": 2326.3309597677076,
+      "repeat": 2,
+      "source": "$REPO_ROOT/model_dirs/hpcasia_r04/campaign_20260918T032805.576636Z/workers_w12",
+      "stage": "workers_w12",
+      "status": "completed",
+      "unstable": false,
+      "window_seconds": 704.285,
+      "workers": 12
+    },
+    {
+      "control": null,
+      "kind": "sensitivity",
+      "nominal_slots_per_second": 2370.4663962081795,
+      "repeat": 2,
+      "source": "$REPO_ROOT/model_dirs/hpcasia_r04/campaign_20260918T032805.576636Z/workers_w12",
+      "stage": "workers_w12",
+      "status": "completed",
+      "unstable": false,
+      "window_seconds": 691.172,
+      "workers": 4
+    },
+    {
+      "control": null,
+      "kind": "sensitivity",
+      "nominal_slots_per_second": null,
+      "repeat": 3,
+      "source": "$REPO_ROOT/model_dirs/hpcasia_r04/campaign_20260918T032805.576636Z/workers_w12",
+      "stage": "workers_w12",
+      "status": "failed",
+      "unstable": false,
+      "window_seconds": null,
+      "workers": 4
+    },
+    {
+      "control": null,
+      "kind": "sensitivity",
+      "nominal_slots_per_second": 2326.565504235928,
+      "repeat": 3,
+      "source": "$REPO_ROOT/model_dirs/hpcasia_r04/campaign_20260918T032805.576636Z/workers_w12",
+      "stage": "workers_w12",
+      "status": "completed",
+      "unstable": false,
+      "window_seconds": 704.214,
+      "workers": 12
+    },
+    {
+      "control": null,
+      "kind": "diagnostic",
+      "nominal_slots_per_second": null,
+      "repeat": 1,
+      "source": "$REPO_ROOT/model_dirs/hpcasia_r04/campaign_20260918T032805.576636Z/diagnostic_w12",
+      "stage": "diagnostic_w12",
+      "status": "failed",
+      "unstable": false,
+      "window_seconds": null,
+      "workers": 12
+    },
+    {
+      "control": null,
+      "kind": "sensitivity",
+      "nominal_slots_per_second": null,
+      "repeat": 1,
+      "source": "$REPO_ROOT/model_dirs/hpcasia_r04/campaign_20260918T032805.576636Z/workers_w16",
+      "stage": "workers_w16",
+      "status": "running",
+      "unstable": false,
+      "window_seconds": null,
+      "workers": 4
+    },
+    {
+      "control": null,
+      "kind": "diagnostic",
+      "nominal_slots_per_second": 2446.5416318241546,
+      "repeat": 1,
+      "source": "$REPO_ROOT/model_dirs/hpcasia_r04/campaign_20260918T032805.576636Z/diagnostic_w16",
+      "stage": "diagnostic_w16",
+      "status": "completed",
+      "unstable": false,
+      "window_seconds": 66.968,
+      "workers": 16
+    }
+  ],
+  "status": "completed_with_failures"
+}

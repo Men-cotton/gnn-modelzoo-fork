@@ -1,0 +1,2156 @@
+{
+  "runs": [
+    {
+      "command": [
+        "$REPO_ROOT/.venv/bin/python3",
+        "-u",
+        "-m",
+        "cerebras.modelzoo.cli.main",
+        "fit",
+        "$REPO_ROOT/model_dirs/hpcasia_final/products_retry_20260920T014813Z/seed_42/learning_r1/params.yaml",
+        "--target_device",
+        "CSX",
+        "--model_dir",
+        "$REPO_ROOT/model_dirs/hpcasia_final/products_retry_20260920T014813Z/seed_42/learning_r1/model"
+      ],
+      "config": {
+        "runconfig": {
+          "python_paths": [
+            "$MODELZOO_ROOT/../.."
+          ]
+        },
+        "trainer": {
+          "fit": {
+            "ckpt_path": null,
+            "train_dataloader": {
+              "batch_size": 4096,
+              "cache_fraction": null,
+              "data_processor": "GNNDataProcessor",
+              "dataset": "ogbn_products",
+              "dataset_profiles": {
+                "ogbn_products": {
+                  "data_dir": "$MODELZOO_ROOT/models/gnn/data/datasets",
+                  "dataset_name": "ogbn-products",
+                  "pad_node_id": 0
+                }
+              },
+              "drop_last_batch": false,
+              "fanouts": [
+                15,
+                10,
+                5
+              ],
+              "measure_batch_accounting": true,
+              "num_workers": 4,
+              "persistent_workers": true,
+              "pin_memory": true,
+              "prefetch_factor": 2,
+              "sampler_seed": 42,
+              "sampling_mode": "neighbor",
+              "shuffle": true,
+              "split": "train",
+              "static_batch_cache_size": 0,
+              "use_fake_data": false,
+              "worker_diagnostics": {
+                "enabled": false
+              }
+            },
+            "val_dataloader": {
+              "batch_size": 4096,
+              "cache_fraction": null,
+              "data_processor": "GNNDataProcessor",
+              "dataset": "ogbn_products",
+              "dataset_profiles": {
+                "ogbn_products": {
+                  "data_dir": "$MODELZOO_ROOT/models/gnn/data/datasets",
+                  "dataset_name": "ogbn-products",
+                  "pad_node_id": 0
+                }
+              },
+              "drop_last_batch": false,
+              "fanouts": [
+                15,
+                10,
+                5
+              ],
+              "num_workers": 4,
+              "persistent_workers": true,
+              "pin_memory": true,
+              "prefetch_factor": 2,
+              "sampler_seed": 42,
+              "sampling_mode": "neighbor",
+              "shuffle": false,
+              "split": "valid",
+              "static_batch_cache_size": 0,
+              "use_fake_data": false,
+              "worker_diagnostics": {
+                "enabled": false
+              }
+            }
+          },
+          "init": {
+            "autorestart": {
+              "max_num_restarts": 0
+            },
+            "backend": {
+              "backend_type": "CSX",
+              "cluster_config": {
+                "job_labels": [
+                  "run=sage-products-learning-trial-seed_42-learning_r1-1d0e8e4a7d",
+                  "study=89846e76da"
+                ],
+                "job_time_sec": 14400,
+                "num_csx": 1,
+                "num_workers_per_csx": 1
+              }
+            },
+            "checkpoint": {
+              "autoload_last_checkpoint": false,
+              "save_initial_checkpoint": false,
+              "steps": null
+            },
+            "logging": {
+              "log_steps": 10
+            },
+            "loop": {
+              "eval_frequency": 40,
+              "eval_steps": null,
+              "grad_accum_steps": 1,
+              "max_steps": 1000,
+              "num_epochs": null,
+              "num_steps": null,
+              "steps_per_epoch": null
+            },
+            "model": {
+              "architecture": {
+                "aggregator": "mean",
+                "dropout": 0.5,
+                "hidden_dim": 1024,
+                "n_class": 47,
+                "n_feat": 100,
+                "num_layers": 3,
+                "type": "graphsage"
+              },
+              "name": "gnn",
+              "task": {
+                "compute_eval_metrics": true,
+                "disable_log_softmax": false,
+                "to_float16": true
+              }
+            },
+            "model_dir": "$REPO_ROOT/model_dirs/hpcasia_final/products_retry_20260920T014813Z/seed_42/learning_r1/model",
+            "optimizer": {
+              "AdamW": {
+                "betas": [
+                  0.9,
+                  0.999
+                ],
+                "eps": 1e-06,
+                "learning_rate": 0.003,
+                "params": [],
+                "weight_decay": 0.0005
+              }
+            },
+            "precision": {
+              "enabled": true,
+              "fp16_type": "float16",
+              "loss_scaling_factor": "dynamic"
+            },
+            "seed": 42
+          },
+          "validate": null,
+          "validate_all": null
+        }
+      },
+      "directory": "$REPO_ROOT/model_dirs/hpcasia_final/products_retry_20260920T014813Z/seed_42/learning_r1",
+      "id": "seed_42/learning_r1",
+      "kind": "learning",
+      "repeat": 1,
+      "seed": 42
+    },
+    {
+      "command": [
+        "$REPO_ROOT/.venv/bin/python3",
+        "-u",
+        "-m",
+        "cerebras.modelzoo.cli.main",
+        "fit",
+        "$REPO_ROOT/model_dirs/hpcasia_final/products_retry_20260920T014813Z/seed_42/throughput_r1/params.yaml",
+        "--target_device",
+        "CSX",
+        "--model_dir",
+        "$REPO_ROOT/model_dirs/hpcasia_final/products_retry_20260920T014813Z/seed_42/throughput_r1/model"
+      ],
+      "config": {
+        "runconfig": {
+          "python_paths": [
+            "$MODELZOO_ROOT/../.."
+          ]
+        },
+        "trainer": {
+          "fit": {
+            "ckpt_path": null,
+            "train_dataloader": {
+              "batch_size": 4096,
+              "cache_fraction": null,
+              "data_processor": "GNNDataProcessor",
+              "dataset": "ogbn_products",
+              "dataset_profiles": {
+                "ogbn_products": {
+                  "data_dir": "$MODELZOO_ROOT/models/gnn/data/datasets",
+                  "dataset_name": "ogbn-products",
+                  "pad_node_id": 0
+                }
+              },
+              "drop_last_batch": false,
+              "fanouts": [
+                15,
+                10,
+                5
+              ],
+              "measure_batch_accounting": true,
+              "num_workers": 4,
+              "persistent_workers": true,
+              "pin_memory": true,
+              "prefetch_factor": 2,
+              "sampler_seed": 42,
+              "sampling_mode": "neighbor",
+              "shuffle": true,
+              "split": "train",
+              "static_batch_cache_size": 0,
+              "use_fake_data": false,
+              "worker_diagnostics": {
+                "enabled": false
+              }
+            },
+            "val_dataloader": null
+          },
+          "init": {
+            "autorestart": {
+              "max_num_restarts": 0
+            },
+            "backend": {
+              "backend_type": "CSX",
+              "cluster_config": {
+                "job_labels": [
+                  "run=sage-products-throughput-trial-seed_42-throughput-96659fd1c5",
+                  "study=89846e76da"
+                ],
+                "job_time_sec": 14400,
+                "num_csx": 1,
+                "num_workers_per_csx": 1
+              }
+            },
+            "checkpoint": {
+              "autoload_last_checkpoint": false,
+              "save_initial_checkpoint": false,
+              "steps": null
+            },
+            "logging": {
+              "log_steps": 10
+            },
+            "loop": {
+              "eval_frequency": null,
+              "grad_accum_steps": 1,
+              "max_steps": 1640,
+              "num_epochs": null,
+              "num_steps": null,
+              "steps_per_epoch": null
+            },
+            "model": {
+              "architecture": {
+                "aggregator": "mean",
+                "dropout": 0.5,
+                "hidden_dim": 1024,
+                "n_class": 47,
+                "n_feat": 100,
+                "num_layers": 3,
+                "type": "graphsage"
+              },
+              "name": "gnn",
+              "task": {
+                "compute_eval_metrics": false,
+                "disable_log_softmax": false,
+                "to_float16": true
+              }
+            },
+            "model_dir": "$REPO_ROOT/model_dirs/hpcasia_final/products_retry_20260920T014813Z/seed_42/throughput_r1/model",
+            "optimizer": {
+              "AdamW": {
+                "betas": [
+                  0.9,
+                  0.999
+                ],
+                "eps": 1e-06,
+                "learning_rate": 0.003,
+                "params": [],
+                "weight_decay": 0.0005
+              }
+            },
+            "precision": {
+              "enabled": true,
+              "fp16_type": "float16",
+              "loss_scaling_factor": "dynamic"
+            },
+            "seed": 42
+          },
+          "validate": null,
+          "validate_all": null
+        }
+      },
+      "directory": "$REPO_ROOT/model_dirs/hpcasia_final/products_retry_20260920T014813Z/seed_42/throughput_r1",
+      "id": "seed_42/throughput_r1",
+      "kind": "throughput",
+      "repeat": 1,
+      "seed": 42
+    },
+    {
+      "command": [
+        "$REPO_ROOT/.venv/bin/python3",
+        "-u",
+        "-m",
+        "cerebras.modelzoo.cli.main",
+        "fit",
+        "$REPO_ROOT/model_dirs/hpcasia_final/products_retry_20260920T014813Z/seed_42/throughput_r2/params.yaml",
+        "--target_device",
+        "CSX",
+        "--model_dir",
+        "$REPO_ROOT/model_dirs/hpcasia_final/products_retry_20260920T014813Z/seed_42/throughput_r2/model"
+      ],
+      "config": {
+        "runconfig": {
+          "python_paths": [
+            "$MODELZOO_ROOT/../.."
+          ]
+        },
+        "trainer": {
+          "fit": {
+            "ckpt_path": null,
+            "train_dataloader": {
+              "batch_size": 4096,
+              "cache_fraction": null,
+              "data_processor": "GNNDataProcessor",
+              "dataset": "ogbn_products",
+              "dataset_profiles": {
+                "ogbn_products": {
+                  "data_dir": "$MODELZOO_ROOT/models/gnn/data/datasets",
+                  "dataset_name": "ogbn-products",
+                  "pad_node_id": 0
+                }
+              },
+              "drop_last_batch": false,
+              "fanouts": [
+                15,
+                10,
+                5
+              ],
+              "measure_batch_accounting": true,
+              "num_workers": 4,
+              "persistent_workers": true,
+              "pin_memory": true,
+              "prefetch_factor": 2,
+              "sampler_seed": 42,
+              "sampling_mode": "neighbor",
+              "shuffle": true,
+              "split": "train",
+              "static_batch_cache_size": 0,
+              "use_fake_data": false,
+              "worker_diagnostics": {
+                "enabled": false
+              }
+            },
+            "val_dataloader": null
+          },
+          "init": {
+            "autorestart": {
+              "max_num_restarts": 0
+            },
+            "backend": {
+              "backend_type": "CSX",
+              "cluster_config": {
+                "job_labels": [
+                  "run=sage-products-throughput-trial-seed_42-throughput-16ac326d7b",
+                  "study=89846e76da"
+                ],
+                "job_time_sec": 14400,
+                "num_csx": 1,
+                "num_workers_per_csx": 1
+              }
+            },
+            "checkpoint": {
+              "autoload_last_checkpoint": false,
+              "save_initial_checkpoint": false,
+              "steps": null
+            },
+            "logging": {
+              "log_steps": 10
+            },
+            "loop": {
+              "eval_frequency": null,
+              "grad_accum_steps": 1,
+              "max_steps": 1640,
+              "num_epochs": null,
+              "num_steps": null,
+              "steps_per_epoch": null
+            },
+            "model": {
+              "architecture": {
+                "aggregator": "mean",
+                "dropout": 0.5,
+                "hidden_dim": 1024,
+                "n_class": 47,
+                "n_feat": 100,
+                "num_layers": 3,
+                "type": "graphsage"
+              },
+              "name": "gnn",
+              "task": {
+                "compute_eval_metrics": false,
+                "disable_log_softmax": false,
+                "to_float16": true
+              }
+            },
+            "model_dir": "$REPO_ROOT/model_dirs/hpcasia_final/products_retry_20260920T014813Z/seed_42/throughput_r2/model",
+            "optimizer": {
+              "AdamW": {
+                "betas": [
+                  0.9,
+                  0.999
+                ],
+                "eps": 1e-06,
+                "learning_rate": 0.003,
+                "params": [],
+                "weight_decay": 0.0005
+              }
+            },
+            "precision": {
+              "enabled": true,
+              "fp16_type": "float16",
+              "loss_scaling_factor": "dynamic"
+            },
+            "seed": 42
+          },
+          "validate": null,
+          "validate_all": null
+        }
+      },
+      "directory": "$REPO_ROOT/model_dirs/hpcasia_final/products_retry_20260920T014813Z/seed_42/throughput_r2",
+      "id": "seed_42/throughput_r2",
+      "kind": "throughput",
+      "repeat": 2,
+      "seed": 42
+    },
+    {
+      "command": [
+        "$REPO_ROOT/.venv/bin/python3",
+        "-u",
+        "-m",
+        "cerebras.modelzoo.cli.main",
+        "fit",
+        "$REPO_ROOT/model_dirs/hpcasia_final/products_retry_20260920T014813Z/seed_42/throughput_r3/params.yaml",
+        "--target_device",
+        "CSX",
+        "--model_dir",
+        "$REPO_ROOT/model_dirs/hpcasia_final/products_retry_20260920T014813Z/seed_42/throughput_r3/model"
+      ],
+      "config": {
+        "runconfig": {
+          "python_paths": [
+            "$MODELZOO_ROOT/../.."
+          ]
+        },
+        "trainer": {
+          "fit": {
+            "ckpt_path": null,
+            "train_dataloader": {
+              "batch_size": 4096,
+              "cache_fraction": null,
+              "data_processor": "GNNDataProcessor",
+              "dataset": "ogbn_products",
+              "dataset_profiles": {
+                "ogbn_products": {
+                  "data_dir": "$MODELZOO_ROOT/models/gnn/data/datasets",
+                  "dataset_name": "ogbn-products",
+                  "pad_node_id": 0
+                }
+              },
+              "drop_last_batch": false,
+              "fanouts": [
+                15,
+                10,
+                5
+              ],
+              "measure_batch_accounting": true,
+              "num_workers": 4,
+              "persistent_workers": true,
+              "pin_memory": true,
+              "prefetch_factor": 2,
+              "sampler_seed": 42,
+              "sampling_mode": "neighbor",
+              "shuffle": true,
+              "split": "train",
+              "static_batch_cache_size": 0,
+              "use_fake_data": false,
+              "worker_diagnostics": {
+                "enabled": false
+              }
+            },
+            "val_dataloader": null
+          },
+          "init": {
+            "autorestart": {
+              "max_num_restarts": 0
+            },
+            "backend": {
+              "backend_type": "CSX",
+              "cluster_config": {
+                "job_labels": [
+                  "run=sage-products-throughput-trial-seed_42-throughput-0b8849e522",
+                  "study=89846e76da"
+                ],
+                "job_time_sec": 14400,
+                "num_csx": 1,
+                "num_workers_per_csx": 1
+              }
+            },
+            "checkpoint": {
+              "autoload_last_checkpoint": false,
+              "save_initial_checkpoint": false,
+              "steps": null
+            },
+            "logging": {
+              "log_steps": 10
+            },
+            "loop": {
+              "eval_frequency": null,
+              "grad_accum_steps": 1,
+              "max_steps": 1640,
+              "num_epochs": null,
+              "num_steps": null,
+              "steps_per_epoch": null
+            },
+            "model": {
+              "architecture": {
+                "aggregator": "mean",
+                "dropout": 0.5,
+                "hidden_dim": 1024,
+                "n_class": 47,
+                "n_feat": 100,
+                "num_layers": 3,
+                "type": "graphsage"
+              },
+              "name": "gnn",
+              "task": {
+                "compute_eval_metrics": false,
+                "disable_log_softmax": false,
+                "to_float16": true
+              }
+            },
+            "model_dir": "$REPO_ROOT/model_dirs/hpcasia_final/products_retry_20260920T014813Z/seed_42/throughput_r3/model",
+            "optimizer": {
+              "AdamW": {
+                "betas": [
+                  0.9,
+                  0.999
+                ],
+                "eps": 1e-06,
+                "learning_rate": 0.003,
+                "params": [],
+                "weight_decay": 0.0005
+              }
+            },
+            "precision": {
+              "enabled": true,
+              "fp16_type": "float16",
+              "loss_scaling_factor": "dynamic"
+            },
+            "seed": 42
+          },
+          "validate": null,
+          "validate_all": null
+        }
+      },
+      "directory": "$REPO_ROOT/model_dirs/hpcasia_final/products_retry_20260920T014813Z/seed_42/throughput_r3",
+      "id": "seed_42/throughput_r3",
+      "kind": "throughput",
+      "repeat": 3,
+      "seed": 42
+    },
+    {
+      "command": [
+        "$REPO_ROOT/.venv/bin/python3",
+        "-u",
+        "-m",
+        "cerebras.modelzoo.cli.main",
+        "fit",
+        "$REPO_ROOT/model_dirs/hpcasia_final/products_retry_20260920T014813Z/seed_42/cache_r1/params.yaml",
+        "--target_device",
+        "CSX",
+        "--model_dir",
+        "$REPO_ROOT/model_dirs/hpcasia_final/products_retry_20260920T014813Z/seed_42/cache_r1/model"
+      ],
+      "config": {
+        "runconfig": {
+          "python_paths": [
+            "$MODELZOO_ROOT/../.."
+          ]
+        },
+        "trainer": {
+          "fit": {
+            "ckpt_path": null,
+            "train_dataloader": {
+              "batch_size": 4096,
+              "cache_fraction": 1.0,
+              "data_processor": "GNNDataProcessor",
+              "dataset": "ogbn_products",
+              "dataset_profiles": {
+                "ogbn_products": {
+                  "data_dir": "$MODELZOO_ROOT/models/gnn/data/datasets",
+                  "dataset_name": "ogbn-products",
+                  "pad_node_id": 0
+                }
+              },
+              "drop_last_batch": false,
+              "fanouts": [
+                15,
+                10,
+                5
+              ],
+              "measure_batch_accounting": true,
+              "num_workers": 4,
+              "persistent_workers": true,
+              "pin_memory": true,
+              "prefetch_factor": 2,
+              "sampler_seed": 42,
+              "sampling_mode": "neighbor",
+              "shuffle": true,
+              "split": "train",
+              "static_batch_cache_size": 0,
+              "use_fake_data": false,
+              "worker_diagnostics": {
+                "enabled": false
+              }
+            },
+            "val_dataloader": null
+          },
+          "init": {
+            "autorestart": {
+              "max_num_restarts": 0
+            },
+            "backend": {
+              "backend_type": "CSX",
+              "cluster_config": {
+                "job_labels": [
+                  "run=sage-products-cache-trial-seed_42-cache_r1-w4-pf2-8cd32bae04",
+                  "study=89846e76da"
+                ],
+                "job_time_sec": 14400,
+                "num_csx": 1,
+                "num_workers_per_csx": 1
+              }
+            },
+            "checkpoint": {
+              "autoload_last_checkpoint": false,
+              "save_initial_checkpoint": false,
+              "steps": null
+            },
+            "logging": {
+              "log_steps": 10
+            },
+            "loop": {
+              "eval_frequency": null,
+              "grad_accum_steps": 1,
+              "max_steps": 1640,
+              "num_epochs": null,
+              "num_steps": null,
+              "steps_per_epoch": null
+            },
+            "model": {
+              "architecture": {
+                "aggregator": "mean",
+                "dropout": 0.5,
+                "hidden_dim": 1024,
+                "n_class": 47,
+                "n_feat": 100,
+                "num_layers": 3,
+                "type": "graphsage"
+              },
+              "name": "gnn",
+              "task": {
+                "compute_eval_metrics": false,
+                "disable_log_softmax": false,
+                "to_float16": true
+              }
+            },
+            "model_dir": "$REPO_ROOT/model_dirs/hpcasia_final/products_retry_20260920T014813Z/seed_42/cache_r1/model",
+            "optimizer": {
+              "AdamW": {
+                "betas": [
+                  0.9,
+                  0.999
+                ],
+                "eps": 1e-06,
+                "learning_rate": 0.003,
+                "params": [],
+                "weight_decay": 0.0005
+              }
+            },
+            "precision": {
+              "enabled": true,
+              "fp16_type": "float16",
+              "loss_scaling_factor": "dynamic"
+            },
+            "seed": 42
+          },
+          "validate": null,
+          "validate_all": null
+        }
+      },
+      "directory": "$REPO_ROOT/model_dirs/hpcasia_final/products_retry_20260920T014813Z/seed_42/cache_r1",
+      "id": "seed_42/cache_r1",
+      "kind": "cache",
+      "repeat": 1,
+      "seed": 42
+    },
+    {
+      "command": [
+        "$REPO_ROOT/.venv/bin/python3",
+        "-u",
+        "-m",
+        "cerebras.modelzoo.cli.main",
+        "fit",
+        "$REPO_ROOT/model_dirs/hpcasia_final/products_retry_20260920T014813Z/seed_43/learning_r1/params.yaml",
+        "--target_device",
+        "CSX",
+        "--model_dir",
+        "$REPO_ROOT/model_dirs/hpcasia_final/products_retry_20260920T014813Z/seed_43/learning_r1/model"
+      ],
+      "config": {
+        "runconfig": {
+          "python_paths": [
+            "$MODELZOO_ROOT/../.."
+          ]
+        },
+        "trainer": {
+          "fit": {
+            "ckpt_path": null,
+            "train_dataloader": {
+              "batch_size": 4096,
+              "cache_fraction": null,
+              "data_processor": "GNNDataProcessor",
+              "dataset": "ogbn_products",
+              "dataset_profiles": {
+                "ogbn_products": {
+                  "data_dir": "$MODELZOO_ROOT/models/gnn/data/datasets",
+                  "dataset_name": "ogbn-products",
+                  "pad_node_id": 0
+                }
+              },
+              "drop_last_batch": false,
+              "fanouts": [
+                15,
+                10,
+                5
+              ],
+              "measure_batch_accounting": true,
+              "num_workers": 4,
+              "persistent_workers": true,
+              "pin_memory": true,
+              "prefetch_factor": 2,
+              "sampler_seed": 43,
+              "sampling_mode": "neighbor",
+              "shuffle": true,
+              "split": "train",
+              "static_batch_cache_size": 0,
+              "use_fake_data": false,
+              "worker_diagnostics": {
+                "enabled": false
+              }
+            },
+            "val_dataloader": {
+              "batch_size": 4096,
+              "cache_fraction": null,
+              "data_processor": "GNNDataProcessor",
+              "dataset": "ogbn_products",
+              "dataset_profiles": {
+                "ogbn_products": {
+                  "data_dir": "$MODELZOO_ROOT/models/gnn/data/datasets",
+                  "dataset_name": "ogbn-products",
+                  "pad_node_id": 0
+                }
+              },
+              "drop_last_batch": false,
+              "fanouts": [
+                15,
+                10,
+                5
+              ],
+              "num_workers": 4,
+              "persistent_workers": true,
+              "pin_memory": true,
+              "prefetch_factor": 2,
+              "sampler_seed": 43,
+              "sampling_mode": "neighbor",
+              "shuffle": false,
+              "split": "valid",
+              "static_batch_cache_size": 0,
+              "use_fake_data": false,
+              "worker_diagnostics": {
+                "enabled": false
+              }
+            }
+          },
+          "init": {
+            "autorestart": {
+              "max_num_restarts": 0
+            },
+            "backend": {
+              "backend_type": "CSX",
+              "cluster_config": {
+                "job_labels": [
+                  "run=sage-products-learning-trial-seed_43-learning_r1-47c13f382a",
+                  "study=89846e76da"
+                ],
+                "job_time_sec": 14400,
+                "num_csx": 1,
+                "num_workers_per_csx": 1
+              }
+            },
+            "checkpoint": {
+              "autoload_last_checkpoint": false,
+              "save_initial_checkpoint": false,
+              "steps": null
+            },
+            "logging": {
+              "log_steps": 10
+            },
+            "loop": {
+              "eval_frequency": 40,
+              "eval_steps": null,
+              "grad_accum_steps": 1,
+              "max_steps": 1000,
+              "num_epochs": null,
+              "num_steps": null,
+              "steps_per_epoch": null
+            },
+            "model": {
+              "architecture": {
+                "aggregator": "mean",
+                "dropout": 0.5,
+                "hidden_dim": 1024,
+                "n_class": 47,
+                "n_feat": 100,
+                "num_layers": 3,
+                "type": "graphsage"
+              },
+              "name": "gnn",
+              "task": {
+                "compute_eval_metrics": true,
+                "disable_log_softmax": false,
+                "to_float16": true
+              }
+            },
+            "model_dir": "$REPO_ROOT/model_dirs/hpcasia_final/products_retry_20260920T014813Z/seed_43/learning_r1/model",
+            "optimizer": {
+              "AdamW": {
+                "betas": [
+                  0.9,
+                  0.999
+                ],
+                "eps": 1e-06,
+                "learning_rate": 0.003,
+                "params": [],
+                "weight_decay": 0.0005
+              }
+            },
+            "precision": {
+              "enabled": true,
+              "fp16_type": "float16",
+              "loss_scaling_factor": "dynamic"
+            },
+            "seed": 43
+          },
+          "validate": null,
+          "validate_all": null
+        }
+      },
+      "directory": "$REPO_ROOT/model_dirs/hpcasia_final/products_retry_20260920T014813Z/seed_43/learning_r1",
+      "id": "seed_43/learning_r1",
+      "kind": "learning",
+      "repeat": 1,
+      "seed": 43
+    },
+    {
+      "command": [
+        "$REPO_ROOT/.venv/bin/python3",
+        "-u",
+        "-m",
+        "cerebras.modelzoo.cli.main",
+        "fit",
+        "$REPO_ROOT/model_dirs/hpcasia_final/products_retry_20260920T014813Z/seed_43/throughput_r1/params.yaml",
+        "--target_device",
+        "CSX",
+        "--model_dir",
+        "$REPO_ROOT/model_dirs/hpcasia_final/products_retry_20260920T014813Z/seed_43/throughput_r1/model"
+      ],
+      "config": {
+        "runconfig": {
+          "python_paths": [
+            "$MODELZOO_ROOT/../.."
+          ]
+        },
+        "trainer": {
+          "fit": {
+            "ckpt_path": null,
+            "train_dataloader": {
+              "batch_size": 4096,
+              "cache_fraction": null,
+              "data_processor": "GNNDataProcessor",
+              "dataset": "ogbn_products",
+              "dataset_profiles": {
+                "ogbn_products": {
+                  "data_dir": "$MODELZOO_ROOT/models/gnn/data/datasets",
+                  "dataset_name": "ogbn-products",
+                  "pad_node_id": 0
+                }
+              },
+              "drop_last_batch": false,
+              "fanouts": [
+                15,
+                10,
+                5
+              ],
+              "measure_batch_accounting": true,
+              "num_workers": 4,
+              "persistent_workers": true,
+              "pin_memory": true,
+              "prefetch_factor": 2,
+              "sampler_seed": 43,
+              "sampling_mode": "neighbor",
+              "shuffle": true,
+              "split": "train",
+              "static_batch_cache_size": 0,
+              "use_fake_data": false,
+              "worker_diagnostics": {
+                "enabled": false
+              }
+            },
+            "val_dataloader": null
+          },
+          "init": {
+            "autorestart": {
+              "max_num_restarts": 0
+            },
+            "backend": {
+              "backend_type": "CSX",
+              "cluster_config": {
+                "job_labels": [
+                  "run=sage-products-throughput-trial-seed_43-throughput-91ec5dc237",
+                  "study=89846e76da"
+                ],
+                "job_time_sec": 14400,
+                "num_csx": 1,
+                "num_workers_per_csx": 1
+              }
+            },
+            "checkpoint": {
+              "autoload_last_checkpoint": false,
+              "save_initial_checkpoint": false,
+              "steps": null
+            },
+            "logging": {
+              "log_steps": 10
+            },
+            "loop": {
+              "eval_frequency": null,
+              "grad_accum_steps": 1,
+              "max_steps": 1640,
+              "num_epochs": null,
+              "num_steps": null,
+              "steps_per_epoch": null
+            },
+            "model": {
+              "architecture": {
+                "aggregator": "mean",
+                "dropout": 0.5,
+                "hidden_dim": 1024,
+                "n_class": 47,
+                "n_feat": 100,
+                "num_layers": 3,
+                "type": "graphsage"
+              },
+              "name": "gnn",
+              "task": {
+                "compute_eval_metrics": false,
+                "disable_log_softmax": false,
+                "to_float16": true
+              }
+            },
+            "model_dir": "$REPO_ROOT/model_dirs/hpcasia_final/products_retry_20260920T014813Z/seed_43/throughput_r1/model",
+            "optimizer": {
+              "AdamW": {
+                "betas": [
+                  0.9,
+                  0.999
+                ],
+                "eps": 1e-06,
+                "learning_rate": 0.003,
+                "params": [],
+                "weight_decay": 0.0005
+              }
+            },
+            "precision": {
+              "enabled": true,
+              "fp16_type": "float16",
+              "loss_scaling_factor": "dynamic"
+            },
+            "seed": 43
+          },
+          "validate": null,
+          "validate_all": null
+        }
+      },
+      "directory": "$REPO_ROOT/model_dirs/hpcasia_final/products_retry_20260920T014813Z/seed_43/throughput_r1",
+      "id": "seed_43/throughput_r1",
+      "kind": "throughput",
+      "repeat": 1,
+      "seed": 43
+    },
+    {
+      "command": [
+        "$REPO_ROOT/.venv/bin/python3",
+        "-u",
+        "-m",
+        "cerebras.modelzoo.cli.main",
+        "fit",
+        "$REPO_ROOT/model_dirs/hpcasia_final/products_retry_20260920T014813Z/seed_43/throughput_r2/params.yaml",
+        "--target_device",
+        "CSX",
+        "--model_dir",
+        "$REPO_ROOT/model_dirs/hpcasia_final/products_retry_20260920T014813Z/seed_43/throughput_r2/model"
+      ],
+      "config": {
+        "runconfig": {
+          "python_paths": [
+            "$MODELZOO_ROOT/../.."
+          ]
+        },
+        "trainer": {
+          "fit": {
+            "ckpt_path": null,
+            "train_dataloader": {
+              "batch_size": 4096,
+              "cache_fraction": null,
+              "data_processor": "GNNDataProcessor",
+              "dataset": "ogbn_products",
+              "dataset_profiles": {
+                "ogbn_products": {
+                  "data_dir": "$MODELZOO_ROOT/models/gnn/data/datasets",
+                  "dataset_name": "ogbn-products",
+                  "pad_node_id": 0
+                }
+              },
+              "drop_last_batch": false,
+              "fanouts": [
+                15,
+                10,
+                5
+              ],
+              "measure_batch_accounting": true,
+              "num_workers": 4,
+              "persistent_workers": true,
+              "pin_memory": true,
+              "prefetch_factor": 2,
+              "sampler_seed": 43,
+              "sampling_mode": "neighbor",
+              "shuffle": true,
+              "split": "train",
+              "static_batch_cache_size": 0,
+              "use_fake_data": false,
+              "worker_diagnostics": {
+                "enabled": false
+              }
+            },
+            "val_dataloader": null
+          },
+          "init": {
+            "autorestart": {
+              "max_num_restarts": 0
+            },
+            "backend": {
+              "backend_type": "CSX",
+              "cluster_config": {
+                "job_labels": [
+                  "run=sage-products-throughput-trial-seed_43-throughput-2af2d74631",
+                  "study=89846e76da"
+                ],
+                "job_time_sec": 14400,
+                "num_csx": 1,
+                "num_workers_per_csx": 1
+              }
+            },
+            "checkpoint": {
+              "autoload_last_checkpoint": false,
+              "save_initial_checkpoint": false,
+              "steps": null
+            },
+            "logging": {
+              "log_steps": 10
+            },
+            "loop": {
+              "eval_frequency": null,
+              "grad_accum_steps": 1,
+              "max_steps": 1640,
+              "num_epochs": null,
+              "num_steps": null,
+              "steps_per_epoch": null
+            },
+            "model": {
+              "architecture": {
+                "aggregator": "mean",
+                "dropout": 0.5,
+                "hidden_dim": 1024,
+                "n_class": 47,
+                "n_feat": 100,
+                "num_layers": 3,
+                "type": "graphsage"
+              },
+              "name": "gnn",
+              "task": {
+                "compute_eval_metrics": false,
+                "disable_log_softmax": false,
+                "to_float16": true
+              }
+            },
+            "model_dir": "$REPO_ROOT/model_dirs/hpcasia_final/products_retry_20260920T014813Z/seed_43/throughput_r2/model",
+            "optimizer": {
+              "AdamW": {
+                "betas": [
+                  0.9,
+                  0.999
+                ],
+                "eps": 1e-06,
+                "learning_rate": 0.003,
+                "params": [],
+                "weight_decay": 0.0005
+              }
+            },
+            "precision": {
+              "enabled": true,
+              "fp16_type": "float16",
+              "loss_scaling_factor": "dynamic"
+            },
+            "seed": 43
+          },
+          "validate": null,
+          "validate_all": null
+        }
+      },
+      "directory": "$REPO_ROOT/model_dirs/hpcasia_final/products_retry_20260920T014813Z/seed_43/throughput_r2",
+      "id": "seed_43/throughput_r2",
+      "kind": "throughput",
+      "repeat": 2,
+      "seed": 43
+    },
+    {
+      "command": [
+        "$REPO_ROOT/.venv/bin/python3",
+        "-u",
+        "-m",
+        "cerebras.modelzoo.cli.main",
+        "fit",
+        "$REPO_ROOT/model_dirs/hpcasia_final/products_retry_20260920T014813Z/seed_43/throughput_r3/params.yaml",
+        "--target_device",
+        "CSX",
+        "--model_dir",
+        "$REPO_ROOT/model_dirs/hpcasia_final/products_retry_20260920T014813Z/seed_43/throughput_r3/model"
+      ],
+      "config": {
+        "runconfig": {
+          "python_paths": [
+            "$MODELZOO_ROOT/../.."
+          ]
+        },
+        "trainer": {
+          "fit": {
+            "ckpt_path": null,
+            "train_dataloader": {
+              "batch_size": 4096,
+              "cache_fraction": null,
+              "data_processor": "GNNDataProcessor",
+              "dataset": "ogbn_products",
+              "dataset_profiles": {
+                "ogbn_products": {
+                  "data_dir": "$MODELZOO_ROOT/models/gnn/data/datasets",
+                  "dataset_name": "ogbn-products",
+                  "pad_node_id": 0
+                }
+              },
+              "drop_last_batch": false,
+              "fanouts": [
+                15,
+                10,
+                5
+              ],
+              "measure_batch_accounting": true,
+              "num_workers": 4,
+              "persistent_workers": true,
+              "pin_memory": true,
+              "prefetch_factor": 2,
+              "sampler_seed": 43,
+              "sampling_mode": "neighbor",
+              "shuffle": true,
+              "split": "train",
+              "static_batch_cache_size": 0,
+              "use_fake_data": false,
+              "worker_diagnostics": {
+                "enabled": false
+              }
+            },
+            "val_dataloader": null
+          },
+          "init": {
+            "autorestart": {
+              "max_num_restarts": 0
+            },
+            "backend": {
+              "backend_type": "CSX",
+              "cluster_config": {
+                "job_labels": [
+                  "run=sage-products-throughput-trial-seed_43-throughput-dcc6726274",
+                  "study=89846e76da"
+                ],
+                "job_time_sec": 14400,
+                "num_csx": 1,
+                "num_workers_per_csx": 1
+              }
+            },
+            "checkpoint": {
+              "autoload_last_checkpoint": false,
+              "save_initial_checkpoint": false,
+              "steps": null
+            },
+            "logging": {
+              "log_steps": 10
+            },
+            "loop": {
+              "eval_frequency": null,
+              "grad_accum_steps": 1,
+              "max_steps": 1640,
+              "num_epochs": null,
+              "num_steps": null,
+              "steps_per_epoch": null
+            },
+            "model": {
+              "architecture": {
+                "aggregator": "mean",
+                "dropout": 0.5,
+                "hidden_dim": 1024,
+                "n_class": 47,
+                "n_feat": 100,
+                "num_layers": 3,
+                "type": "graphsage"
+              },
+              "name": "gnn",
+              "task": {
+                "compute_eval_metrics": false,
+                "disable_log_softmax": false,
+                "to_float16": true
+              }
+            },
+            "model_dir": "$REPO_ROOT/model_dirs/hpcasia_final/products_retry_20260920T014813Z/seed_43/throughput_r3/model",
+            "optimizer": {
+              "AdamW": {
+                "betas": [
+                  0.9,
+                  0.999
+                ],
+                "eps": 1e-06,
+                "learning_rate": 0.003,
+                "params": [],
+                "weight_decay": 0.0005
+              }
+            },
+            "precision": {
+              "enabled": true,
+              "fp16_type": "float16",
+              "loss_scaling_factor": "dynamic"
+            },
+            "seed": 43
+          },
+          "validate": null,
+          "validate_all": null
+        }
+      },
+      "directory": "$REPO_ROOT/model_dirs/hpcasia_final/products_retry_20260920T014813Z/seed_43/throughput_r3",
+      "id": "seed_43/throughput_r3",
+      "kind": "throughput",
+      "repeat": 3,
+      "seed": 43
+    },
+    {
+      "command": [
+        "$REPO_ROOT/.venv/bin/python3",
+        "-u",
+        "-m",
+        "cerebras.modelzoo.cli.main",
+        "fit",
+        "$REPO_ROOT/model_dirs/hpcasia_final/products_retry_20260920T014813Z/seed_43/cache_r1/params.yaml",
+        "--target_device",
+        "CSX",
+        "--model_dir",
+        "$REPO_ROOT/model_dirs/hpcasia_final/products_retry_20260920T014813Z/seed_43/cache_r1/model"
+      ],
+      "config": {
+        "runconfig": {
+          "python_paths": [
+            "$MODELZOO_ROOT/../.."
+          ]
+        },
+        "trainer": {
+          "fit": {
+            "ckpt_path": null,
+            "train_dataloader": {
+              "batch_size": 4096,
+              "cache_fraction": 1.0,
+              "data_processor": "GNNDataProcessor",
+              "dataset": "ogbn_products",
+              "dataset_profiles": {
+                "ogbn_products": {
+                  "data_dir": "$MODELZOO_ROOT/models/gnn/data/datasets",
+                  "dataset_name": "ogbn-products",
+                  "pad_node_id": 0
+                }
+              },
+              "drop_last_batch": false,
+              "fanouts": [
+                15,
+                10,
+                5
+              ],
+              "measure_batch_accounting": true,
+              "num_workers": 4,
+              "persistent_workers": true,
+              "pin_memory": true,
+              "prefetch_factor": 2,
+              "sampler_seed": 43,
+              "sampling_mode": "neighbor",
+              "shuffle": true,
+              "split": "train",
+              "static_batch_cache_size": 0,
+              "use_fake_data": false,
+              "worker_diagnostics": {
+                "enabled": false
+              }
+            },
+            "val_dataloader": null
+          },
+          "init": {
+            "autorestart": {
+              "max_num_restarts": 0
+            },
+            "backend": {
+              "backend_type": "CSX",
+              "cluster_config": {
+                "job_labels": [
+                  "run=sage-products-cache-trial-seed_43-cache_r1-w4-pf2-35720ddc36",
+                  "study=89846e76da"
+                ],
+                "job_time_sec": 14400,
+                "num_csx": 1,
+                "num_workers_per_csx": 1
+              }
+            },
+            "checkpoint": {
+              "autoload_last_checkpoint": false,
+              "save_initial_checkpoint": false,
+              "steps": null
+            },
+            "logging": {
+              "log_steps": 10
+            },
+            "loop": {
+              "eval_frequency": null,
+              "grad_accum_steps": 1,
+              "max_steps": 1640,
+              "num_epochs": null,
+              "num_steps": null,
+              "steps_per_epoch": null
+            },
+            "model": {
+              "architecture": {
+                "aggregator": "mean",
+                "dropout": 0.5,
+                "hidden_dim": 1024,
+                "n_class": 47,
+                "n_feat": 100,
+                "num_layers": 3,
+                "type": "graphsage"
+              },
+              "name": "gnn",
+              "task": {
+                "compute_eval_metrics": false,
+                "disable_log_softmax": false,
+                "to_float16": true
+              }
+            },
+            "model_dir": "$REPO_ROOT/model_dirs/hpcasia_final/products_retry_20260920T014813Z/seed_43/cache_r1/model",
+            "optimizer": {
+              "AdamW": {
+                "betas": [
+                  0.9,
+                  0.999
+                ],
+                "eps": 1e-06,
+                "learning_rate": 0.003,
+                "params": [],
+                "weight_decay": 0.0005
+              }
+            },
+            "precision": {
+              "enabled": true,
+              "fp16_type": "float16",
+              "loss_scaling_factor": "dynamic"
+            },
+            "seed": 43
+          },
+          "validate": null,
+          "validate_all": null
+        }
+      },
+      "directory": "$REPO_ROOT/model_dirs/hpcasia_final/products_retry_20260920T014813Z/seed_43/cache_r1",
+      "id": "seed_43/cache_r1",
+      "kind": "cache",
+      "repeat": 1,
+      "seed": 43
+    },
+    {
+      "command": [
+        "$REPO_ROOT/.venv/bin/python3",
+        "-u",
+        "-m",
+        "cerebras.modelzoo.cli.main",
+        "fit",
+        "$REPO_ROOT/model_dirs/hpcasia_final/products_retry_20260920T014813Z/seed_44/learning_r1/params.yaml",
+        "--target_device",
+        "CSX",
+        "--model_dir",
+        "$REPO_ROOT/model_dirs/hpcasia_final/products_retry_20260920T014813Z/seed_44/learning_r1/model"
+      ],
+      "config": {
+        "runconfig": {
+          "python_paths": [
+            "$MODELZOO_ROOT/../.."
+          ]
+        },
+        "trainer": {
+          "fit": {
+            "ckpt_path": null,
+            "train_dataloader": {
+              "batch_size": 4096,
+              "cache_fraction": null,
+              "data_processor": "GNNDataProcessor",
+              "dataset": "ogbn_products",
+              "dataset_profiles": {
+                "ogbn_products": {
+                  "data_dir": "$MODELZOO_ROOT/models/gnn/data/datasets",
+                  "dataset_name": "ogbn-products",
+                  "pad_node_id": 0
+                }
+              },
+              "drop_last_batch": false,
+              "fanouts": [
+                15,
+                10,
+                5
+              ],
+              "measure_batch_accounting": true,
+              "num_workers": 4,
+              "persistent_workers": true,
+              "pin_memory": true,
+              "prefetch_factor": 2,
+              "sampler_seed": 44,
+              "sampling_mode": "neighbor",
+              "shuffle": true,
+              "split": "train",
+              "static_batch_cache_size": 0,
+              "use_fake_data": false,
+              "worker_diagnostics": {
+                "enabled": false
+              }
+            },
+            "val_dataloader": {
+              "batch_size": 4096,
+              "cache_fraction": null,
+              "data_processor": "GNNDataProcessor",
+              "dataset": "ogbn_products",
+              "dataset_profiles": {
+                "ogbn_products": {
+                  "data_dir": "$MODELZOO_ROOT/models/gnn/data/datasets",
+                  "dataset_name": "ogbn-products",
+                  "pad_node_id": 0
+                }
+              },
+              "drop_last_batch": false,
+              "fanouts": [
+                15,
+                10,
+                5
+              ],
+              "num_workers": 4,
+              "persistent_workers": true,
+              "pin_memory": true,
+              "prefetch_factor": 2,
+              "sampler_seed": 44,
+              "sampling_mode": "neighbor",
+              "shuffle": false,
+              "split": "valid",
+              "static_batch_cache_size": 0,
+              "use_fake_data": false,
+              "worker_diagnostics": {
+                "enabled": false
+              }
+            }
+          },
+          "init": {
+            "autorestart": {
+              "max_num_restarts": 0
+            },
+            "backend": {
+              "backend_type": "CSX",
+              "cluster_config": {
+                "job_labels": [
+                  "run=sage-products-learning-trial-seed_44-learning_r1-ba0d87b493",
+                  "study=89846e76da"
+                ],
+                "job_time_sec": 14400,
+                "num_csx": 1,
+                "num_workers_per_csx": 1
+              }
+            },
+            "checkpoint": {
+              "autoload_last_checkpoint": false,
+              "save_initial_checkpoint": false,
+              "steps": null
+            },
+            "logging": {
+              "log_steps": 10
+            },
+            "loop": {
+              "eval_frequency": 40,
+              "eval_steps": null,
+              "grad_accum_steps": 1,
+              "max_steps": 1000,
+              "num_epochs": null,
+              "num_steps": null,
+              "steps_per_epoch": null
+            },
+            "model": {
+              "architecture": {
+                "aggregator": "mean",
+                "dropout": 0.5,
+                "hidden_dim": 1024,
+                "n_class": 47,
+                "n_feat": 100,
+                "num_layers": 3,
+                "type": "graphsage"
+              },
+              "name": "gnn",
+              "task": {
+                "compute_eval_metrics": true,
+                "disable_log_softmax": false,
+                "to_float16": true
+              }
+            },
+            "model_dir": "$REPO_ROOT/model_dirs/hpcasia_final/products_retry_20260920T014813Z/seed_44/learning_r1/model",
+            "optimizer": {
+              "AdamW": {
+                "betas": [
+                  0.9,
+                  0.999
+                ],
+                "eps": 1e-06,
+                "learning_rate": 0.003,
+                "params": [],
+                "weight_decay": 0.0005
+              }
+            },
+            "precision": {
+              "enabled": true,
+              "fp16_type": "float16",
+              "loss_scaling_factor": "dynamic"
+            },
+            "seed": 44
+          },
+          "validate": null,
+          "validate_all": null
+        }
+      },
+      "directory": "$REPO_ROOT/model_dirs/hpcasia_final/products_retry_20260920T014813Z/seed_44/learning_r1",
+      "id": "seed_44/learning_r1",
+      "kind": "learning",
+      "repeat": 1,
+      "seed": 44
+    },
+    {
+      "command": [
+        "$REPO_ROOT/.venv/bin/python3",
+        "-u",
+        "-m",
+        "cerebras.modelzoo.cli.main",
+        "fit",
+        "$REPO_ROOT/model_dirs/hpcasia_final/products_retry_20260920T014813Z/seed_44/throughput_r1/params.yaml",
+        "--target_device",
+        "CSX",
+        "--model_dir",
+        "$REPO_ROOT/model_dirs/hpcasia_final/products_retry_20260920T014813Z/seed_44/throughput_r1/model"
+      ],
+      "config": {
+        "runconfig": {
+          "python_paths": [
+            "$MODELZOO_ROOT/../.."
+          ]
+        },
+        "trainer": {
+          "fit": {
+            "ckpt_path": null,
+            "train_dataloader": {
+              "batch_size": 4096,
+              "cache_fraction": null,
+              "data_processor": "GNNDataProcessor",
+              "dataset": "ogbn_products",
+              "dataset_profiles": {
+                "ogbn_products": {
+                  "data_dir": "$MODELZOO_ROOT/models/gnn/data/datasets",
+                  "dataset_name": "ogbn-products",
+                  "pad_node_id": 0
+                }
+              },
+              "drop_last_batch": false,
+              "fanouts": [
+                15,
+                10,
+                5
+              ],
+              "measure_batch_accounting": true,
+              "num_workers": 4,
+              "persistent_workers": true,
+              "pin_memory": true,
+              "prefetch_factor": 2,
+              "sampler_seed": 44,
+              "sampling_mode": "neighbor",
+              "shuffle": true,
+              "split": "train",
+              "static_batch_cache_size": 0,
+              "use_fake_data": false,
+              "worker_diagnostics": {
+                "enabled": false
+              }
+            },
+            "val_dataloader": null
+          },
+          "init": {
+            "autorestart": {
+              "max_num_restarts": 0
+            },
+            "backend": {
+              "backend_type": "CSX",
+              "cluster_config": {
+                "job_labels": [
+                  "run=sage-products-throughput-trial-seed_44-throughput-2fdd8e4c7c",
+                  "study=89846e76da"
+                ],
+                "job_time_sec": 14400,
+                "num_csx": 1,
+                "num_workers_per_csx": 1
+              }
+            },
+            "checkpoint": {
+              "autoload_last_checkpoint": false,
+              "save_initial_checkpoint": false,
+              "steps": null
+            },
+            "logging": {
+              "log_steps": 10
+            },
+            "loop": {
+              "eval_frequency": null,
+              "grad_accum_steps": 1,
+              "max_steps": 1640,
+              "num_epochs": null,
+              "num_steps": null,
+              "steps_per_epoch": null
+            },
+            "model": {
+              "architecture": {
+                "aggregator": "mean",
+                "dropout": 0.5,
+                "hidden_dim": 1024,
+                "n_class": 47,
+                "n_feat": 100,
+                "num_layers": 3,
+                "type": "graphsage"
+              },
+              "name": "gnn",
+              "task": {
+                "compute_eval_metrics": false,
+                "disable_log_softmax": false,
+                "to_float16": true
+              }
+            },
+            "model_dir": "$REPO_ROOT/model_dirs/hpcasia_final/products_retry_20260920T014813Z/seed_44/throughput_r1/model",
+            "optimizer": {
+              "AdamW": {
+                "betas": [
+                  0.9,
+                  0.999
+                ],
+                "eps": 1e-06,
+                "learning_rate": 0.003,
+                "params": [],
+                "weight_decay": 0.0005
+              }
+            },
+            "precision": {
+              "enabled": true,
+              "fp16_type": "float16",
+              "loss_scaling_factor": "dynamic"
+            },
+            "seed": 44
+          },
+          "validate": null,
+          "validate_all": null
+        }
+      },
+      "directory": "$REPO_ROOT/model_dirs/hpcasia_final/products_retry_20260920T014813Z/seed_44/throughput_r1",
+      "id": "seed_44/throughput_r1",
+      "kind": "throughput",
+      "repeat": 1,
+      "seed": 44
+    },
+    {
+      "command": [
+        "$REPO_ROOT/.venv/bin/python3",
+        "-u",
+        "-m",
+        "cerebras.modelzoo.cli.main",
+        "fit",
+        "$REPO_ROOT/model_dirs/hpcasia_final/products_retry_20260920T014813Z/seed_44/throughput_r2/params.yaml",
+        "--target_device",
+        "CSX",
+        "--model_dir",
+        "$REPO_ROOT/model_dirs/hpcasia_final/products_retry_20260920T014813Z/seed_44/throughput_r2/model"
+      ],
+      "config": {
+        "runconfig": {
+          "python_paths": [
+            "$MODELZOO_ROOT/../.."
+          ]
+        },
+        "trainer": {
+          "fit": {
+            "ckpt_path": null,
+            "train_dataloader": {
+              "batch_size": 4096,
+              "cache_fraction": null,
+              "data_processor": "GNNDataProcessor",
+              "dataset": "ogbn_products",
+              "dataset_profiles": {
+                "ogbn_products": {
+                  "data_dir": "$MODELZOO_ROOT/models/gnn/data/datasets",
+                  "dataset_name": "ogbn-products",
+                  "pad_node_id": 0
+                }
+              },
+              "drop_last_batch": false,
+              "fanouts": [
+                15,
+                10,
+                5
+              ],
+              "measure_batch_accounting": true,
+              "num_workers": 4,
+              "persistent_workers": true,
+              "pin_memory": true,
+              "prefetch_factor": 2,
+              "sampler_seed": 44,
+              "sampling_mode": "neighbor",
+              "shuffle": true,
+              "split": "train",
+              "static_batch_cache_size": 0,
+              "use_fake_data": false,
+              "worker_diagnostics": {
+                "enabled": false
+              }
+            },
+            "val_dataloader": null
+          },
+          "init": {
+            "autorestart": {
+              "max_num_restarts": 0
+            },
+            "backend": {
+              "backend_type": "CSX",
+              "cluster_config": {
+                "job_labels": [
+                  "run=sage-products-throughput-trial-seed_44-throughput-2bffb4f458",
+                  "study=89846e76da"
+                ],
+                "job_time_sec": 14400,
+                "num_csx": 1,
+                "num_workers_per_csx": 1
+              }
+            },
+            "checkpoint": {
+              "autoload_last_checkpoint": false,
+              "save_initial_checkpoint": false,
+              "steps": null
+            },
+            "logging": {
+              "log_steps": 10
+            },
+            "loop": {
+              "eval_frequency": null,
+              "grad_accum_steps": 1,
+              "max_steps": 1640,
+              "num_epochs": null,
+              "num_steps": null,
+              "steps_per_epoch": null
+            },
+            "model": {
+              "architecture": {
+                "aggregator": "mean",
+                "dropout": 0.5,
+                "hidden_dim": 1024,
+                "n_class": 47,
+                "n_feat": 100,
+                "num_layers": 3,
+                "type": "graphsage"
+              },
+              "name": "gnn",
+              "task": {
+                "compute_eval_metrics": false,
+                "disable_log_softmax": false,
+                "to_float16": true
+              }
+            },
+            "model_dir": "$REPO_ROOT/model_dirs/hpcasia_final/products_retry_20260920T014813Z/seed_44/throughput_r2/model",
+            "optimizer": {
+              "AdamW": {
+                "betas": [
+                  0.9,
+                  0.999
+                ],
+                "eps": 1e-06,
+                "learning_rate": 0.003,
+                "params": [],
+                "weight_decay": 0.0005
+              }
+            },
+            "precision": {
+              "enabled": true,
+              "fp16_type": "float16",
+              "loss_scaling_factor": "dynamic"
+            },
+            "seed": 44
+          },
+          "validate": null,
+          "validate_all": null
+        }
+      },
+      "directory": "$REPO_ROOT/model_dirs/hpcasia_final/products_retry_20260920T014813Z/seed_44/throughput_r2",
+      "id": "seed_44/throughput_r2",
+      "kind": "throughput",
+      "repeat": 2,
+      "seed": 44
+    },
+    {
+      "command": [
+        "$REPO_ROOT/.venv/bin/python3",
+        "-u",
+        "-m",
+        "cerebras.modelzoo.cli.main",
+        "fit",
+        "$REPO_ROOT/model_dirs/hpcasia_final/products_retry_20260920T014813Z/seed_44/throughput_r3/params.yaml",
+        "--target_device",
+        "CSX",
+        "--model_dir",
+        "$REPO_ROOT/model_dirs/hpcasia_final/products_retry_20260920T014813Z/seed_44/throughput_r3/model"
+      ],
+      "config": {
+        "runconfig": {
+          "python_paths": [
+            "$MODELZOO_ROOT/../.."
+          ]
+        },
+        "trainer": {
+          "fit": {
+            "ckpt_path": null,
+            "train_dataloader": {
+              "batch_size": 4096,
+              "cache_fraction": null,
+              "data_processor": "GNNDataProcessor",
+              "dataset": "ogbn_products",
+              "dataset_profiles": {
+                "ogbn_products": {
+                  "data_dir": "$MODELZOO_ROOT/models/gnn/data/datasets",
+                  "dataset_name": "ogbn-products",
+                  "pad_node_id": 0
+                }
+              },
+              "drop_last_batch": false,
+              "fanouts": [
+                15,
+                10,
+                5
+              ],
+              "measure_batch_accounting": true,
+              "num_workers": 4,
+              "persistent_workers": true,
+              "pin_memory": true,
+              "prefetch_factor": 2,
+              "sampler_seed": 44,
+              "sampling_mode": "neighbor",
+              "shuffle": true,
+              "split": "train",
+              "static_batch_cache_size": 0,
+              "use_fake_data": false,
+              "worker_diagnostics": {
+                "enabled": false
+              }
+            },
+            "val_dataloader": null
+          },
+          "init": {
+            "autorestart": {
+              "max_num_restarts": 0
+            },
+            "backend": {
+              "backend_type": "CSX",
+              "cluster_config": {
+                "job_labels": [
+                  "run=sage-products-throughput-trial-seed_44-throughput-da51714cd2",
+                  "study=89846e76da"
+                ],
+                "job_time_sec": 14400,
+                "num_csx": 1,
+                "num_workers_per_csx": 1
+              }
+            },
+            "checkpoint": {
+              "autoload_last_checkpoint": false,
+              "save_initial_checkpoint": false,
+              "steps": null
+            },
+            "logging": {
+              "log_steps": 10
+            },
+            "loop": {
+              "eval_frequency": null,
+              "grad_accum_steps": 1,
+              "max_steps": 1640,
+              "num_epochs": null,
+              "num_steps": null,
+              "steps_per_epoch": null
+            },
+            "model": {
+              "architecture": {
+                "aggregator": "mean",
+                "dropout": 0.5,
+                "hidden_dim": 1024,
+                "n_class": 47,
+                "n_feat": 100,
+                "num_layers": 3,
+                "type": "graphsage"
+              },
+              "name": "gnn",
+              "task": {
+                "compute_eval_metrics": false,
+                "disable_log_softmax": false,
+                "to_float16": true
+              }
+            },
+            "model_dir": "$REPO_ROOT/model_dirs/hpcasia_final/products_retry_20260920T014813Z/seed_44/throughput_r3/model",
+            "optimizer": {
+              "AdamW": {
+                "betas": [
+                  0.9,
+                  0.999
+                ],
+                "eps": 1e-06,
+                "learning_rate": 0.003,
+                "params": [],
+                "weight_decay": 0.0005
+              }
+            },
+            "precision": {
+              "enabled": true,
+              "fp16_type": "float16",
+              "loss_scaling_factor": "dynamic"
+            },
+            "seed": 44
+          },
+          "validate": null,
+          "validate_all": null
+        }
+      },
+      "directory": "$REPO_ROOT/model_dirs/hpcasia_final/products_retry_20260920T014813Z/seed_44/throughput_r3",
+      "id": "seed_44/throughput_r3",
+      "kind": "throughput",
+      "repeat": 3,
+      "seed": 44
+    },
+    {
+      "command": [
+        "$REPO_ROOT/.venv/bin/python3",
+        "-u",
+        "-m",
+        "cerebras.modelzoo.cli.main",
+        "fit",
+        "$REPO_ROOT/model_dirs/hpcasia_final/products_retry_20260920T014813Z/seed_44/cache_r1/params.yaml",
+        "--target_device",
+        "CSX",
+        "--model_dir",
+        "$REPO_ROOT/model_dirs/hpcasia_final/products_retry_20260920T014813Z/seed_44/cache_r1/model"
+      ],
+      "config": {
+        "runconfig": {
+          "python_paths": [
+            "$MODELZOO_ROOT/../.."
+          ]
+        },
+        "trainer": {
+          "fit": {
+            "ckpt_path": null,
+            "train_dataloader": {
+              "batch_size": 4096,
+              "cache_fraction": 1.0,
+              "data_processor": "GNNDataProcessor",
+              "dataset": "ogbn_products",
+              "dataset_profiles": {
+                "ogbn_products": {
+                  "data_dir": "$MODELZOO_ROOT/models/gnn/data/datasets",
+                  "dataset_name": "ogbn-products",
+                  "pad_node_id": 0
+                }
+              },
+              "drop_last_batch": false,
+              "fanouts": [
+                15,
+                10,
+                5
+              ],
+              "measure_batch_accounting": true,
+              "num_workers": 4,
+              "persistent_workers": true,
+              "pin_memory": true,
+              "prefetch_factor": 2,
+              "sampler_seed": 44,
+              "sampling_mode": "neighbor",
+              "shuffle": true,
+              "split": "train",
+              "static_batch_cache_size": 0,
+              "use_fake_data": false,
+              "worker_diagnostics": {
+                "enabled": false
+              }
+            },
+            "val_dataloader": null
+          },
+          "init": {
+            "autorestart": {
+              "max_num_restarts": 0
+            },
+            "backend": {
+              "backend_type": "CSX",
+              "cluster_config": {
+                "job_labels": [
+                  "run=sage-products-cache-trial-seed_44-cache_r1-w4-pf2-2fcc212327",
+                  "study=89846e76da"
+                ],
+                "job_time_sec": 14400,
+                "num_csx": 1,
+                "num_workers_per_csx": 1
+              }
+            },
+            "checkpoint": {
+              "autoload_last_checkpoint": false,
+              "save_initial_checkpoint": false,
+              "steps": null
+            },
+            "logging": {
+              "log_steps": 10
+            },
+            "loop": {
+              "eval_frequency": null,
+              "grad_accum_steps": 1,
+              "max_steps": 1640,
+              "num_epochs": null,
+              "num_steps": null,
+              "steps_per_epoch": null
+            },
+            "model": {
+              "architecture": {
+                "aggregator": "mean",
+                "dropout": 0.5,
+                "hidden_dim": 1024,
+                "n_class": 47,
+                "n_feat": 100,
+                "num_layers": 3,
+                "type": "graphsage"
+              },
+              "name": "gnn",
+              "task": {
+                "compute_eval_metrics": false,
+                "disable_log_softmax": false,
+                "to_float16": true
+              }
+            },
+            "model_dir": "$REPO_ROOT/model_dirs/hpcasia_final/products_retry_20260920T014813Z/seed_44/cache_r1/model",
+            "optimizer": {
+              "AdamW": {
+                "betas": [
+                  0.9,
+                  0.999
+                ],
+                "eps": 1e-06,
+                "learning_rate": 0.003,
+                "params": [],
+                "weight_decay": 0.0005
+              }
+            },
+            "precision": {
+              "enabled": true,
+              "fp16_type": "float16",
+              "loss_scaling_factor": "dynamic"
+            },
+            "seed": 44
+          },
+          "validate": null,
+          "validate_all": null
+        }
+      },
+      "directory": "$REPO_ROOT/model_dirs/hpcasia_final/products_retry_20260920T014813Z/seed_44/cache_r1",
+      "id": "seed_44/cache_r1",
+      "kind": "cache",
+      "repeat": 1,
+      "seed": 44
+    }
+  ],
+  "settings": {
+    "dataset": "products",
+    "eval_every": 40,
+    "job_time_sec": 14400,
+    "learning_steps": 1000,
+    "measure_steps": 1600,
+    "output": "$REPO_ROOT/model_dirs/hpcasia_final/products_retry_20260920T014813Z",
+    "seeds": [
+      42,
+      43,
+      44
+    ],
+    "stability_tolerance_percent": 2.0,
+    "trial_timeout_sec": 18000,
+    "warmup_steps": 40
+  }
+}

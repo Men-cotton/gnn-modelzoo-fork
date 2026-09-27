@@ -1,0 +1,287 @@
+$REPO_ROOT/.venv/lib/python3.11/site-packages/outdated/__init__.py:36: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import parse_version
+2026-09-18 12:23:59,381 INFO:   Current Working Directory: $REPO_ROOT/src/cerebras/modelzoo/models/gnn
+2026-09-18 12:23:59,381 INFO:   Running command: $REPO_ROOT/.venv/bin/cszoo fit $REPO_ROOT/model_dirs/hpcasia_r04/campaign_20260918T032805.576636Z/diagnostic_w12/params.yaml --target_device CSX --model_dir $REPO_ROOT/model_dirs/hpcasia_r04/campaign_20260918T032805.576636Z/diagnostic_w12/model
+2026-09-18 12:23:59,980 INFO:   Connectivity check: running command: ping -c 1 -W 3 10.125.8.2
+2026-09-18 12:23:59,986 INFO:   Connectivity check succeeded.
+2026-09-18 12:24:00,006 INFO:   Appliance client semantic version: 1.14.0, cluster server semantic version: 1.20.2, job operator semantic version: 1.20.2
+2026-09-18 12:24:00,008 INFO:   Successfully initialized workflow with id: wflow-cqkkhd9l4p5y9ypfdyemqr
+2026-09-18 12:24:00,008 INFO:   No checkpoint was provided. Using randomly initialized model parameters.
+2026-09-18 12:24:00,009 INFO:   Ordinal 0: Initializing GNNDataProcessor for dataset 'ogbn-arxiv' (split=train, mode=neighbor).
+$REPO_ROOT/.venv/lib/python3.11/site-packages/ogb/nodeproppred/dataset_pyg.py:69: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  self.data, self.slices = torch.load(self.processed_paths[0])
+2026-09-18 12:24:00,242 INFO:   GNN worker diagnostics: $REPO_ROOT/model_dirs/hpcasia_r04/campaign_20260918T032805.576636Z/diagnostic_w12/worker_diagnostics/loader-cer-anl-net001-us-sr02-1813344-851d15c7b6a24679870bcfc67e7b0305
+2026-09-18 12:24:00,244 INFO:   ===========================================================================
+2026-09-18 12:24:00,244 INFO:   Trainer Fit Summary
+2026-09-18 12:24:00,244 INFO:   ---------------------------------------------------------------------------
+2026-09-18 12:24:00,244 INFO:   Trainer will run 1 train loop.
+2026-09-18 12:24:00,244 INFO:   
+2026-09-18 12:24:00,244 INFO:   Train steps per train loop:
+2026-09-18 12:24:00,244 INFO:   * 1 loop of 80 steps
+2026-09-18 12:24:00,244 INFO:   for a total of 80 train steps.
+2026-09-18 12:24:00,244 INFO:   
+2026-09-18 12:24:00,244 INFO:   Progress will be logged every 10 steps.
+2026-09-18 12:24:00,244 INFO:   ===========================================================================
+2026-09-18 12:24:00,244 INFO:   ---------------------------------------------------------------------------
+2026-09-18 12:24:00,244 INFO:   Starting train loop 1 of 1, from global step 1 to 80 (80 steps)
+2026-09-18 12:24:00,244 INFO:   ---------------------------------------------------------------------------
+2026-09-18 12:24:04,998 INFO:   Compiling the model. This may take a few minutes.
+2026-09-18 12:24:04,999 INFO:   Connectivity check: running command: ping -c 1 -W 3 10.125.8.2
+2026-09-18 12:24:05,004 INFO:   Connectivity check succeeded.
+2026-09-18 12:24:05,021 INFO:   Appliance client semantic version: 1.14.0, cluster server semantic version: 1.20.2, job operator semantic version: 1.20.2
+2026-09-18 12:24:06,121 INFO:   Initiating a new image build job against the cluster server.
+2026-09-18 12:24:06,139 INFO:   Job id: imgjob-42280d4f85d91291dacb2ef766350f15, workflow id: wflow-cqkkhd9l4p5y9ypfdyemqr, namespace: job-operator, remote log path: /n1/wsjob/workdir/job-operator/imgjob-42280d4f85d91291dacb2ef766350f15
+2026-09-18 12:24:06,142 INFO:   Connectivity check: running command: ping -c 1 -W 3 10.125.8.2
+2026-09-18 12:24:06,147 INFO:   Connectivity check succeeded.
+2026-09-18 12:24:06,163 INFO:   Appliance client semantic version: 1.14.0, cluster server semantic version: 1.20.2, job operator semantic version: 1.20.2
+2026-09-18 12:24:06,182 INFO:   Initiating a new compile wsjob against the cluster server.
+2026-09-18 12:24:06,206 INFO:   Job id: wsjob-wekge6rcrybz65acb4n5ww, workflow id: wflow-cqkkhd9l4p5y9ypfdyemqr, namespace: job-operator, remote log path: /n1/wsjob/workdir/job-operator/wsjob-wekge6rcrybz65acb4n5ww
+2026-09-18 12:24:26,207 INFO:   Poll ingress status: Waiting for all Coordinator pods to be running, current running: 0/1.
+2026-09-18 12:24:26,210 INFO:   Recording the timestamp when jobs is scheduled.
+2026-09-18 12:24:26,234 WARNING:   Event 2026-09-18 12:24:07 +0000 UTC reason=InconsistentVersion wsjob=wsjob-wekge6rcrybz65acb4n5ww message='Warning: client semantic version 1.14.0 is inconsistent with cluster server semantic version 1.20.2, there's a risk job could fail due to inconsistent setup.'
+2026-09-18 12:24:36,234 INFO:   Poll ingress status: Waiting for job ingress readiness.
+2026-09-18 12:24:56,284 INFO:   Poll ingress status: Job ingress ready, dashboard: <internal-dashboard-url>
+2026-09-18 12:24:56,301 INFO:   Poll ingress success: Job ingress ready, dashboard: <internal-dashboard-url>
+2026-09-18 12:24:56,313 INFO:   Finalizing out-of-cluster job handle with ingress service url: 
+2026-09-18 12:24:56,313 WARNING:   Empty ingress service url. Falling back to default server: 10.125.8.2:443
+2026-09-18 12:24:56,850 INFO:   Pre-optimization transforms...
+2026-09-18 12:24:57,007 INFO:   Optimizing layouts and memory usage...
+2026-09-18 12:24:57,010 INFO:   Gradient accumulation enabled
+2026-09-18 12:24:57,011 INFO:   Gradient accumulation trying micro batch size 16...
+2026-09-18 12:24:57,315 INFO:   Exploring floorplans
+2026-09-18 12:34:39,718 INFO:   Exploring data layouts
+2026-09-18 12:35:01,680 INFO:   Optimizing memory usage
+2026-09-18 12:35:04,316 INFO:   Gradient accumulation trying micro batch size 256...
+2026-09-18 12:35:04,448 INFO:   Exploring floorplans
+2026-09-18 12:36:50,478 INFO:   Exploring data layouts
+2026-09-18 12:37:05,183 INFO:   Optimizing memory usage
+2026-09-18 12:37:05,592 INFO:   Gradient accumulation trying micro batch size 64...
+2026-09-18 12:37:05,764 INFO:   Exploring floorplans
+2026-09-18 12:40:48,564 INFO:   Exploring data layouts
+2026-09-18 12:41:01,754 INFO:   Optimizing memory usage
+2026-09-18 12:41:02,456 INFO:   Gradient accumulation trying micro batch size 1024...
+2026-09-18 12:41:02,549 INFO:   Exploring floorplans
+2026-09-18 12:41:26,146 INFO:   Exploring data layouts
+2026-09-18 12:41:41,308 INFO:   Optimizing memory usage
+2026-09-18 12:41:42,213 INFO:   Gradient accumulation trying micro batch size 512...
+2026-09-18 12:41:42,311 INFO:   Exploring floorplans
+2026-09-18 12:42:32,161 INFO:   Exploring data layouts
+2026-09-18 12:42:45,450 INFO:   Optimizing memory usage
+2026-09-18 12:42:46,196 INFO:   Gradient accumulation trying micro batch size 2048...
+2026-09-18 12:42:46,275 INFO:   Exploring floorplans
+2026-09-18 12:42:57,839 INFO:   Exploring data layouts...
+2026-09-18 12:42:57,885 INFO:   Gradient accumulation showed a benefit
+2026-09-18 12:42:57,889 INFO:   Post-layout optimizations for <pbox=0, vbox=0, microbatch=512, lanes=171>...
+2026-09-18 12:42:57,890 INFO:   Post-layout optimizations for <pbox=0, vbox=0, microbatch=512, lanes=128>...
+2026-09-18 12:42:57,890 INFO:   Post-layout optimizations for <pbox=0, vbox=0, microbatch=256, lanes=64>...
+2026-09-18 12:42:57,890 INFO:   Post-layout optimizations for <pbox=0, vbox=0, microbatch=1024, lanes=342>...
+2026-09-18 12:42:57,891 INFO:   Post-layout optimizations for <pbox=0, vbox=0, microbatch=1024, lanes=256>...
+2026-09-18 12:42:58,027 INFO:   Allocating buffers for <pbox=0, vbox=0, microbatch=1024, lanes=256>...
+2026-09-18 12:42:58,036 INFO:   Allocating buffers for <pbox=0, vbox=0, microbatch=1024, lanes=342>...
+2026-09-18 12:42:58,044 INFO:   Allocating buffers for <pbox=0, vbox=0, microbatch=512, lanes=128>...
+2026-09-18 12:42:58,044 INFO:   Allocating buffers for <pbox=0, vbox=0, microbatch=512, lanes=171>...
+2026-09-18 12:42:58,049 INFO:   Allocating buffers for <pbox=0, vbox=0, microbatch=256, lanes=64>...
+2026-09-18 12:42:58,212 INFO:   Code generation for <pbox=0, vbox=0, microbatch=1024, lanes=342>...
+2026-09-18 12:42:58,221 INFO:   Code generation for <pbox=0, vbox=0, microbatch=512, lanes=128>...
+2026-09-18 12:42:58,221 INFO:   Code generation for <pbox=0, vbox=0, microbatch=512, lanes=171>...
+2026-09-18 12:42:58,222 INFO:   Code generation for <pbox=0, vbox=0, microbatch=256, lanes=64>...
+2026-09-18 12:42:58,222 INFO:   Code generation for <pbox=0, vbox=0, microbatch=1024, lanes=256>...
+2026-09-18 12:43:00,031 INFO:   Gradient accumulation picked micro batch size 1024
+2026-09-18 12:43:00,063 WARNING:   Non Plan-of-Record Secondary Rack setup - Insufficient Bandwidth Available
+    Activation servers can only saturate 83 activation WIOs, but 103 are allocated)
+
+2026-09-18 12:43:00,698 INFO:   Compile estimated performance: 14851 samples/sec (14851 samples/sec/system). Estimate may vary by 10-25% from actual runtime performance.
+2026-09-18 12:43:03,046 INFO:   Compiling image...
+2026-09-18 12:43:03,153 INFO:   Compiling kernels
+2026-09-18 12:43:53,860 INFO:   Compiling final image
+2026-09-18 12:44:50,567 INFO:   Using power profile none
+
+2026-09-18 12:44:50,656 INFO:   Compile artifacts successfully written to remote compile directory. Compile hash is: cs_15947550494040740076
+2026-09-18 12:44:56,369 ERROR:   Image build job imgjob-42280d4f85d91291dacb2ef766350f15 failed. Please check the error log in $REPO_ROOT/model_dirs/hpcasia_r04/campaign_20260918T032805.576636Z/diagnostic_w12/model/cerebras_logs/20260918_122359/executors/000001/custom_worker_build.out. 
+2026-09-18 12:44:56,369 INFO:   Falling back to venv mounting.
+2026-09-18 12:44:56,373 INFO:   Compile was successful!
+2026-09-18 12:44:56,373 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+2026-09-18 12:44:58,383 INFO:   Connectivity check: running command: ping -c 1 -W 3 10.125.8.2
+2026-09-18 12:44:58,389 INFO:   Connectivity check succeeded.
+2026-09-18 12:44:58,405 INFO:   Appliance client semantic version: 1.14.0, cluster server semantic version: 1.20.2, job operator semantic version: 1.20.2
+2026-09-18 12:44:58,408 INFO:   Initiating a new execute wsjob against the cluster server.
+2026-09-18 12:44:58,453 INFO:   Job id: wsjob-gmiq87wdbk2hj4zv4fpj9j, workflow id: wflow-cqkkhd9l4p5y9ypfdyemqr, namespace: job-operator, remote log path: /n1/wsjob/workdir/job-operator/wsjob-gmiq87wdbk2hj4zv4fpj9j
+2026-09-18 12:45:18,454 INFO:   Poll ingress status: Waiting for job to be scheduled, current job status: Queueing, msg: job queueing to be scheduled. Job queue status: current job is top of queue but likely blocked by running/reserved jobs, 3 compile job(s) running/reserved using 340Gi memory. For more information, please run 'csctl get job wsjob-gmiq87wdbk2hj4zv4fpj9j --pending-status'.
+2026-09-18 12:46:18,455 INFO:   Poll ingress status: Waiting for job to be scheduled, current job status: Queueing, msg: job queueing to be scheduled. Job queue status: current job is top of queue but likely blocked by running/reserved jobs, 2 compile job(s) running/reserved using 250Gi memory. For more information, please run 'csctl get job wsjob-gmiq87wdbk2hj4zv4fpj9j --pending-status'.
+2026-09-18 12:46:38,455 INFO:   Poll ingress status: Waiting for all Activation pods to be running, current running: 0/21.
+2026-09-18 12:46:38,458 INFO:   Recording the timestamp when jobs is scheduled.
+2026-09-18 12:46:38,481 WARNING:   Event 2026-09-18 12:46:24 +0000 UTC reason=InconsistentVersion wsjob=wsjob-gmiq87wdbk2hj4zv4fpj9j message='Warning: client semantic version 1.14.0 is inconsistent with cluster server semantic version 1.20.2, there's a risk job could fail due to inconsistent setup.'
+2026-09-18 12:46:38,481 INFO:   Infrastructure setup started for job wsjob-gmiq87wdbk2hj4zv4fpj9j
+2026-09-18 12:46:48,481 INFO:   Poll ingress status: Waiting for all Command pods to be running, current running: 0/1.
+2026-09-18 12:46:48,497 INFO:   Infrastructure setup completed successfully for job wsjob-gmiq87wdbk2hj4zv4fpj9j
+2026-09-18 12:46:58,497 INFO:   Poll ingress status: Waiting for all Activation pods to be running, current running: 17/21.
+2026-09-18 12:46:58,520 INFO:   Infrastructure setup completed successfully for job wsjob-gmiq87wdbk2hj4zv4fpj9j
+2026-09-18 12:47:08,520 INFO:   Poll ingress status: Job ingress ready, dashboard: <internal-dashboard-url>
+2026-09-18 12:47:08,537 INFO:   Infrastructure setup completed successfully for job wsjob-gmiq87wdbk2hj4zv4fpj9j
+2026-09-18 12:47:08,538 INFO:   Poll ingress success: Job ingress ready, dashboard: <internal-dashboard-url>
+2026-09-18 12:47:08,553 INFO:   Finalizing out-of-cluster job handle with ingress service url: 
+2026-09-18 12:47:08,553 WARNING:   Empty ingress service url. Falling back to default server: 10.125.8.2:443
+2026-09-18 12:47:08,632 INFO:   Preparing to execute using 1 CSX
+2026-09-18 12:47:26,055 INFO:   About to send initial weights
+2026-09-18 12:47:26,233 INFO:   Finished sending initial weights
+2026-09-18 12:47:26,234 INFO:   Finalizing appliance staging for the run
+2026-09-18 12:47:32,810 INFO:   Waiting for device programming to complete
+2026-09-18 12:47:46,867 INFO:   Device programming is complete
+2026-09-18 12:47:47,161 INFO:   Using network type: ROCE
+2026-09-18 12:47:47,161 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+2026-09-18 12:47:47,165 ERROR:   Initiating shutdown sequence due to gRPC error: gRPC Error:
+  Status Code: StatusCode.INTERNAL
+  Details: Failed to run worker (micro_iteration=0) due to error: 
+COUT030 12:47:26 GMT
+
+CEREBRAS_THROW_UNLESS in file: ../src/framework/appliance/roles/worker/worker_ws_service.cc line: 499 function: void cerebras::WorkerWsService::sched_runner()
+This condition is false: res.grpc_status().ok()
+gRPC failed. Error code = 13, Error desc = INTERNAL, Error message: Traceback (most recent call last):
+  File "$REPO_ROOT/.venv/lib/python3.11/site-packages/cerebras/pytorch/utils/_app/utils.py", line 46, in wrapped_method
+    response = orig_method(self, request, context)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "$REPO_ROOT/.venv/lib/python3.11/site-packages/cerebras/pytorch/utils/data/streamer/cs_streamer_app.py", line 293, in UnaryGetOutput
+    for tensor_id, tensor in next(self._curr_generator()).items():
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "$REPO_ROOT/.venv/lib/python3.11/site-packages/cerebras/pytorch/utils/data/streamer/cs_streamer_app.py", line 394, in __next__
+    self.wait()
+  File "$REPO_ROOT/.venv/lib/python3.11/site-packages/cerebras/pytorch/utils/data/streamer/cs_streamer_app.py", line 419, in wait
+    self._first_batch_future.result()
+  File "/cb/toolchains/buildroot/buildroot-all/main/202601080020-115-9c2a6e07/monolith/rootfs-x86_64/usr/lib/python3.11/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/cb/toolchains/buildroot/buildroot-all/main/202601080020-115-9c2a6e07/monolith/rootfs-x86_64/usr/lib/python3.11/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/cb/toolchains/buildroot/buildroot-all/main/202601080020-115-9c2a6e07/monolith/rootfs-x86_64/usr/lib/python3.11/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "$REPO_ROOT/.venv/lib/python3.11/site-packages/cerebras/pytorch/utils/data/streamer/cs_streamer_app.py", line 434, in _prime_streamer
+    self._input_generator = InputGeneratorPyTorch(*args, **kwargs)
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "$REPO_ROOT/.venv/lib/python3.11/site-packages/cerebras/pytorch/utils/data/streamer/pytorch_generator.py", line 99, in __init__
+    self._dataloader = dataloader_fn()
+                       ^^^^^^^^^^^^^^^
+  File "$REPO_ROOT/.venv/lib/python3.11/site-packages/cerebras/pytorch/utils/data/streamer/cs_streamer_app.py", line 237, in <lambda>
+    dataloader_fn = lambda: dataloader(*args, **kwargs)
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "$REPO_ROOT/src/cerebras/modelzoo/trainer/utils.py", line 190, in data_processor_fn
+    data_processor = data_processor_cls(**kwargs)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "$REPO_ROOT/src/cerebras/modelzoo/models/gnn/data_processing/processor.py", line 225, in __init__
+    measure_batch_accounting=self.config.measure_batch_accounting,
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/python/python-x86_64/lib/python3.11/site-packages/pydantic/main.py", line 828, in __getattr__
+    raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}')
+AttributeError: 'GNNDataProcessorConfig' object has no attribute 'measure_batch_accounting'
+
+
+
+  Metadata:
+    date: Fri, 18 Sep 2026 12:47:47 GMT
+    content-length: 0
+    strict-transport-security: max-age=31536000; includeSubDomains
+
+2026-09-18 12:47:47,165 INFO:   Trying to fetch failure info from the cluster for job wsjob-gmiq87wdbk2hj4zv4fpj9j. This may take up to 60 seconds.
+2026-09-18 12:47:47,166 INFO:   For more info, please check on dashboard: <internal-dashboard-url> or run `csctl get job wsjob-gmiq87wdbk2hj4zv4fpj9j -njob-operator -oyaml`
+2026-09-18 12:48:42,181 INFO:   Job wsjob-gmiq87wdbk2hj4zv4fpj9j is still in progress after 60 seconds. Abort fetching failure info.
+2026-09-18 12:48:48,492 INFO:   Processed 4096 training sample(s) in 1488.249480816 seconds.
+Traceback (most recent call last):
+  File "$REPO_ROOT/.venv/bin/cszoo", line 10, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "$REPO_ROOT/src/cerebras/modelzoo/cli/main.py", line 207, in main
+    ModelZooCLI()
+  File "$REPO_ROOT/src/cerebras/modelzoo/cli/main.py", line 188, in __init__
+    args.func(args)
+  File "$REPO_ROOT/src/cerebras/modelzoo/cli/main.py", line 203, in run_trainer
+    run_trainer(args.mode, params)
+  File "$REPO_ROOT/src/cerebras/modelzoo/trainer/utils.py", line 183, in run_trainer
+    run_trainer(mode, config)
+  File "$REPO_ROOT/src/cerebras/modelzoo/trainer/utils.py", line 172, in run_trainer
+    trainer.fit(train_dataloader, val_dataloader, config.fit.ckpt_path)
+  File "$REPO_ROOT/src/cerebras/modelzoo/trainer/trainer.py", line 859, in fit
+    self._run_train(train_dataloader, loop, loop_idx)
+  File "$REPO_ROOT/src/cerebras/modelzoo/trainer/trainer.py", line 900, in _run_train
+    for batch_idx, batch in enumerate(self.executor):
+  File "$REPO_ROOT/.venv/lib/python3.11/site-packages/cerebras/pytorch/utils/data/data_executor.py", line 266, in __iter__
+    self.backend.on_batch_end()
+  File "$REPO_ROOT/.venv/lib/python3.11/site-packages/cerebras/pytorch/backend/ltc_backend.py", line 970, in on_batch_end
+    self.mark_step(cerebras_pytorch_lib.MarkStepType.EXECUTION)
+  File "$REPO_ROOT/.venv/lib/python3.11/site-packages/cerebras/pytorch/backend/ltc_backend.py", line 884, in mark_step
+    torch._lazy.mark_step()
+  File "$REPO_ROOT/.venv/lib/python3.11/site-packages/torch/_lazy/__init__.py", line 18, in mark_step
+    torch._C._lazy._mark_step(device, [], wait=wait)
+  File "$REPO_ROOT/.venv/lib/python3.11/site-packages/cerebras/pytorch/backend/ltc_backend.py", line 618, in execute
+    self.appliance.execute(
+  File "$REPO_ROOT/.venv/lib/python3.11/site-packages/cerebras/pytorch/core/appliance.py", line 375, in execute
+    self.execute_session(
+  File "$REPO_ROOT/.venv/lib/python3.11/site-packages/cerebras/pytorch/core/appliance.py", line 328, in execute_session
+    out = super().execute_session(
+          ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "$REPO_ROOT/.venv/lib/python3.11/site-packages/cerebras/appliance/appliance_manager.py", line 698, in execute_session
+    self.start_streaming()
+  File "$REPO_ROOT/.venv/lib/python3.11/site-packages/cerebras/appliance/appliance_manager.py", line 764, in start_streaming
+    self.grpc_client.start_streaming()
+  File "$REPO_ROOT/.venv/lib/python3.11/site-packages/cerebras/appliance/appliance_client.py", line 493, in start_streaming
+    response = self.stub.UnaryStartStreaming(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "$REPO_ROOT/.venv/lib/python3.11/site-packages/grpc/_interceptor.py", line 247, in __call__
+    response, ignored_call = self._with_call(request,
+                             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "$REPO_ROOT/.venv/lib/python3.11/site-packages/grpc/_interceptor.py", line 290, in _with_call
+    return call.result(), call
+           ^^^^^^^^^^^^^
+  File "$REPO_ROOT/.venv/lib/python3.11/site-packages/cerebras/appliance/errors.py", line 238, in result
+    raise self
+cerebras.appliance.errors.PicklableRpcError: gRPC Error:
+  Status Code: StatusCode.INTERNAL
+  Details: Failed to run worker (micro_iteration=0) due to error: 
+COUT030 12:47:26 GMT
+
+CEREBRAS_THROW_UNLESS in file: ../src/framework/appliance/roles/worker/worker_ws_service.cc line: 499 function: void cerebras::WorkerWsService::sched_runner()
+This condition is false: res.grpc_status().ok()
+gRPC failed. Error code = 13, Error desc = INTERNAL, Error message: Traceback (most recent call last):
+  File "$REPO_ROOT/.venv/lib/python3.11/site-packages/cerebras/pytorch/utils/_app/utils.py", line 46, in wrapped_method
+    response = orig_method(self, request, context)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "$REPO_ROOT/.venv/lib/python3.11/site-packages/cerebras/pytorch/utils/data/streamer/cs_streamer_app.py", line 293, in UnaryGetOutput
+    for tensor_id, tensor in next(self._curr_generator()).items():
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "$REPO_ROOT/.venv/lib/python3.11/site-packages/cerebras/pytorch/utils/data/streamer/cs_streamer_app.py", line 394, in __next__
+    self.wait()
+  File "$REPO_ROOT/.venv/lib/python3.11/site-packages/cerebras/pytorch/utils/data/streamer/cs_streamer_app.py", line 419, in wait
+    self._first_batch_future.result()
+  File "/cb/toolchains/buildroot/buildroot-all/main/202601080020-115-9c2a6e07/monolith/rootfs-x86_64/usr/lib/python3.11/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/cb/toolchains/buildroot/buildroot-all/main/202601080020-115-9c2a6e07/monolith/rootfs-x86_64/usr/lib/python3.11/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/cb/toolchains/buildroot/buildroot-all/main/202601080020-115-9c2a6e07/monolith/rootfs-x86_64/usr/lib/python3.11/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "$REPO_ROOT/.venv/lib/python3.11/site-packages/cerebras/pytorch/utils/data/streamer/cs_streamer_app.py", line 434, in _prime_streamer
+    self._input_generator = InputGeneratorPyTorch(*args, **kwargs)
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "$REPO_ROOT/.venv/lib/python3.11/site-packages/cerebras/pytorch/utils/data/streamer/pytorch_generator.py", line 99, in __init__
+    self._dataloader = dataloader_fn()
+                       ^^^^^^^^^^^^^^^
+  File "$REPO_ROOT/.venv/lib/python3.11/site-packages/cerebras/pytorch/utils/data/streamer/cs_streamer_app.py", line 237, in <lambda>
+    dataloader_fn = lambda: dataloader(*args, **kwargs)
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "$REPO_ROOT/src/cerebras/modelzoo/trainer/utils.py", line 190, in data_processor_fn
+    data_processor = data_processor_cls(**kwargs)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "$REPO_ROOT/src/cerebras/modelzoo/models/gnn/data_processing/processor.py", line 225, in __init__
+    measure_batch_accounting=self.config.measure_batch_accounting,
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/python/python-x86_64/lib/python3.11/site-packages/pydantic/main.py", line 828, in __getattr__
+    raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}')
+AttributeError: 'GNNDataProcessorConfig' object has no attribute 'measure_batch_accounting'
+
+
+
+  Metadata:
+    date: Fri, 18 Sep 2026 12:47:47 GMT
+    content-length: 0
+    strict-transport-security: max-age=31536000; includeSubDomains
+

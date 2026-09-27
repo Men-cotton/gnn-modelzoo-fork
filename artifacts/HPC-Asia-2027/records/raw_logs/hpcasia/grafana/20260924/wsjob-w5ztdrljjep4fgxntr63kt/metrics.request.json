@@ -1,0 +1,162 @@
+{
+  "from": "1789713479447",
+  "queries": [
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "expr": "sum(node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate{pod=~\"wsjob-w5ztdrljjep4fgxntr63kt-.*\", container=~\".+\"}) by (pod, node)",
+      "format": "time_series",
+      "instant": false,
+      "intervalMs": 30000,
+      "maxDataPoints": 2000,
+      "range": true,
+      "refId": "cpu_cores"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "expr": "sum(container_memory_working_set_bytes{job=\"kubelet\", metrics_path=\"/metrics/cadvisor\", pod=~\"wsjob-w5ztdrljjep4fgxntr63kt-.*\", container!=\"\", image!=\"\"}) by (pod, node)",
+      "format": "time_series",
+      "instant": false,
+      "intervalMs": 30000,
+      "maxDataPoints": 2000,
+      "range": true,
+      "refId": "working_set_bytes"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "expr": "sum(irate(container_network_transmit_bytes_total{pod=~\"wsjob-w5ztdrljjep4fgxntr63kt-.*\", interface=~\"e.*|net.*\"}[120s])) by (pod, interface)",
+      "format": "time_series",
+      "instant": false,
+      "intervalMs": 30000,
+      "maxDataPoints": 2000,
+      "range": true,
+      "refId": "egress_bytes_per_second"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "expr": "node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate{pod=\"wsjob-w5ztdrljjep4fgxntr63kt-worker-0\", container!=\"\"}",
+      "format": "time_series",
+      "instant": false,
+      "intervalMs": 30000,
+      "maxDataPoints": 2000,
+      "range": true,
+      "refId": "worker_container_cpu_cores"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "expr": "container_processes{job=\"kubelet\", metrics_path=\"/metrics/cadvisor\", pod=\"wsjob-w5ztdrljjep4fgxntr63kt-worker-0\", container!=\"\", image!=\"\"}",
+      "format": "time_series",
+      "instant": false,
+      "intervalMs": 30000,
+      "maxDataPoints": 2000,
+      "range": true,
+      "refId": "worker_container_processes"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "expr": "kube_pod_container_resource_limits{pod=\"wsjob-w5ztdrljjep4fgxntr63kt-worker-0\", resource=\"cpu\"}",
+      "format": "time_series",
+      "instant": false,
+      "intervalMs": 30000,
+      "maxDataPoints": 2000,
+      "range": true,
+      "refId": "worker_cpu_limit"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "expr": "kube_pod_container_resource_limits{pod=\"wsjob-w5ztdrljjep4fgxntr63kt-worker-0\", resource=\"memory\"}",
+      "format": "time_series",
+      "instant": false,
+      "intervalMs": 30000,
+      "maxDataPoints": 2000,
+      "range": true,
+      "refId": "worker_memory_limit_bytes"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "expr": "rate(container_cpu_cfs_throttled_seconds_total{pod=\"wsjob-w5ztdrljjep4fgxntr63kt-worker-0\", container!=\"\", image!=\"\"}[120s])",
+      "format": "time_series",
+      "instant": false,
+      "intervalMs": 30000,
+      "maxDataPoints": 2000,
+      "range": true,
+      "refId": "worker_cfs_throttled_seconds_per_second"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "expr": "container_oom_events_total{pod=\"wsjob-w5ztdrljjep4fgxntr63kt-worker-0\", container!=\"\", image!=\"\"}",
+      "format": "time_series",
+      "instant": false,
+      "intervalMs": 30000,
+      "maxDataPoints": 2000,
+      "range": true,
+      "refId": "worker_oom_events"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "expr": "wsjob_annotation{name=\"wsjob-w5ztdrljjep4fgxntr63kt\"}",
+      "format": "time_series",
+      "instant": false,
+      "intervalMs": 30000,
+      "maxDataPoints": 2000,
+      "range": true,
+      "refId": "job_annotations"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "expr": "wsjob_system_grant{name=\"wsjob-w5ztdrljjep4fgxntr63kt\"}",
+      "format": "time_series",
+      "instant": false,
+      "intervalMs": 30000,
+      "maxDataPoints": 2000,
+      "range": true,
+      "refId": "system_grants"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "expr": "kube_pod_info{created_by_name=\"wsjob-w5ztdrljjep4fgxntr63kt\", pod_ip!=\"\"}",
+      "format": "time_series",
+      "instant": false,
+      "intervalMs": 30000,
+      "maxDataPoints": 2000,
+      "range": true,
+      "refId": "pod_info"
+    }
+  ],
+  "to": "1789714170155"
+}

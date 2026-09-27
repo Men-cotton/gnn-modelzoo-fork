@@ -1,0 +1,1273 @@
+[main] 2026-09-21 15:46:43,640 WARNING:   The trainer configuration for train_and_eval does not configure checkpointing. In the event of a failure, the run will be restarted from the beginning. If this is not intentional, please specifiy a checkpoint callback with a checkpointing frequency to enable auto-restarting from previously saved checkpoints.
+[main] 2026-09-21 15:46:43,640 INFO:   Spawning child process for the fit run ...
+[main] 2026-09-21 15:46:43,644 INFO:   Child process started with pid: 2078102
+[run_1] 2026-09-21 15:46:49,636 INFO:   Current Working Directory: $REPO_ROOT/src/cerebras/modelzoo/models/gnn
+[run_1] 2026-09-21 15:46:49,636 INFO:   Running command: $REPO_ROOT/src/cerebras/modelzoo/cli/main.py fit $REPO_ROOT/model_dirs/hpcasia_final/products_20260921T154630.818034Z/params.yaml --target_device CSX --model_dir $REPO_ROOT/model_dirs/hpcasia_final/products_20260921T154630.818034Z/model
+[run_1] 2026-09-21 15:46:51,025 INFO:   No checkpoint was provided. Using randomly initialized model parameters.
+[run_1] 2026-09-21 15:46:51,025 INFO:   Ordinal 0: Initializing GNNDataProcessor for dataset 'ogbn-products' (split=train, mode=neighbor).
+[run_1] 2026-09-21 15:47:20,534 INFO:   Connectivity check: running command: ping -c 1 -W 3 10.125.8.2
+[run_1] 2026-09-21 15:47:20,541 INFO:   Connectivity check succeeded.
+[run_1] 2026-09-21 15:47:20,559 INFO:   Appliance client semantic version: 1.14.0, cluster server semantic version: 1.20.2, job operator semantic version: 1.20.2
+[run_1] 2026-09-21 15:47:20,560 INFO:   ===========================================================================
+[run_1] 2026-09-21 15:47:20,560 INFO:   Trainer Fit Summary
+[run_1] 2026-09-21 15:47:20,560 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 15:47:20,560 INFO:   Trainer will run 25 train loops, interleaving validation as follows:
+[run_1] 2026-09-21 15:47:20,560 INFO:   * val_dataloader_2 after every train loop
+[run_1] 2026-09-21 15:47:20,560 INFO:   
+[run_1] 2026-09-21 15:47:20,560 INFO:   Train steps per train loop:
+[run_1] 2026-09-21 15:47:20,560 INFO:   * 25 loops of 40 steps
+[run_1] 2026-09-21 15:47:20,560 INFO:   for a total of 1000 train steps.
+[run_1] 2026-09-21 15:47:20,560 INFO:   
+[run_1] 2026-09-21 15:47:20,560 INFO:   Progress will be logged every 10 steps.
+[run_1] 2026-09-21 15:47:20,560 INFO:   ===========================================================================
+[run_1] 2026-09-21 15:47:20,560 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 15:47:20,560 INFO:   Starting train loop 1 of 25, from global step 1 to 40 (40 steps)
+[run_1] 2026-09-21 15:47:20,560 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 15:47:29,819 INFO:   Compiling the model. This may take a few minutes.
+[run_1] 2026-09-21 15:47:29,820 INFO:   Connectivity check: running command: ping -c 1 -W 3 10.125.8.2
+[run_1] 2026-09-21 15:47:29,825 INFO:   Connectivity check succeeded.
+[run_1] 2026-09-21 15:47:29,840 INFO:   Appliance client semantic version: 1.14.0, cluster server semantic version: 1.20.2, job operator semantic version: 1.20.2
+[run_1] 2026-09-21 15:47:31,581 INFO:   Initiating a new image build job against the cluster server.
+[run_1] 2026-09-21 15:47:31,598 INFO:   Job id: imgjob-42280d4f85d91291dacb2ef766350f15, workflow id: wflow-7jjsmncvpxkfhmrcibwgbz, namespace: job-operator, remote log path: /n1/wsjob/workdir/job-operator/imgjob-42280d4f85d91291dacb2ef766350f15
+[run_1] 2026-09-21 15:47:31,601 INFO:   Connectivity check: running command: ping -c 1 -W 3 10.125.8.2
+[run_1] 2026-09-21 15:47:31,606 INFO:   Connectivity check succeeded.
+[run_1] 2026-09-21 15:47:31,621 INFO:   Appliance client semantic version: 1.14.0, cluster server semantic version: 1.20.2, job operator semantic version: 1.20.2
+[run_1] 2026-09-21 15:47:31,732 INFO:   Initiating a new compile wsjob against the cluster server.
+[run_1] 2026-09-21 15:47:31,759 INFO:   Job id: wsjob-nacbfkpjchb9frexnycuwb, workflow id: wflow-7jjsmncvpxkfhmrcibwgbz, namespace: job-operator, remote log path: /n1/wsjob/workdir/job-operator/wsjob-nacbfkpjchb9frexnycuwb
+[run_1] 2026-09-21 15:47:51,760 INFO:   Poll ingress status: Waiting for all Coordinator pods to be running, current running: 0/1.
+[run_1] 2026-09-21 15:47:51,763 INFO:   Recording the timestamp when jobs is scheduled.
+[run_1] 2026-09-21 15:47:51,771 WARNING:   Event 2026-09-21 15:47:32 +0000 UTC reason=InconsistentVersion wsjob=wsjob-nacbfkpjchb9frexnycuwb message='Warning: client semantic version 1.14.0 is inconsistent with cluster server semantic version 1.20.2, there's a risk job could fail due to inconsistent setup.'
+[run_1] 2026-09-21 15:49:51,772 INFO:   Poll ingress status: Job ingress ready, dashboard: <internal-dashboard-url>
+[run_1] 2026-09-21 15:49:51,781 INFO:   Poll ingress success: Job ingress ready, dashboard: <internal-dashboard-url>
+[run_1] 2026-09-21 15:49:51,792 INFO:   Finalizing out-of-cluster job handle with ingress service url: 
+[run_1] 2026-09-21 15:49:51,792 WARNING:   Empty ingress service url. Falling back to default server: 10.125.8.2:443
+[run_1] 2026-09-21 15:49:51,860 INFO:   Found existing cached compile with hash: "cs_375598257463103517"
+[run_1] 2026-09-21 15:49:53,699 INFO:   Using power profile none
+
+[run_1] 2026-09-21 15:49:53,719 INFO:   Compile artifacts successfully written to remote compile directory. Compile hash is: cs_375598257463103517
+[run_1] 2026-09-21 15:50:01,803 ERROR:   Image build job imgjob-42280d4f85d91291dacb2ef766350f15 failed. Please check the error log in $REPO_ROOT/model_dirs/hpcasia_final/products_20260921T154630.818034Z/model/cerebras_logs/20260921_154649/executors/000001/custom_worker_build.out. 
+[run_1] 2026-09-21 15:50:01,804 INFO:   Falling back to venv mounting.
+[run_1] 2026-09-21 15:50:01,807 INFO:   Compile was successful!
+[run_1] 2026-09-21 15:50:01,807 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+[run_1] 2026-09-21 15:50:03,817 INFO:   Connectivity check: running command: ping -c 1 -W 3 10.125.8.2
+[run_1] 2026-09-21 15:50:03,824 INFO:   Connectivity check succeeded.
+[run_1] 2026-09-21 15:50:03,840 INFO:   Appliance client semantic version: 1.14.0, cluster server semantic version: 1.20.2, job operator semantic version: 1.20.2
+[run_1] 2026-09-21 15:50:03,842 INFO:   Initiating a new execute wsjob against the cluster server.
+[run_1] 2026-09-21 15:50:03,923 INFO:   Job id: wsjob-bwjif8hxrrknabeypreh6u, workflow id: wflow-7jjsmncvpxkfhmrcibwgbz, namespace: job-operator, remote log path: /n1/wsjob/workdir/job-operator/wsjob-bwjif8hxrrknabeypreh6u
+[run_1] 2026-09-21 15:50:23,923 INFO:   Poll ingress status: Waiting for job to be scheduled, current job status: Queueing, msg: job queueing to be scheduled. Job queue status: current job is top of queue but likely blocked by running/reserved jobs, 1 compile job(s) running/reserved using 90Gi memory. For more information, please run 'csctl get job wsjob-bwjif8hxrrknabeypreh6u --pending-status'.
+[run_1] 2026-09-21 15:50:53,924 INFO:   Poll ingress status: Waiting for all Command pods to be running, current running: 0/1.
+[run_1] 2026-09-21 15:50:53,928 INFO:   Recording the timestamp when jobs is scheduled.
+[run_1] 2026-09-21 15:50:53,937 WARNING:   Event 2026-09-21 15:50:41 +0000 UTC reason=InconsistentVersion wsjob=wsjob-bwjif8hxrrknabeypreh6u message='Warning: client semantic version 1.14.0 is inconsistent with cluster server semantic version 1.20.2, there's a risk job could fail due to inconsistent setup.'
+[run_1] 2026-09-21 15:50:53,937 INFO:   Infrastructure setup started for job wsjob-bwjif8hxrrknabeypreh6u
+[run_1] 2026-09-21 15:51:03,937 INFO:   Poll ingress status: Waiting for all Activation pods to be running, current running: 0/21.
+[run_1] 2026-09-21 15:51:13,950 INFO:   Infrastructure setup completed successfully for job wsjob-bwjif8hxrrknabeypreh6u
+[run_1] 2026-09-21 15:51:23,950 INFO:   Infrastructure setup completed successfully for job wsjob-bwjif8hxrrknabeypreh6u
+[run_1] 2026-09-21 15:51:33,951 INFO:   Infrastructure setup completed successfully for job wsjob-bwjif8hxrrknabeypreh6u
+[run_1] 2026-09-21 15:51:43,951 INFO:   Poll ingress status: Waiting for all Chief pods to be running, current running: 0/1.
+[run_1] 2026-09-21 15:51:43,964 INFO:   Infrastructure setup completed successfully for job wsjob-bwjif8hxrrknabeypreh6u
+[run_1] 2026-09-21 15:51:53,964 INFO:   Poll ingress status: Waiting for all Weight pods to be running, current running: 0/2.
+[run_1] 2026-09-21 15:51:53,970 INFO:   Infrastructure setup completed successfully for job wsjob-bwjif8hxrrknabeypreh6u
+[run_1] 2026-09-21 15:52:03,970 INFO:   Poll ingress status: Waiting for all Activation pods to be running, current running: 0/21.
+[run_1] 2026-09-21 15:52:03,976 INFO:   Infrastructure setup completed successfully for job wsjob-bwjif8hxrrknabeypreh6u
+[run_1] 2026-09-21 15:52:13,977 INFO:   Infrastructure setup completed successfully for job wsjob-bwjif8hxrrknabeypreh6u
+[run_1] 2026-09-21 15:52:23,977 INFO:   Infrastructure setup completed successfully for job wsjob-bwjif8hxrrknabeypreh6u
+[run_1] 2026-09-21 15:52:33,977 INFO:   Poll ingress status: Waiting for all Worker pods to be running, current running: 0/1.
+[run_1] 2026-09-21 15:52:33,983 INFO:   Infrastructure setup completed successfully for job wsjob-bwjif8hxrrknabeypreh6u
+[run_1] 2026-09-21 15:52:43,984 INFO:   Poll ingress status: Waiting for all Weight pods to be running, current running: 0/2.
+[run_1] 2026-09-21 15:52:43,990 INFO:   Infrastructure setup completed successfully for job wsjob-bwjif8hxrrknabeypreh6u
+[run_1] 2026-09-21 15:52:53,990 INFO:   Poll ingress status: Waiting for all Chief pods to be running, current running: 0/1.
+[run_1] 2026-09-21 15:52:53,996 INFO:   Infrastructure setup completed successfully for job wsjob-bwjif8hxrrknabeypreh6u
+[run_1] 2026-09-21 15:53:03,997 INFO:   Poll ingress status: Waiting for all Activation pods to be running, current running: 0/21.
+[run_1] 2026-09-21 15:53:04,003 INFO:   Infrastructure setup completed successfully for job wsjob-bwjif8hxrrknabeypreh6u
+[run_1] 2026-09-21 15:53:14,003 INFO:   Poll ingress status: Waiting for all Chief pods to be running, current running: 0/1.
+[run_1] 2026-09-21 15:53:14,010 INFO:   Infrastructure setup completed successfully for job wsjob-bwjif8hxrrknabeypreh6u
+[run_1] 2026-09-21 15:53:24,010 INFO:   Poll ingress status: Job ingress ready, dashboard: <internal-dashboard-url>
+[run_1] 2026-09-21 15:53:24,018 INFO:   Infrastructure setup completed successfully for job wsjob-bwjif8hxrrknabeypreh6u
+[run_1] 2026-09-21 15:53:24,018 INFO:   Poll ingress success: Job ingress ready, dashboard: <internal-dashboard-url>
+[run_1] 2026-09-21 15:53:24,035 INFO:   Finalizing out-of-cluster job handle with ingress service url: 
+[run_1] 2026-09-21 15:53:24,035 WARNING:   Empty ingress service url. Falling back to default server: 10.125.8.2:443
+[run_1] 2026-09-21 15:53:24,112 INFO:   Preparing to execute using 1 CSX
+[run_1] 2026-09-21 15:53:41,506 INFO:   About to send initial weights
+[run_1] 2026-09-21 15:53:41,697 INFO:   Finished sending initial weights
+[run_1] 2026-09-21 15:53:41,697 INFO:   Finalizing appliance staging for the run
+[run_1] 2026-09-21 15:53:48,399 INFO:   Waiting for device programming to complete
+[run_1] 2026-09-21 15:54:01,868 INFO:   Device programming is complete
+[run_1] 2026-09-21 15:54:02,172 INFO:   Using network type: ROCE
+[run_1] 2026-09-21 15:54:02,173 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+[run_1] 2026-09-21 15:54:02,182 INFO:   Input workers have begun streaming input data
+[run_1] 2026-09-21 15:54:02,355 INFO:   Appliance staging is complete
+[run_1] 2026-09-21 15:54:02,355 INFO:   Beginning appliance run
+[run_1] 2026-09-21 15:54:22,907 INFO:   | Train Device=CSX, Step=10, Loss=3.21986, Rate=2747.75 samples/sec, GlobalRate=98.60 samples/sec, LoopTimeRemaining=0:00:39, TimeRemaining>3:02:23
+[run_1] 2026-09-21 15:54:43,688 INFO:   | Train Device=CSX, Step=20, Loss=2.43424, Rate=3405.38 samples/sec, GlobalRate=187.81 samples/sec, LoopTimeRemaining=0:00:24, TimeRemaining>3:00:42
+[run_1] 2026-09-21 15:55:08,378 INFO:   | Train Device=CSX, Step=30, Loss=2.03747, Rate=2439.16 samples/sec, GlobalRate=266.62 samples/sec, LoopTimeRemaining=0:00:12, TimeRemaining>3:00:23
+[run_1] 2026-09-21 15:55:28,454 INFO:   | Train Device=CSX, Step=40, Loss=1.85112, Rate=3338.93 samples/sec, GlobalRate=340.66 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining>2:59:58
+[run_1] 2026-09-21 15:55:28,557 INFO:   Training completed successfully!
+[run_1] 2026-09-21 15:55:28,561 INFO:   Ordinal 0: Initializing GNNDataProcessor for dataset 'ogbn-products' (split=valid, mode=neighbor).
+[run_1] 2026-09-21 15:55:59,436 INFO:   Ordinal 0: Initializing GNNDataProcessor for dataset 'ogbn-products' (split=valid, mode=neighbor).
+[run_1] 2026-09-21 15:56:37,348 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 15:56:37,348 INFO:   Starting val_dataloader_2 loop 1 of 25, with 10 steps
+[run_1] 2026-09-21 15:56:37,348 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 15:56:39,393 INFO:   Compiling the model. This may take a few minutes.
+[run_1] 2026-09-21 15:56:39,394 INFO:   Connectivity check: running command: ping -c 1 -W 3 10.125.8.2
+[run_1] 2026-09-21 15:56:39,399 INFO:   Connectivity check succeeded.
+[run_1] 2026-09-21 15:56:39,415 INFO:   Appliance client semantic version: 1.14.0, cluster server semantic version: 1.20.2, job operator semantic version: 1.20.2
+[run_1] 2026-09-21 15:56:39,435 INFO:   Initiating a new compile wsjob against the cluster server.
+[run_1] 2026-09-21 15:56:39,463 INFO:   Job id: wsjob-g5xabasz4znwr7o83gx8fc, workflow id: wflow-7jjsmncvpxkfhmrcibwgbz, namespace: job-operator, remote log path: /n1/wsjob/workdir/job-operator/wsjob-g5xabasz4znwr7o83gx8fc
+[run_1] 2026-09-21 15:56:59,464 INFO:   Poll ingress status: Waiting for all Coordinator pods to be running, current running: 0/1.
+[run_1] 2026-09-21 15:56:59,467 INFO:   Recording the timestamp when jobs is scheduled.
+[run_1] 2026-09-21 15:56:59,479 WARNING:   Event 2026-09-21 15:56:40 +0000 UTC reason=InconsistentVersion wsjob=wsjob-g5xabasz4znwr7o83gx8fc message='Warning: client semantic version 1.14.0 is inconsistent with cluster server semantic version 1.20.2, there's a risk job could fail due to inconsistent setup.'
+[run_1] 2026-09-21 15:57:09,480 INFO:   Poll ingress status: Job ingress ready, dashboard: <internal-dashboard-url>
+[run_1] 2026-09-21 15:57:09,487 INFO:   Poll ingress success: Job ingress ready, dashboard: <internal-dashboard-url>
+[run_1] 2026-09-21 15:57:09,511 INFO:   Finalizing out-of-cluster job handle with ingress service url: 
+[run_1] 2026-09-21 15:57:09,511 WARNING:   Empty ingress service url. Falling back to default server: 10.125.8.2:443
+[run_1] 2026-09-21 15:57:09,564 INFO:   Found existing cached compile with hash: "cs_2775220529823632350"
+[run_1] 2026-09-21 15:57:11,347 INFO:   Using power profile none
+
+[run_1] 2026-09-21 15:57:11,361 INFO:   Compile artifacts successfully written to remote compile directory. Compile hash is: cs_2775220529823632350
+[run_1] 2026-09-21 15:57:19,479 INFO:   Compile was successful!
+[run_1] 2026-09-21 15:57:19,486 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+[run_1] 2026-09-21 15:57:19,486 INFO:   Preparing to execute using 1 CSX
+[run_1] 2026-09-21 15:57:37,120 INFO:   About to send initial weights
+[run_1] 2026-09-21 15:57:37,134 INFO:   Finished sending initial weights
+[run_1] 2026-09-21 15:57:37,134 INFO:   Finalizing appliance staging for the run
+[run_1] 2026-09-21 15:57:41,913 INFO:   Waiting for device programming to complete
+[run_1] 2026-09-21 15:57:52,845 INFO:   Device programming is complete
+[run_1] 2026-09-21 15:57:53,156 INFO:   Using network type: ROCE
+[run_1] 2026-09-21 15:57:53,157 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+[run_1] 2026-09-21 15:57:53,170 INFO:   Input workers have begun streaming input data
+[run_1] 2026-09-21 15:57:53,245 INFO:   Appliance staging is complete
+[run_1] 2026-09-21 15:57:53,245 INFO:   Beginning appliance run
+[run_1] 2026-09-21 15:58:10,663 INFO:   | Eval Device=CSX, GlobalStep=40, Batch=10, Loss=1.81238, Rate=2761.25 samples/sec, GlobalRate=438.95 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining>4:03:13
+[run_1] 2026-09-21 15:58:10,703 INFO:   Avg Eval Loss: 1.8123806238174438
+[run_1] 2026-09-21 15:58:10,705 INFO:   Evaluation metrics:
+[run_1] 2026-09-21 15:58:10,705 INFO:     - eval/masked_accuracy = 0.4171604514122009
+[run_1] 2026-09-21 15:58:10,705 INFO:   Evaluation completed successfully!
+[run_1] 2026-09-21 15:58:10,767 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 15:58:10,767 INFO:   Starting train loop 2 of 25, from global step 41 to 80 (40 steps)
+[run_1] 2026-09-21 15:58:10,767 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 15:58:20,224 INFO:   Compiling the model. This may take a few minutes.
+[run_1] 2026-09-21 15:58:20,224 INFO:   Found existing cached compile.
+[run_1] 2026-09-21 15:58:20,224 INFO:   Compile was successful!
+[run_1] 2026-09-21 15:58:20,226 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+[run_1] 2026-09-21 15:58:20,226 INFO:   Preparing to execute using 1 CSX
+[run_1] 2026-09-21 15:58:38,236 INFO:   About to send initial weights
+[run_1] 2026-09-21 15:58:38,318 INFO:   Finished sending initial weights
+[run_1] 2026-09-21 15:58:38,318 INFO:   Finalizing appliance staging for the run
+[run_1] 2026-09-21 15:58:38,441 INFO:   Waiting for device programming to complete
+[run_1] 2026-09-21 15:58:56,317 INFO:   Device programming is complete
+[run_1] 2026-09-21 15:58:56,618 INFO:   Using network type: ROCE
+[run_1] 2026-09-21 15:58:56,619 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+[run_1] 2026-09-21 15:58:56,627 INFO:   Input workers have begun streaming input data
+[run_1] 2026-09-21 15:58:56,708 INFO:   Appliance staging is complete
+[run_1] 2026-09-21 15:58:56,709 INFO:   Beginning appliance run
+[run_1] 2026-09-21 15:59:13,013 INFO:   | Train Device=CSX, Step=50, Loss=1.69287, Rate=1785.74 samples/sec, GlobalRate=743.55 samples/sec, LoopTimeRemaining=0:00:33, TimeRemaining=1:38:30
+[run_1] 2026-09-21 15:59:33,231 INFO:   | Train Device=CSX, Step=60, Loss=1.62108, Rate=3148.18 samples/sec, GlobalRate=1087.84 samples/sec, LoopTimeRemaining=0:00:23, TimeRemaining=1:39:28
+[run_1] 2026-09-21 15:59:57,744 INFO:   | Train Device=CSX, Step=70, Loss=1.40932, Rate=1811.99 samples/sec, GlobalRate=1231.05 samples/sec, LoopTimeRemaining=0:00:12, TimeRemaining=1:40:16
+[run_1] 2026-09-21 16:00:18,349 INFO:   | Train Device=CSX, Step=80, Loss=1.30158, Rate=2642.40 samples/sec, GlobalRate=1360.54 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=1:40:40
+[run_1] 2026-09-21 16:00:18,436 INFO:   Training completed successfully!
+[run_1] 2026-09-21 16:00:18,462 INFO:   Ordinal 0: Initializing GNNDataProcessor for dataset 'ogbn-products' (split=valid, mode=neighbor).
+[run_1] 2026-09-21 16:00:56,902 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:00:56,902 INFO:   Starting val_dataloader_2 loop 2 of 25, with 10 steps
+[run_1] 2026-09-21 16:00:56,902 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:00:58,980 INFO:   Compiling the model. This may take a few minutes.
+[run_1] 2026-09-21 16:00:58,980 INFO:   Found existing cached compile.
+[run_1] 2026-09-21 16:00:58,980 INFO:   Compile was successful!
+[run_1] 2026-09-21 16:00:58,987 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+[run_1] 2026-09-21 16:00:58,987 INFO:   Preparing to execute using 1 CSX
+[run_1] 2026-09-21 16:01:25,747 INFO:   About to send initial weights
+[run_1] 2026-09-21 16:01:25,759 INFO:   Finished sending initial weights
+[run_1] 2026-09-21 16:01:25,759 INFO:   Finalizing appliance staging for the run
+[run_1] 2026-09-21 16:01:26,897 INFO:   Waiting for device programming to complete
+[run_1] 2026-09-21 16:01:31,589 INFO:   Device programming is complete
+[run_1] 2026-09-21 16:01:31,904 INFO:   Using network type: ROCE
+[run_1] 2026-09-21 16:01:31,904 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+[run_1] 2026-09-21 16:01:40,471 INFO:   Input workers have begun streaming input data
+[run_1] 2026-09-21 16:01:40,555 INFO:   Appliance staging is complete
+[run_1] 2026-09-21 16:01:40,555 INFO:   Beginning appliance run
+[run_1] 2026-09-21 16:02:00,614 INFO:   | Eval Device=CSX, GlobalStep=80, Batch=10, Loss=1.28182, Rate=2710.61 samples/sec, GlobalRate=642.90 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=1:14:19
+[run_1] 2026-09-21 16:02:00,664 INFO:   Avg Eval Loss: 1.2818155407905578
+[run_1] 2026-09-21 16:02:00,667 INFO:   Evaluation metrics:
+[run_1] 2026-09-21 16:02:00,667 INFO:     - eval/masked_accuracy = 0.6188998818397522
+[run_1] 2026-09-21 16:02:00,667 INFO:   Evaluation completed successfully!
+[run_1] 2026-09-21 16:02:00,762 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:02:00,762 INFO:   Starting train loop 3 of 25, from global step 81 to 120 (40 steps)
+[run_1] 2026-09-21 16:02:00,762 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:02:09,990 INFO:   Compiling the model. This may take a few minutes.
+[run_1] 2026-09-21 16:02:09,991 INFO:   Found existing cached compile.
+[run_1] 2026-09-21 16:02:09,991 INFO:   Compile was successful!
+[run_1] 2026-09-21 16:02:09,992 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+[run_1] 2026-09-21 16:02:09,992 INFO:   Preparing to execute using 1 CSX
+[run_1] 2026-09-21 16:02:19,582 INFO:   About to send initial weights
+[run_1] 2026-09-21 16:02:19,627 INFO:   Finished sending initial weights
+[run_1] 2026-09-21 16:02:19,627 INFO:   Finalizing appliance staging for the run
+[run_1] 2026-09-21 16:02:20,734 INFO:   Waiting for device programming to complete
+[run_1] 2026-09-21 16:02:46,120 INFO:   Device programming is complete
+[run_1] 2026-09-21 16:02:46,446 INFO:   Using network type: ROCE
+[run_1] 2026-09-21 16:02:46,447 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+[run_1] 2026-09-21 16:02:46,456 INFO:   Input workers have begun streaming input data
+[run_1] 2026-09-21 16:02:46,530 INFO:   Appliance staging is complete
+[run_1] 2026-09-21 16:02:46,531 INFO:   Beginning appliance run
+[run_1] 2026-09-21 16:02:55,077 INFO:   | Train Device=CSX, Step=90, Loss=1.26979, Rate=3417.58 samples/sec, GlobalRate=865.00 samples/sec, LoopTimeRemaining=0:00:34, TimeRemaining=1:11:33
+[run_1] 2026-09-21 16:03:20,370 INFO:   | Train Device=CSX, Step=100, Loss=1.21710, Rate=2756.92 samples/sec, GlobalRate=1127.66 samples/sec, LoopTimeRemaining=0:00:23, TimeRemaining=1:11:31
+[run_1] 2026-09-21 16:03:41,020 INFO:   | Train Device=CSX, Step=110, Loss=1.13033, Rate=3228.98 samples/sec, GlobalRate=1317.10 samples/sec, LoopTimeRemaining=0:00:12, TimeRemaining=1:11:27
+[run_1] 2026-09-21 16:04:05,203 INFO:   | Train Device=CSX, Step=120, Loss=1.05179, Rate=2364.01 samples/sec, GlobalRate=1394.64 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=1:11:17
+[run_1] 2026-09-21 16:04:05,298 INFO:   Training completed successfully!
+[run_1] 2026-09-21 16:04:05,318 INFO:   Ordinal 0: Initializing GNNDataProcessor for dataset 'ogbn-products' (split=valid, mode=neighbor).
+[run_1] 2026-09-21 16:04:43,500 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:04:43,500 INFO:   Starting val_dataloader_2 loop 3 of 25, with 10 steps
+[run_1] 2026-09-21 16:04:43,500 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:04:45,590 INFO:   Compiling the model. This may take a few minutes.
+[run_1] 2026-09-21 16:04:45,590 INFO:   Found existing cached compile.
+[run_1] 2026-09-21 16:04:45,590 INFO:   Compile was successful!
+[run_1] 2026-09-21 16:04:45,591 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+[run_1] 2026-09-21 16:04:45,591 INFO:   Preparing to execute using 1 CSX
+[run_1] 2026-09-21 16:04:55,304 INFO:   About to send initial weights
+[run_1] 2026-09-21 16:04:55,315 INFO:   Finished sending initial weights
+[run_1] 2026-09-21 16:04:55,315 INFO:   Finalizing appliance staging for the run
+[run_1] 2026-09-21 16:04:56,717 INFO:   Waiting for device programming to complete
+[run_1] 2026-09-21 16:05:18,389 INFO:   Device programming is complete
+[run_1] 2026-09-21 16:05:18,665 INFO:   Using network type: ROCE
+[run_1] 2026-09-21 16:05:18,666 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+[run_1] 2026-09-21 16:05:18,696 INFO:   Input workers have begun streaming input data
+[run_1] 2026-09-21 16:05:18,818 INFO:   Appliance staging is complete
+[run_1] 2026-09-21 16:05:18,818 INFO:   Beginning appliance run
+[run_1] 2026-09-21 16:05:29,508 INFO:   | Eval Device=CSX, GlobalStep=120, Batch=10, Loss=1.00963, Rate=2927.27 samples/sec, GlobalRate=890.31 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=1:04:27
+[run_1] 2026-09-21 16:05:29,545 INFO:   Avg Eval Loss: 1.0096290588378907
+[run_1] 2026-09-21 16:05:29,547 INFO:   Evaluation metrics:
+[run_1] 2026-09-21 16:05:29,547 INFO:     - eval/masked_accuracy = 0.7098135948181152
+[run_1] 2026-09-21 16:05:29,547 INFO:   Evaluation completed successfully!
+[run_1] 2026-09-21 16:05:29,622 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:05:29,622 INFO:   Starting train loop 4 of 25, from global step 121 to 160 (40 steps)
+[run_1] 2026-09-21 16:05:29,622 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:05:38,592 INFO:   Compiling the model. This may take a few minutes.
+[run_1] 2026-09-21 16:05:38,592 INFO:   Found existing cached compile.
+[run_1] 2026-09-21 16:05:38,593 INFO:   Compile was successful!
+[run_1] 2026-09-21 16:05:38,594 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+[run_1] 2026-09-21 16:05:38,594 INFO:   Preparing to execute using 1 CSX
+[run_1] 2026-09-21 16:05:48,840 INFO:   About to send initial weights
+[run_1] 2026-09-21 16:05:48,881 INFO:   Finished sending initial weights
+[run_1] 2026-09-21 16:05:48,881 INFO:   Finalizing appliance staging for the run
+[run_1] 2026-09-21 16:05:49,006 INFO:   Waiting for device programming to complete
+[run_1] 2026-09-21 16:06:14,687 INFO:   Device programming is complete
+[run_1] 2026-09-21 16:06:14,959 INFO:   Using network type: ROCE
+[run_1] 2026-09-21 16:06:14,959 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+[run_1] 2026-09-21 16:06:14,968 INFO:   Input workers have begun streaming input data
+[run_1] 2026-09-21 16:06:15,095 INFO:   Appliance staging is complete
+[run_1] 2026-09-21 16:06:15,096 INFO:   Beginning appliance run
+[run_1] 2026-09-21 16:06:23,704 INFO:   | Train Device=CSX, Step=130, Loss=0.99719, Rate=3267.47 samples/sec, GlobalRate=868.24 samples/sec, LoopTimeRemaining=0:00:34, TimeRemaining=1:02:51
+[run_1] 2026-09-21 16:06:44,856 INFO:   | Train Device=CSX, Step=140, Loss=0.94191, Rate=1815.09 samples/sec, GlobalRate=1198.92 samples/sec, LoopTimeRemaining=0:00:24, TimeRemaining=1:03:22
+[run_1] 2026-09-21 16:07:08,853 INFO:   | Train Device=CSX, Step=150, Loss=0.97640, Rate=3204.06 samples/sec, GlobalRate=1330.96 samples/sec, LoopTimeRemaining=0:00:12, TimeRemaining=1:03:10
+[run_1] 2026-09-21 16:07:33,297 INFO:   | Train Device=CSX, Step=160, Loss=0.89191, Rate=1810.86 samples/sec, GlobalRate=1403.11 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=1:03:07
+[run_1] 2026-09-21 16:07:33,395 INFO:   Training completed successfully!
+[run_1] 2026-09-21 16:07:33,419 INFO:   Ordinal 0: Initializing GNNDataProcessor for dataset 'ogbn-products' (split=valid, mode=neighbor).
+[run_1] 2026-09-21 16:08:11,695 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:08:11,695 INFO:   Starting val_dataloader_2 loop 4 of 25, with 10 steps
+[run_1] 2026-09-21 16:08:11,695 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:08:13,851 INFO:   Compiling the model. This may take a few minutes.
+[run_1] 2026-09-21 16:08:13,851 INFO:   Found existing cached compile.
+[run_1] 2026-09-21 16:08:13,851 INFO:   Compile was successful!
+[run_1] 2026-09-21 16:08:13,853 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+[run_1] 2026-09-21 16:08:13,853 INFO:   Preparing to execute using 1 CSX
+[run_1] 2026-09-21 16:08:40,601 INFO:   About to send initial weights
+[run_1] 2026-09-21 16:08:40,613 INFO:   Finished sending initial weights
+[run_1] 2026-09-21 16:08:40,613 INFO:   Finalizing appliance staging for the run
+[run_1] 2026-09-21 16:08:41,274 INFO:   Waiting for device programming to complete
+[run_1] 2026-09-21 16:08:46,553 INFO:   Device programming is complete
+[run_1] 2026-09-21 16:08:46,877 INFO:   Using network type: ROCE
+[run_1] 2026-09-21 16:08:46,878 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+[run_1] 2026-09-21 16:08:55,038 INFO:   Input workers have begun streaming input data
+[run_1] 2026-09-21 16:08:55,107 INFO:   Appliance staging is complete
+[run_1] 2026-09-21 16:08:55,108 INFO:   Beginning appliance run
+[run_1] 2026-09-21 16:09:15,011 INFO:   | Eval Device=CSX, GlobalStep=160, Batch=10, Loss=0.83717, Rate=2763.48 samples/sec, GlobalRate=646.92 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=1:07:57
+[run_1] 2026-09-21 16:09:15,051 INFO:   Avg Eval Loss: 0.8371724963188172
+[run_1] 2026-09-21 16:09:15,053 INFO:   Evaluation metrics:
+[run_1] 2026-09-21 16:09:15,053 INFO:     - eval/masked_accuracy = 0.774508535861969
+[run_1] 2026-09-21 16:09:15,053 INFO:   Evaluation completed successfully!
+[run_1] 2026-09-21 16:09:15,131 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:09:15,132 INFO:   Starting train loop 5 of 25, from global step 161 to 200 (40 steps)
+[run_1] 2026-09-21 16:09:15,132 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:09:24,583 INFO:   Compiling the model. This may take a few minutes.
+[run_1] 2026-09-21 16:09:24,584 INFO:   Found existing cached compile.
+[run_1] 2026-09-21 16:09:24,584 INFO:   Compile was successful!
+[run_1] 2026-09-21 16:09:24,585 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+[run_1] 2026-09-21 16:09:24,585 INFO:   Preparing to execute using 1 CSX
+[run_1] 2026-09-21 16:09:51,683 INFO:   About to send initial weights
+[run_1] 2026-09-21 16:09:51,724 INFO:   Finished sending initial weights
+[run_1] 2026-09-21 16:09:51,724 INFO:   Finalizing appliance staging for the run
+[run_1] 2026-09-21 16:09:53,290 INFO:   Waiting for device programming to complete
+[run_1] 2026-09-21 16:10:00,769 INFO:   Device programming is complete
+[run_1] 2026-09-21 16:10:01,083 INFO:   Using network type: ROCE
+[run_1] 2026-09-21 16:10:01,084 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+[run_1] 2026-09-21 16:10:01,092 INFO:   Input workers have begun streaming input data
+[run_1] 2026-09-21 16:10:01,162 INFO:   Appliance staging is complete
+[run_1] 2026-09-21 16:10:01,162 INFO:   Beginning appliance run
+[run_1] 2026-09-21 16:10:09,839 INFO:   | Train Device=CSX, Step=170, Loss=0.86365, Rate=3416.70 samples/sec, GlobalRate=859.69 samples/sec, LoopTimeRemaining=0:00:33, TimeRemaining=1:06:01
+[run_1] 2026-09-21 16:10:30,950 INFO:   | Train Device=CSX, Step=180, Loss=0.80244, Rate=1793.68 samples/sec, GlobalRate=1191.44 samples/sec, LoopTimeRemaining=0:00:24, TimeRemaining=1:07:06
+[run_1] 2026-09-21 16:10:51,619 INFO:   | Train Device=CSX, Step=190, Loss=0.80799, Rate=2604.21 samples/sec, GlobalRate=1374.10 samples/sec, LoopTimeRemaining=0:00:12, TimeRemaining=1:07:19
+[run_1] 2026-09-21 16:11:15,459 INFO:   | Train Device=CSX, Step=200, Loss=0.90907, Rate=3401.60 samples/sec, GlobalRate=1446.52 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=1:06:44
+[run_1] 2026-09-21 16:11:15,554 INFO:   Training completed successfully!
+[run_1] 2026-09-21 16:11:15,579 INFO:   Ordinal 0: Initializing GNNDataProcessor for dataset 'ogbn-products' (split=valid, mode=neighbor).
+[run_1] 2026-09-21 16:11:53,853 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:11:53,853 INFO:   Starting val_dataloader_2 loop 5 of 25, with 10 steps
+[run_1] 2026-09-21 16:11:53,853 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:11:55,987 INFO:   Compiling the model. This may take a few minutes.
+[run_1] 2026-09-21 16:11:55,987 INFO:   Found existing cached compile.
+[run_1] 2026-09-21 16:11:55,987 INFO:   Compile was successful!
+[run_1] 2026-09-21 16:11:55,989 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+[run_1] 2026-09-21 16:11:55,989 INFO:   Preparing to execute using 1 CSX
+[run_1] 2026-09-21 16:12:05,935 INFO:   About to send initial weights
+[run_1] 2026-09-21 16:12:05,948 INFO:   Finished sending initial weights
+[run_1] 2026-09-21 16:12:05,949 INFO:   Finalizing appliance staging for the run
+[run_1] 2026-09-21 16:12:07,353 INFO:   Waiting for device programming to complete
+[run_1] 2026-09-21 16:12:28,751 INFO:   Device programming is complete
+[run_1] 2026-09-21 16:12:29,074 INFO:   Using network type: ROCE
+[run_1] 2026-09-21 16:12:29,075 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+[run_1] 2026-09-21 16:12:29,082 INFO:   Input workers have begun streaming input data
+[run_1] 2026-09-21 16:12:29,175 INFO:   Appliance staging is complete
+[run_1] 2026-09-21 16:12:29,175 INFO:   Beginning appliance run
+[run_1] 2026-09-21 16:12:40,538 INFO:   | Eval Device=CSX, GlobalStep=200, Batch=10, Loss=0.81781, Rate=2870.89 samples/sec, GlobalRate=877.39 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=1:00:19
+[run_1] 2026-09-21 16:12:40,579 INFO:   Avg Eval Loss: 0.8178122699260711
+[run_1] 2026-09-21 16:12:40,581 INFO:   Evaluation metrics:
+[run_1] 2026-09-21 16:12:40,581 INFO:     - eval/masked_accuracy = 0.7854436039924622
+[run_1] 2026-09-21 16:12:40,581 INFO:   Evaluation completed successfully!
+[run_1] 2026-09-21 16:12:40,638 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:12:40,638 INFO:   Starting train loop 6 of 25, from global step 201 to 240 (40 steps)
+[run_1] 2026-09-21 16:12:40,638 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:12:49,658 INFO:   Compiling the model. This may take a few minutes.
+[run_1] 2026-09-21 16:12:49,658 INFO:   Found existing cached compile.
+[run_1] 2026-09-21 16:12:49,658 INFO:   Compile was successful!
+[run_1] 2026-09-21 16:12:49,659 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+[run_1] 2026-09-21 16:12:49,660 INFO:   Preparing to execute using 1 CSX
+[run_1] 2026-09-21 16:13:07,182 INFO:   About to send initial weights
+[run_1] 2026-09-21 16:13:07,223 INFO:   Finished sending initial weights
+[run_1] 2026-09-21 16:13:07,223 INFO:   Finalizing appliance staging for the run
+[run_1] 2026-09-21 16:13:08,358 INFO:   Waiting for device programming to complete
+[run_1] 2026-09-21 16:13:25,521 INFO:   Device programming is complete
+[run_1] 2026-09-21 16:13:25,814 INFO:   Using network type: ROCE
+[run_1] 2026-09-21 16:13:25,815 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+[run_1] 2026-09-21 16:13:25,823 INFO:   Input workers have begun streaming input data
+[run_1] 2026-09-21 16:13:25,903 INFO:   Appliance staging is complete
+[run_1] 2026-09-21 16:13:25,903 INFO:   Beginning appliance run
+[run_1] 2026-09-21 16:13:34,716 INFO:   | Train Device=CSX, Step=210, Loss=0.84756, Rate=3244.37 samples/sec, GlobalRate=868.96 samples/sec, LoopTimeRemaining=0:00:34, TimeRemaining=0:58:12
+[run_1] 2026-09-21 16:13:56,141 INFO:   | Train Device=CSX, Step=220, Loss=0.78301, Rate=1730.23 samples/sec, GlobalRate=1194.83 samples/sec, LoopTimeRemaining=0:00:25, TimeRemaining=0:59:21
+[run_1] 2026-09-21 16:14:16,935 INFO:   | Train Device=CSX, Step=230, Loss=0.78138, Rate=2610.99 samples/sec, GlobalRate=1375.18 samples/sec, LoopTimeRemaining=0:00:13, TimeRemaining=0:59:46
+[run_1] 2026-09-21 16:14:40,742 INFO:   | Train Device=CSX, Step=240, Loss=0.75553, Rate=1787.09 samples/sec, GlobalRate=1447.83 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:59:17
+[run_1] 2026-09-21 16:14:40,833 INFO:   Training completed successfully!
+[run_1] 2026-09-21 16:14:40,855 INFO:   Ordinal 0: Initializing GNNDataProcessor for dataset 'ogbn-products' (split=valid, mode=neighbor).
+[run_1] 2026-09-21 16:15:18,884 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:15:18,884 INFO:   Starting val_dataloader_2 loop 6 of 25, with 10 steps
+[run_1] 2026-09-21 16:15:18,884 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:15:21,181 INFO:   Compiling the model. This may take a few minutes.
+[run_1] 2026-09-21 16:15:21,182 INFO:   Found existing cached compile.
+[run_1] 2026-09-21 16:15:21,182 INFO:   Compile was successful!
+[run_1] 2026-09-21 16:15:21,183 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+[run_1] 2026-09-21 16:15:21,183 INFO:   Preparing to execute using 1 CSX
+[run_1] 2026-09-21 16:15:38,658 INFO:   About to send initial weights
+[run_1] 2026-09-21 16:15:38,669 INFO:   Finished sending initial weights
+[run_1] 2026-09-21 16:15:38,669 INFO:   Finalizing appliance staging for the run
+[run_1] 2026-09-21 16:15:40,082 INFO:   Waiting for device programming to complete
+[run_1] 2026-09-21 16:15:54,072 INFO:   Device programming is complete
+[run_1] 2026-09-21 16:15:54,313 INFO:   Using network type: ROCE
+[run_1] 2026-09-21 16:15:54,314 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+[run_1] 2026-09-21 16:15:54,322 INFO:   Input workers have begun streaming input data
+[run_1] 2026-09-21 16:15:54,459 INFO:   Appliance staging is complete
+[run_1] 2026-09-21 16:15:54,459 INFO:   Beginning appliance run
+[run_1] 2026-09-21 16:16:12,931 INFO:   | Eval Device=CSX, GlobalStep=240, Batch=10, Loss=0.63560, Rate=2753.36 samples/sec, GlobalRate=757.86 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:59:36
+[run_1] 2026-09-21 16:16:12,971 INFO:   Avg Eval Loss: 0.6356036365032196
+[run_1] 2026-09-21 16:16:12,973 INFO:   Evaluation metrics:
+[run_1] 2026-09-21 16:16:12,973 INFO:     - eval/masked_accuracy = 0.8552501201629639
+[run_1] 2026-09-21 16:16:12,973 INFO:   Evaluation completed successfully!
+[run_1] 2026-09-21 16:16:13,034 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:16:13,034 INFO:   Starting train loop 7 of 25, from global step 241 to 280 (40 steps)
+[run_1] 2026-09-21 16:16:13,034 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:16:22,271 INFO:   Compiling the model. This may take a few minutes.
+[run_1] 2026-09-21 16:16:22,271 INFO:   Found existing cached compile.
+[run_1] 2026-09-21 16:16:22,271 INFO:   Compile was successful!
+[run_1] 2026-09-21 16:16:22,273 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+[run_1] 2026-09-21 16:16:22,273 INFO:   Preparing to execute using 1 CSX
+[run_1] 2026-09-21 16:16:39,485 INFO:   About to send initial weights
+[run_1] 2026-09-21 16:16:39,534 INFO:   Finished sending initial weights
+[run_1] 2026-09-21 16:16:39,534 INFO:   Finalizing appliance staging for the run
+[run_1] 2026-09-21 16:16:40,633 INFO:   Waiting for device programming to complete
+[run_1] 2026-09-21 16:16:58,477 INFO:   Device programming is complete
+[run_1] 2026-09-21 16:16:58,794 INFO:   Using network type: ROCE
+[run_1] 2026-09-21 16:16:58,794 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+[run_1] 2026-09-21 16:16:58,803 INFO:   Input workers have begun streaming input data
+[run_1] 2026-09-21 16:16:58,923 INFO:   Appliance staging is complete
+[run_1] 2026-09-21 16:16:58,923 INFO:   Beginning appliance run
+[run_1] 2026-09-21 16:17:19,730 INFO:   | Train Device=CSX, Step=250, Loss=0.76591, Rate=1827.10 samples/sec, GlobalRate=685.78 samples/sec, LoopTimeRemaining=0:00:34, TimeRemaining=0:57:15
+[run_1] 2026-09-21 16:17:40,357 INFO:   | Train Device=CSX, Step=260, Loss=0.69571, Rate=3245.97 samples/sec, GlobalRate=1019.48 samples/sec, LoopTimeRemaining=0:00:23, TimeRemaining=0:57:23
+[run_1] 2026-09-21 16:18:04,607 INFO:   | Train Device=CSX, Step=270, Loss=0.66691, Rate=1840.00 samples/sec, GlobalRate=1174.71 samples/sec, LoopTimeRemaining=0:00:12, TimeRemaining=0:57:17
+[run_1] 2026-09-21 16:18:25,453 INFO:   | Train Device=CSX, Step=280, Loss=0.65185, Rate=3236.23 samples/sec, GlobalRate=1306.02 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:57:05
+[run_1] 2026-09-21 16:18:25,544 INFO:   Training completed successfully!
+[run_1] 2026-09-21 16:18:25,565 INFO:   Ordinal 0: Initializing GNNDataProcessor for dataset 'ogbn-products' (split=valid, mode=neighbor).
+[run_1] 2026-09-21 16:19:03,043 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:19:03,043 INFO:   Starting val_dataloader_2 loop 7 of 25, with 10 steps
+[run_1] 2026-09-21 16:19:03,043 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:19:05,050 INFO:   Compiling the model. This may take a few minutes.
+[run_1] 2026-09-21 16:19:05,050 INFO:   Found existing cached compile.
+[run_1] 2026-09-21 16:19:05,050 INFO:   Compile was successful!
+[run_1] 2026-09-21 16:19:05,052 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+[run_1] 2026-09-21 16:19:05,052 INFO:   Preparing to execute using 1 CSX
+[run_1] 2026-09-21 16:19:31,809 INFO:   About to send initial weights
+[run_1] 2026-09-21 16:19:31,820 INFO:   Finished sending initial weights
+[run_1] 2026-09-21 16:19:31,820 INFO:   Finalizing appliance staging for the run
+[run_1] 2026-09-21 16:19:32,108 INFO:   Waiting for device programming to complete
+[run_1] 2026-09-21 16:19:37,794 INFO:   Device programming is complete
+[run_1] 2026-09-21 16:19:38,085 INFO:   Using network type: ROCE
+[run_1] 2026-09-21 16:19:38,086 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+[run_1] 2026-09-21 16:19:46,243 INFO:   Input workers have begun streaming input data
+[run_1] 2026-09-21 16:19:46,308 INFO:   Appliance staging is complete
+[run_1] 2026-09-21 16:19:46,308 INFO:   Beginning appliance run
+[run_1] 2026-09-21 16:20:06,502 INFO:   | Eval Device=CSX, GlobalStep=280, Batch=10, Loss=0.58610, Rate=2716.81 samples/sec, GlobalRate=645.46 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:56:37
+[run_1] 2026-09-21 16:20:06,540 INFO:   Avg Eval Loss: 0.5860961496829986
+[run_1] 2026-09-21 16:20:06,542 INFO:   Evaluation metrics:
+[run_1] 2026-09-21 16:20:06,542 INFO:     - eval/masked_accuracy = 0.8679653406143188
+[run_1] 2026-09-21 16:20:06,542 INFO:   Evaluation completed successfully!
+[run_1] 2026-09-21 16:20:06,603 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:20:06,603 INFO:   Starting train loop 8 of 25, from global step 281 to 320 (40 steps)
+[run_1] 2026-09-21 16:20:06,603 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:20:16,721 INFO:   Compiling the model. This may take a few minutes.
+[run_1] 2026-09-21 16:20:16,722 INFO:   Found existing cached compile.
+[run_1] 2026-09-21 16:20:16,722 INFO:   Compile was successful!
+[run_1] 2026-09-21 16:20:16,723 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+[run_1] 2026-09-21 16:20:16,723 INFO:   Preparing to execute using 1 CSX
+[run_1] 2026-09-21 16:20:43,967 INFO:   About to send initial weights
+[run_1] 2026-09-21 16:20:44,019 INFO:   Finished sending initial weights
+[run_1] 2026-09-21 16:20:44,019 INFO:   Finalizing appliance staging for the run
+[run_1] 2026-09-21 16:20:44,506 INFO:   Waiting for device programming to complete
+[run_1] 2026-09-21 16:20:53,072 INFO:   Device programming is complete
+[run_1] 2026-09-21 16:20:53,359 INFO:   Using network type: ROCE
+[run_1] 2026-09-21 16:20:53,360 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+[run_1] 2026-09-21 16:20:53,370 INFO:   Input workers have begun streaming input data
+[run_1] 2026-09-21 16:20:53,447 INFO:   Appliance staging is complete
+[run_1] 2026-09-21 16:20:53,448 INFO:   Beginning appliance run
+[run_1] 2026-09-21 16:21:01,853 INFO:   | Train Device=CSX, Step=290, Loss=0.59192, Rate=3651.30 samples/sec, GlobalRate=848.36 samples/sec, LoopTimeRemaining=0:00:33, TimeRemaining=0:54:57
+[run_1] 2026-09-21 16:21:27,169 INFO:   | Train Device=CSX, Step=300, Loss=0.81619, Rate=2849.17 samples/sec, GlobalRate=1113.09 samples/sec, LoopTimeRemaining=0:00:23, TimeRemaining=0:55:22
+[run_1] 2026-09-21 16:21:47,236 INFO:   | Train Device=CSX, Step=310, Loss=0.71175, Rate=3359.83 samples/sec, GlobalRate=1311.91 samples/sec, LoopTimeRemaining=0:00:12, TimeRemaining=0:55:26
+[run_1] 2026-09-21 16:22:12,303 INFO:   | Train Device=CSX, Step=320, Loss=0.65188, Rate=2149.94 samples/sec, GlobalRate=1379.93 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:55:15
+[run_1] 2026-09-21 16:22:12,391 INFO:   Training completed successfully!
+[run_1] 2026-09-21 16:22:12,415 INFO:   Ordinal 0: Initializing GNNDataProcessor for dataset 'ogbn-products' (split=valid, mode=neighbor).
+[run_1] 2026-09-21 16:22:50,095 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:22:50,095 INFO:   Starting val_dataloader_2 loop 8 of 25, with 10 steps
+[run_1] 2026-09-21 16:22:50,095 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:22:52,226 INFO:   Compiling the model. This may take a few minutes.
+[run_1] 2026-09-21 16:22:52,227 INFO:   Found existing cached compile.
+[run_1] 2026-09-21 16:22:52,227 INFO:   Compile was successful!
+[run_1] 2026-09-21 16:22:52,228 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+[run_1] 2026-09-21 16:22:52,228 INFO:   Preparing to execute using 1 CSX
+[run_1] 2026-09-21 16:23:19,018 INFO:   About to send initial weights
+[run_1] 2026-09-21 16:23:19,028 INFO:   Finished sending initial weights
+[run_1] 2026-09-21 16:23:19,028 INFO:   Finalizing appliance staging for the run
+[run_1] 2026-09-21 16:23:20,724 INFO:   Waiting for device programming to complete
+[run_1] 2026-09-21 16:23:24,808 INFO:   Device programming is complete
+[run_1] 2026-09-21 16:23:25,140 INFO:   Using network type: ROCE
+[run_1] 2026-09-21 16:23:25,140 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+[run_1] 2026-09-21 16:23:33,711 INFO:   Input workers have begun streaming input data
+[run_1] 2026-09-21 16:23:33,768 INFO:   Appliance staging is complete
+[run_1] 2026-09-21 16:23:33,768 INFO:   Beginning appliance run
+[run_1] 2026-09-21 16:23:53,275 INFO:   | Eval Device=CSX, GlobalStep=320, Batch=10, Loss=0.58461, Rate=2770.29 samples/sec, GlobalRate=648.32 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:54:01
+[run_1] 2026-09-21 16:23:53,313 INFO:   Avg Eval Loss: 0.5846088230609894
+[run_1] 2026-09-21 16:23:53,315 INFO:   Evaluation metrics:
+[run_1] 2026-09-21 16:23:53,315 INFO:     - eval/masked_accuracy = 0.8645067811012268
+[run_1] 2026-09-21 16:23:53,315 INFO:   Evaluation completed successfully!
+[run_1] 2026-09-21 16:23:53,378 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:23:53,379 INFO:   Starting train loop 9 of 25, from global step 321 to 360 (40 steps)
+[run_1] 2026-09-21 16:23:53,379 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:24:02,672 INFO:   Compiling the model. This may take a few minutes.
+[run_1] 2026-09-21 16:24:02,672 INFO:   Found existing cached compile.
+[run_1] 2026-09-21 16:24:02,672 INFO:   Compile was successful!
+[run_1] 2026-09-21 16:24:02,673 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+[run_1] 2026-09-21 16:24:02,673 INFO:   Preparing to execute using 1 CSX
+[run_1] 2026-09-21 16:24:20,791 INFO:   About to send initial weights
+[run_1] 2026-09-21 16:24:20,830 INFO:   Finished sending initial weights
+[run_1] 2026-09-21 16:24:20,830 INFO:   Finalizing appliance staging for the run
+[run_1] 2026-09-21 16:24:20,964 INFO:   Waiting for device programming to complete
+[run_1] 2026-09-21 16:24:38,800 INFO:   Device programming is complete
+[run_1] 2026-09-21 16:24:39,135 INFO:   Using network type: ROCE
+[run_1] 2026-09-21 16:24:39,136 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+[run_1] 2026-09-21 16:24:39,145 INFO:   Input workers have begun streaming input data
+[run_1] 2026-09-21 16:24:39,226 INFO:   Appliance staging is complete
+[run_1] 2026-09-21 16:24:39,226 INFO:   Beginning appliance run
+[run_1] 2026-09-21 16:24:48,592 INFO:   | Train Device=CSX, Step=330, Loss=0.64156, Rate=3064.59 samples/sec, GlobalRate=848.45 samples/sec, LoopTimeRemaining=0:00:34, TimeRemaining=0:52:13
+[run_1] 2026-09-21 16:25:09,181 INFO:   | Train Device=CSX, Step=340, Loss=0.58050, Rate=1848.54 samples/sec, GlobalRate=1189.57 samples/sec, LoopTimeRemaining=0:00:23, TimeRemaining=0:52:34
+[run_1] 2026-09-21 16:25:33,604 INFO:   | Train Device=CSX, Step=350, Loss=0.67664, Rate=3209.32 samples/sec, GlobalRate=1317.21 samples/sec, LoopTimeRemaining=0:00:12, TimeRemaining=0:52:21
+[run_1] 2026-09-21 16:25:57,880 INFO:   | Train Device=CSX, Step=360, Loss=0.61625, Rate=1836.10 samples/sec, GlobalRate=1393.63 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:52:06
+[run_1] 2026-09-21 16:25:57,979 INFO:   Training completed successfully!
+[run_1] 2026-09-21 16:25:58,002 INFO:   Ordinal 0: Initializing GNNDataProcessor for dataset 'ogbn-products' (split=valid, mode=neighbor).
+[run_1] 2026-09-21 16:26:35,917 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:26:35,917 INFO:   Starting val_dataloader_2 loop 9 of 25, with 10 steps
+[run_1] 2026-09-21 16:26:35,917 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:26:38,013 INFO:   Compiling the model. This may take a few minutes.
+[run_1] 2026-09-21 16:26:38,013 INFO:   Found existing cached compile.
+[run_1] 2026-09-21 16:26:38,014 INFO:   Compile was successful!
+[run_1] 2026-09-21 16:26:38,015 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+[run_1] 2026-09-21 16:26:38,015 INFO:   Preparing to execute using 1 CSX
+[run_1] 2026-09-21 16:27:04,688 INFO:   About to send initial weights
+[run_1] 2026-09-21 16:27:04,700 INFO:   Finished sending initial weights
+[run_1] 2026-09-21 16:27:04,700 INFO:   Finalizing appliance staging for the run
+[run_1] 2026-09-21 16:27:05,411 INFO:   Waiting for device programming to complete
+[run_1] 2026-09-21 16:27:10,575 INFO:   Device programming is complete
+[run_1] 2026-09-21 16:27:10,850 INFO:   Using network type: ROCE
+[run_1] 2026-09-21 16:27:10,851 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+[run_1] 2026-09-21 16:27:19,198 INFO:   Input workers have begun streaming input data
+[run_1] 2026-09-21 16:27:19,301 INFO:   Appliance staging is complete
+[run_1] 2026-09-21 16:27:19,301 INFO:   Beginning appliance run
+[run_1] 2026-09-21 16:27:39,016 INFO:   | Eval Device=CSX, GlobalStep=360, Batch=10, Loss=0.57028, Rate=2742.96 samples/sec, GlobalRate=649.14 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:51:25
+[run_1] 2026-09-21 16:27:39,054 INFO:   Avg Eval Loss: 0.5702832221984864
+[run_1] 2026-09-21 16:27:39,056 INFO:   Evaluation metrics:
+[run_1] 2026-09-21 16:27:39,056 INFO:     - eval/masked_accuracy = 0.86992347240448
+[run_1] 2026-09-21 16:27:39,056 INFO:   Evaluation completed successfully!
+[run_1] 2026-09-21 16:27:39,119 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:27:39,119 INFO:   Starting train loop 10 of 25, from global step 361 to 400 (40 steps)
+[run_1] 2026-09-21 16:27:39,119 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:27:48,307 INFO:   Compiling the model. This may take a few minutes.
+[run_1] 2026-09-21 16:27:48,307 INFO:   Found existing cached compile.
+[run_1] 2026-09-21 16:27:48,308 INFO:   Compile was successful!
+[run_1] 2026-09-21 16:27:48,309 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+[run_1] 2026-09-21 16:27:48,309 INFO:   Preparing to execute using 1 CSX
+[run_1] 2026-09-21 16:27:58,332 INFO:   About to send initial weights
+[run_1] 2026-09-21 16:27:58,375 INFO:   Finished sending initial weights
+[run_1] 2026-09-21 16:27:58,375 INFO:   Finalizing appliance staging for the run
+[run_1] 2026-09-21 16:27:59,502 INFO:   Waiting for device programming to complete
+[run_1] 2026-09-21 16:28:24,789 INFO:   Device programming is complete
+[run_1] 2026-09-21 16:28:25,132 INFO:   Using network type: ROCE
+[run_1] 2026-09-21 16:28:25,132 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+[run_1] 2026-09-21 16:28:25,141 INFO:   Input workers have begun streaming input data
+[run_1] 2026-09-21 16:28:25,250 INFO:   Appliance staging is complete
+[run_1] 2026-09-21 16:28:25,250 INFO:   Beginning appliance run
+[run_1] 2026-09-21 16:28:34,169 INFO:   | Train Device=CSX, Step=370, Loss=0.59729, Rate=3167.99 samples/sec, GlobalRate=850.52 samples/sec, LoopTimeRemaining=0:00:34, TimeRemaining=0:50:04
+[run_1] 2026-09-21 16:28:54,915 INFO:   | Train Device=CSX, Step=380, Loss=0.57432, Rate=1849.98 samples/sec, GlobalRate=1188.88 samples/sec, LoopTimeRemaining=0:00:24, TimeRemaining=0:50:34
+[run_1] 2026-09-21 16:29:15,089 INFO:   | Train Device=CSX, Step=390, Loss=0.63570, Rate=3198.56 samples/sec, GlobalRate=1379.46 samples/sec, LoopTimeRemaining=0:00:12, TimeRemaining=0:50:51
+[run_1] 2026-09-21 16:29:39,617 INFO:   | Train Device=CSX, Step=400, Loss=0.80844, Rate=3378.09 samples/sec, GlobalRate=1442.17 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:50:21
+[run_1] 2026-09-21 16:29:39,710 INFO:   Training completed successfully!
+[run_1] 2026-09-21 16:29:39,731 INFO:   Ordinal 0: Initializing GNNDataProcessor for dataset 'ogbn-products' (split=valid, mode=neighbor).
+[run_1] 2026-09-21 16:30:17,335 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:30:17,335 INFO:   Starting val_dataloader_2 loop 10 of 25, with 10 steps
+[run_1] 2026-09-21 16:30:17,335 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:30:19,331 INFO:   Compiling the model. This may take a few minutes.
+[run_1] 2026-09-21 16:30:19,331 INFO:   Found existing cached compile.
+[run_1] 2026-09-21 16:30:19,331 INFO:   Compile was successful!
+[run_1] 2026-09-21 16:30:19,332 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+[run_1] 2026-09-21 16:30:19,332 INFO:   Preparing to execute using 1 CSX
+[run_1] 2026-09-21 16:30:37,013 INFO:   About to send initial weights
+[run_1] 2026-09-21 16:30:37,023 INFO:   Finished sending initial weights
+[run_1] 2026-09-21 16:30:37,023 INFO:   Finalizing appliance staging for the run
+[run_1] 2026-09-21 16:30:38,442 INFO:   Waiting for device programming to complete
+[run_1] 2026-09-21 16:30:52,155 INFO:   Device programming is complete
+[run_1] 2026-09-21 16:30:52,480 INFO:   Using network type: ROCE
+[run_1] 2026-09-21 16:30:52,481 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+[run_1] 2026-09-21 16:30:52,501 INFO:   Input workers have begun streaming input data
+[run_1] 2026-09-21 16:30:52,597 INFO:   Appliance staging is complete
+[run_1] 2026-09-21 16:30:52,598 INFO:   Beginning appliance run
+[run_1] 2026-09-21 16:31:11,125 INFO:   | Eval Device=CSX, GlobalStep=400, Batch=10, Loss=0.66415, Rate=2723.08 samples/sec, GlobalRate=761.49 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:45:37
+[run_1] 2026-09-21 16:31:11,165 INFO:   Avg Eval Loss: 0.6641503870487213
+[run_1] 2026-09-21 16:31:11,167 INFO:   Evaluation metrics:
+[run_1] 2026-09-21 16:31:11,167 INFO:     - eval/masked_accuracy = 0.844645619392395
+[run_1] 2026-09-21 16:31:11,167 INFO:   Evaluation completed successfully!
+[run_1] 2026-09-21 16:31:11,229 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:31:11,229 INFO:   Starting train loop 11 of 25, from global step 401 to 440 (40 steps)
+[run_1] 2026-09-21 16:31:11,229 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:31:20,408 INFO:   Compiling the model. This may take a few minutes.
+[run_1] 2026-09-21 16:31:20,409 INFO:   Found existing cached compile.
+[run_1] 2026-09-21 16:31:20,409 INFO:   Compile was successful!
+[run_1] 2026-09-21 16:31:20,410 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+[run_1] 2026-09-21 16:31:20,410 INFO:   Preparing to execute using 1 CSX
+[run_1] 2026-09-21 16:31:39,222 INFO:   About to send initial weights
+[run_1] 2026-09-21 16:31:39,278 INFO:   Finished sending initial weights
+[run_1] 2026-09-21 16:31:39,278 INFO:   Finalizing appliance staging for the run
+[run_1] 2026-09-21 16:31:39,762 INFO:   Waiting for device programming to complete
+[run_1] 2026-09-21 16:31:56,321 INFO:   Device programming is complete
+[run_1] 2026-09-21 16:31:56,673 INFO:   Using network type: ROCE
+[run_1] 2026-09-21 16:31:56,674 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+[run_1] 2026-09-21 16:31:56,683 INFO:   Input workers have begun streaming input data
+[run_1] 2026-09-21 16:31:56,774 INFO:   Appliance staging is complete
+[run_1] 2026-09-21 16:31:56,774 INFO:   Beginning appliance run
+[run_1] 2026-09-21 16:32:05,030 INFO:   | Train Device=CSX, Step=410, Loss=0.66334, Rate=3544.82 samples/sec, GlobalRate=872.90 samples/sec, LoopTimeRemaining=0:00:34, TimeRemaining=0:43:39
+[run_1] 2026-09-21 16:32:27,542 INFO:   | Train Device=CSX, Step=420, Loss=0.60199, Rate=1738.37 samples/sec, GlobalRate=1179.79 samples/sec, LoopTimeRemaining=0:00:23, TimeRemaining=0:43:55
+[run_1] 2026-09-21 16:32:47,191 INFO:   | Train Device=CSX, Step=430, Loss=0.62129, Rate=3196.82 samples/sec, GlobalRate=1379.35 samples/sec, LoopTimeRemaining=0:00:12, TimeRemaining=0:43:49
+[run_1] 2026-09-21 16:33:11,209 INFO:   | Train Device=CSX, Step=440, Loss=0.57492, Rate=1880.77 samples/sec, GlobalRate=1448.59 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:43:37
+[run_1] 2026-09-21 16:33:11,300 INFO:   Training completed successfully!
+[run_1] 2026-09-21 16:33:11,324 INFO:   Ordinal 0: Initializing GNNDataProcessor for dataset 'ogbn-products' (split=valid, mode=neighbor).
+[run_1] 2026-09-21 16:33:49,197 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:33:49,198 INFO:   Starting val_dataloader_2 loop 11 of 25, with 10 steps
+[run_1] 2026-09-21 16:33:49,198 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:33:51,339 INFO:   Compiling the model. This may take a few minutes.
+[run_1] 2026-09-21 16:33:51,339 INFO:   Found existing cached compile.
+[run_1] 2026-09-21 16:33:51,339 INFO:   Compile was successful!
+[run_1] 2026-09-21 16:33:51,341 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+[run_1] 2026-09-21 16:33:51,341 INFO:   Preparing to execute using 1 CSX
+[run_1] 2026-09-21 16:34:17,990 INFO:   About to send initial weights
+[run_1] 2026-09-21 16:34:18,001 INFO:   Finished sending initial weights
+[run_1] 2026-09-21 16:34:18,001 INFO:   Finalizing appliance staging for the run
+[run_1] 2026-09-21 16:34:19,958 INFO:   Waiting for device programming to complete
+[run_1] 2026-09-21 16:34:24,003 INFO:   Device programming is complete
+[run_1] 2026-09-21 16:34:24,332 INFO:   Using network type: ROCE
+[run_1] 2026-09-21 16:34:24,333 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+[run_1] 2026-09-21 16:34:32,491 INFO:   Input workers have begun streaming input data
+[run_1] 2026-09-21 16:34:32,570 INFO:   Appliance staging is complete
+[run_1] 2026-09-21 16:34:32,570 INFO:   Beginning appliance run
+[run_1] 2026-09-21 16:34:52,318 INFO:   | Eval Device=CSX, GlobalStep=440, Batch=10, Loss=0.55161, Rate=2702.36 samples/sec, GlobalRate=648.93 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:45:03
+[run_1] 2026-09-21 16:34:52,361 INFO:   Avg Eval Loss: 0.5516080558300018
+[run_1] 2026-09-21 16:34:52,363 INFO:   Evaluation metrics:
+[run_1] 2026-09-21 16:34:52,363 INFO:     - eval/masked_accuracy = 0.8755435943603516
+[run_1] 2026-09-21 16:34:52,363 INFO:   Evaluation completed successfully!
+[run_1] 2026-09-21 16:34:52,426 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:34:52,426 INFO:   Starting train loop 12 of 25, from global step 441 to 480 (40 steps)
+[run_1] 2026-09-21 16:34:52,426 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:35:01,593 INFO:   Compiling the model. This may take a few minutes.
+[run_1] 2026-09-21 16:35:01,593 INFO:   Found existing cached compile.
+[run_1] 2026-09-21 16:35:01,593 INFO:   Compile was successful!
+[run_1] 2026-09-21 16:35:01,595 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+[run_1] 2026-09-21 16:35:01,595 INFO:   Preparing to execute using 1 CSX
+[run_1] 2026-09-21 16:35:11,619 INFO:   About to send initial weights
+[run_1] 2026-09-21 16:35:11,676 INFO:   Finished sending initial weights
+[run_1] 2026-09-21 16:35:11,676 INFO:   Finalizing appliance staging for the run
+[run_1] 2026-09-21 16:35:12,759 INFO:   Waiting for device programming to complete
+[run_1] 2026-09-21 16:35:37,989 INFO:   Device programming is complete
+[run_1] 2026-09-21 16:35:38,320 INFO:   Using network type: ROCE
+[run_1] 2026-09-21 16:35:38,321 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+[run_1] 2026-09-21 16:35:38,330 INFO:   Input workers have begun streaming input data
+[run_1] 2026-09-21 16:35:38,400 INFO:   Appliance staging is complete
+[run_1] 2026-09-21 16:35:38,400 INFO:   Beginning appliance run
+[run_1] 2026-09-21 16:35:46,812 INFO:   | Train Device=CSX, Step=450, Loss=0.74990, Rate=3518.49 samples/sec, GlobalRate=862.85 samples/sec, LoopTimeRemaining=0:00:34, TimeRemaining=0:43:46
+[run_1] 2026-09-21 16:36:08,109 INFO:   | Train Device=CSX, Step=460, Loss=0.64567, Rate=1769.42 samples/sec, GlobalRate=1191.26 samples/sec, LoopTimeRemaining=0:00:24, TimeRemaining=0:44:09
+[run_1] 2026-09-21 16:36:28,799 INFO:   | Train Device=CSX, Step=470, Loss=0.61894, Rate=2645.77 samples/sec, GlobalRate=1373.61 samples/sec, LoopTimeRemaining=0:00:12, TimeRemaining=0:44:04
+[run_1] 2026-09-21 16:36:52,529 INFO:   | Train Device=CSX, Step=480, Loss=0.64347, Rate=1763.68 samples/sec, GlobalRate=1447.51 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:44:01
+[run_1] 2026-09-21 16:36:52,619 INFO:   Training completed successfully!
+[run_1] 2026-09-21 16:36:52,640 INFO:   Ordinal 0: Initializing GNNDataProcessor for dataset 'ogbn-products' (split=valid, mode=neighbor).
+[run_1] 2026-09-21 16:37:30,483 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:37:30,483 INFO:   Starting val_dataloader_2 loop 12 of 25, with 10 steps
+[run_1] 2026-09-21 16:37:30,483 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:37:32,536 INFO:   Compiling the model. This may take a few minutes.
+[run_1] 2026-09-21 16:37:32,536 INFO:   Found existing cached compile.
+[run_1] 2026-09-21 16:37:32,536 INFO:   Compile was successful!
+[run_1] 2026-09-21 16:37:32,537 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+[run_1] 2026-09-21 16:37:32,537 INFO:   Preparing to execute using 1 CSX
+[run_1] 2026-09-21 16:37:42,169 INFO:   About to send initial weights
+[run_1] 2026-09-21 16:37:42,182 INFO:   Finished sending initial weights
+[run_1] 2026-09-21 16:37:42,182 INFO:   Finalizing appliance staging for the run
+[run_1] 2026-09-21 16:37:43,589 INFO:   Waiting for device programming to complete
+[run_1] 2026-09-21 16:38:05,427 INFO:   Device programming is complete
+[run_1] 2026-09-21 16:38:05,755 INFO:   Using network type: ROCE
+[run_1] 2026-09-21 16:38:05,756 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+[run_1] 2026-09-21 16:38:05,763 INFO:   Input workers have begun streaming input data
+[run_1] 2026-09-21 16:38:05,873 INFO:   Appliance staging is complete
+[run_1] 2026-09-21 16:38:05,873 INFO:   Beginning appliance run
+[run_1] 2026-09-21 16:38:16,609 INFO:   | Eval Device=CSX, GlobalStep=480, Batch=10, Loss=0.54217, Rate=2958.59 samples/sec, GlobalRate=888.01 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:39:39
+[run_1] 2026-09-21 16:38:16,648 INFO:   Avg Eval Loss: 0.5421732485294342
+[run_1] 2026-09-21 16:38:16,650 INFO:   Evaluation metrics:
+[run_1] 2026-09-21 16:38:16,650 INFO:     - eval/masked_accuracy = 0.8776543140411377
+[run_1] 2026-09-21 16:38:16,650 INFO:   Evaluation completed successfully!
+[run_1] 2026-09-21 16:38:16,705 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:38:16,705 INFO:   Starting train loop 13 of 25, from global step 481 to 520 (40 steps)
+[run_1] 2026-09-21 16:38:16,705 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:38:25,629 INFO:   Compiling the model. This may take a few minutes.
+[run_1] 2026-09-21 16:38:25,629 INFO:   Found existing cached compile.
+[run_1] 2026-09-21 16:38:25,629 INFO:   Compile was successful!
+[run_1] 2026-09-21 16:38:25,631 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+[run_1] 2026-09-21 16:38:25,631 INFO:   Preparing to execute using 1 CSX
+[run_1] 2026-09-21 16:38:52,625 INFO:   About to send initial weights
+[run_1] 2026-09-21 16:38:52,667 INFO:   Finished sending initial weights
+[run_1] 2026-09-21 16:38:52,667 INFO:   Finalizing appliance staging for the run
+[run_1] 2026-09-21 16:38:53,066 INFO:   Waiting for device programming to complete
+[run_1] 2026-09-21 16:39:01,810 INFO:   Device programming is complete
+[run_1] 2026-09-21 16:39:02,131 INFO:   Using network type: ROCE
+[run_1] 2026-09-21 16:39:02,132 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+[run_1] 2026-09-21 16:39:02,141 INFO:   Input workers have begun streaming input data
+[run_1] 2026-09-21 16:39:02,282 INFO:   Appliance staging is complete
+[run_1] 2026-09-21 16:39:02,282 INFO:   Beginning appliance run
+[run_1] 2026-09-21 16:39:10,478 INFO:   | Train Device=CSX, Step=490, Loss=0.51350, Rate=3690.62 samples/sec, GlobalRate=873.95 samples/sec, LoopTimeRemaining=0:00:33, TimeRemaining=0:37:22
+[run_1] 2026-09-21 16:39:39,444 INFO:   | Train Device=CSX, Step=500, Loss=0.69875, Rate=2388.79 samples/sec, GlobalRate=1080.27 samples/sec, LoopTimeRemaining=0:00:23, TimeRemaining=0:37:36
+[run_1] 2026-09-21 16:39:59,559 INFO:   | Train Device=CSX, Step=510, Loss=0.71887, Rate=3416.34 samples/sec, GlobalRate=1280.69 samples/sec, LoopTimeRemaining=0:00:12, TimeRemaining=0:37:35
+[run_1] 2026-09-21 16:40:23,772 INFO:   | Train Device=CSX, Step=520, Loss=0.65824, Rate=2763.20 samples/sec, GlobalRate=1363.49 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:37:26
+[run_1] 2026-09-21 16:40:23,862 INFO:   Training completed successfully!
+[run_1] 2026-09-21 16:40:23,882 INFO:   Ordinal 0: Initializing GNNDataProcessor for dataset 'ogbn-products' (split=valid, mode=neighbor).
+[run_1] 2026-09-21 16:41:01,718 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:41:01,718 INFO:   Starting val_dataloader_2 loop 13 of 25, with 10 steps
+[run_1] 2026-09-21 16:41:01,718 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:41:03,770 INFO:   Compiling the model. This may take a few minutes.
+[run_1] 2026-09-21 16:41:03,770 INFO:   Found existing cached compile.
+[run_1] 2026-09-21 16:41:03,770 INFO:   Compile was successful!
+[run_1] 2026-09-21 16:41:03,772 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+[run_1] 2026-09-21 16:41:03,772 INFO:   Preparing to execute using 1 CSX
+[run_1] 2026-09-21 16:41:13,060 INFO:   About to send initial weights
+[run_1] 2026-09-21 16:41:13,073 INFO:   Finished sending initial weights
+[run_1] 2026-09-21 16:41:13,074 INFO:   Finalizing appliance staging for the run
+[run_1] 2026-09-21 16:41:14,076 INFO:   Waiting for device programming to complete
+[run_1] 2026-09-21 16:41:36,737 INFO:   Device programming is complete
+[run_1] 2026-09-21 16:41:37,041 INFO:   Using network type: ROCE
+[run_1] 2026-09-21 16:41:37,042 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+[run_1] 2026-09-21 16:41:37,049 INFO:   Input workers have begun streaming input data
+[run_1] 2026-09-21 16:41:37,141 INFO:   Appliance staging is complete
+[run_1] 2026-09-21 16:41:37,141 INFO:   Beginning appliance run
+[run_1] 2026-09-21 16:41:47,830 INFO:   | Eval Device=CSX, GlobalStep=520, Batch=10, Loss=0.57857, Rate=2927.03 samples/sec, GlobalRate=888.28 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:35:06
+[run_1] 2026-09-21 16:41:47,870 INFO:   Avg Eval Loss: 0.5785694599151612
+[run_1] 2026-09-21 16:41:47,872 INFO:   Evaluation metrics:
+[run_1] 2026-09-21 16:41:47,872 INFO:     - eval/masked_accuracy = 0.8683213591575623
+[run_1] 2026-09-21 16:41:47,872 INFO:   Evaluation completed successfully!
+[run_1] 2026-09-21 16:41:47,927 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:41:47,928 INFO:   Starting train loop 14 of 25, from global step 521 to 560 (40 steps)
+[run_1] 2026-09-21 16:41:47,928 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:41:56,874 INFO:   Compiling the model. This may take a few minutes.
+[run_1] 2026-09-21 16:41:56,874 INFO:   Found existing cached compile.
+[run_1] 2026-09-21 16:41:56,875 INFO:   Compile was successful!
+[run_1] 2026-09-21 16:41:56,876 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+[run_1] 2026-09-21 16:41:56,876 INFO:   Preparing to execute using 1 CSX
+[run_1] 2026-09-21 16:42:15,751 INFO:   About to send initial weights
+[run_1] 2026-09-21 16:42:15,792 INFO:   Finished sending initial weights
+[run_1] 2026-09-21 16:42:15,792 INFO:   Finalizing appliance staging for the run
+[run_1] 2026-09-21 16:42:16,323 INFO:   Waiting for device programming to complete
+[run_1] 2026-09-21 16:42:33,080 INFO:   Device programming is complete
+[run_1] 2026-09-21 16:42:33,403 INFO:   Using network type: ROCE
+[run_1] 2026-09-21 16:42:33,404 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+[run_1] 2026-09-21 16:42:33,412 INFO:   Input workers have begun streaming input data
+[run_1] 2026-09-21 16:42:33,495 INFO:   Appliance staging is complete
+[run_1] 2026-09-21 16:42:33,495 INFO:   Beginning appliance run
+[run_1] 2026-09-21 16:42:42,499 INFO:   | Train Device=CSX, Step=530, Loss=0.61962, Rate=3241.07 samples/sec, GlobalRate=859.26 samples/sec, LoopTimeRemaining=0:00:34, TimeRemaining=0:33:53
+[run_1] 2026-09-21 16:43:09,303 INFO:   | Train Device=CSX, Step=540, Loss=0.65651, Rate=1605.49 samples/sec, GlobalRate=1099.99 samples/sec, LoopTimeRemaining=0:00:24, TimeRemaining=0:34:01
+[run_1] 2026-09-21 16:43:29,516 INFO:   | Train Device=CSX, Step=550, Loss=0.71576, Rate=3229.45 samples/sec, GlobalRate=1297.76 samples/sec, LoopTimeRemaining=0:00:12, TimeRemaining=0:33:52
+[run_1] 2026-09-21 16:43:53,895 INFO:   | Train Device=CSX, Step=560, Loss=0.65889, Rate=1814.43 samples/sec, GlobalRate=1376.06 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:33:38
+[run_1] 2026-09-21 16:43:53,995 INFO:   Training completed successfully!
+[run_1] 2026-09-21 16:43:54,019 INFO:   Ordinal 0: Initializing GNNDataProcessor for dataset 'ogbn-products' (split=valid, mode=neighbor).
+[run_1] 2026-09-21 16:44:31,632 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:44:31,632 INFO:   Starting val_dataloader_2 loop 14 of 25, with 10 steps
+[run_1] 2026-09-21 16:44:31,632 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:44:33,749 INFO:   Compiling the model. This may take a few minutes.
+[run_1] 2026-09-21 16:44:33,749 INFO:   Found existing cached compile.
+[run_1] 2026-09-21 16:44:33,749 INFO:   Compile was successful!
+[run_1] 2026-09-21 16:44:33,751 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+[run_1] 2026-09-21 16:44:33,751 INFO:   Preparing to execute using 1 CSX
+[run_1] 2026-09-21 16:44:51,259 INFO:   About to send initial weights
+[run_1] 2026-09-21 16:44:51,271 INFO:   Finished sending initial weights
+[run_1] 2026-09-21 16:44:51,271 INFO:   Finalizing appliance staging for the run
+[run_1] 2026-09-21 16:44:51,682 INFO:   Waiting for device programming to complete
+[run_1] 2026-09-21 16:45:06,715 INFO:   Device programming is complete
+[run_1] 2026-09-21 16:45:07,002 INFO:   Using network type: ROCE
+[run_1] 2026-09-21 16:45:07,003 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+[run_1] 2026-09-21 16:45:07,010 INFO:   Input workers have begun streaming input data
+[run_1] 2026-09-21 16:45:07,098 INFO:   Appliance staging is complete
+[run_1] 2026-09-21 16:45:07,099 INFO:   Beginning appliance run
+[run_1] 2026-09-21 16:45:25,321 INFO:   | Eval Device=CSX, GlobalStep=560, Batch=10, Loss=0.57502, Rate=2769.67 samples/sec, GlobalRate=762.92 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:33:55
+[run_1] 2026-09-21 16:45:25,360 INFO:   Avg Eval Loss: 0.5750242412090302
+[run_1] 2026-09-21 16:45:25,362 INFO:   Evaluation metrics:
+[run_1] 2026-09-21 16:45:25,362 INFO:     - eval/masked_accuracy = 0.8692876696586609
+[run_1] 2026-09-21 16:45:25,362 INFO:   Evaluation completed successfully!
+[run_1] 2026-09-21 16:45:25,419 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:45:25,419 INFO:   Starting train loop 15 of 25, from global step 561 to 600 (40 steps)
+[run_1] 2026-09-21 16:45:25,419 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:45:34,670 INFO:   Compiling the model. This may take a few minutes.
+[run_1] 2026-09-21 16:45:34,670 INFO:   Found existing cached compile.
+[run_1] 2026-09-21 16:45:34,671 INFO:   Compile was successful!
+[run_1] 2026-09-21 16:45:34,672 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+[run_1] 2026-09-21 16:45:34,672 INFO:   Preparing to execute using 1 CSX
+[run_1] 2026-09-21 16:45:52,090 INFO:   About to send initial weights
+[run_1] 2026-09-21 16:45:52,128 INFO:   Finished sending initial weights
+[run_1] 2026-09-21 16:45:52,128 INFO:   Finalizing appliance staging for the run
+[run_1] 2026-09-21 16:45:53,277 INFO:   Waiting for device programming to complete
+[run_1] 2026-09-21 16:46:11,016 INFO:   Device programming is complete
+[run_1] 2026-09-21 16:46:11,301 INFO:   Using network type: ROCE
+[run_1] 2026-09-21 16:46:11,302 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+[run_1] 2026-09-21 16:46:11,311 INFO:   Input workers have begun streaming input data
+[run_1] 2026-09-21 16:46:11,392 INFO:   Appliance staging is complete
+[run_1] 2026-09-21 16:46:11,392 INFO:   Beginning appliance run
+[run_1] 2026-09-21 16:46:20,028 INFO:   | Train Device=CSX, Step=570, Loss=0.61194, Rate=3152.13 samples/sec, GlobalRate=858.93 samples/sec, LoopTimeRemaining=0:00:34, TimeRemaining=0:32:37
+[run_1] 2026-09-21 16:46:41,163 INFO:   | Train Device=CSX, Step=580, Loss=0.56727, Rate=1598.91 samples/sec, GlobalRate=1190.31 samples/sec, LoopTimeRemaining=0:00:24, TimeRemaining=0:33:01
+[run_1] 2026-09-21 16:47:05,278 INFO:   | Train Device=CSX, Step=590, Loss=0.64019, Rate=2786.25 samples/sec, GlobalRate=1322.18 samples/sec, LoopTimeRemaining=0:00:12, TimeRemaining=0:32:49
+[run_1] 2026-09-21 16:47:26,105 INFO:   | Train Device=CSX, Step=600, Loss=0.56806, Rate=3235.94 samples/sec, GlobalRate=1440.17 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:32:31
+[run_1] 2026-09-21 16:47:26,193 INFO:   Training completed successfully!
+[run_1] 2026-09-21 16:47:26,214 INFO:   Ordinal 0: Initializing GNNDataProcessor for dataset 'ogbn-products' (split=valid, mode=neighbor).
+[run_1] 2026-09-21 16:48:04,088 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:48:04,088 INFO:   Starting val_dataloader_2 loop 15 of 25, with 10 steps
+[run_1] 2026-09-21 16:48:04,088 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:48:06,116 INFO:   Compiling the model. This may take a few minutes.
+[run_1] 2026-09-21 16:48:06,116 INFO:   Found existing cached compile.
+[run_1] 2026-09-21 16:48:06,116 INFO:   Compile was successful!
+[run_1] 2026-09-21 16:48:06,117 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+[run_1] 2026-09-21 16:48:06,118 INFO:   Preparing to execute using 1 CSX
+[run_1] 2026-09-21 16:48:32,813 INFO:   About to send initial weights
+[run_1] 2026-09-21 16:48:32,824 INFO:   Finished sending initial weights
+[run_1] 2026-09-21 16:48:32,824 INFO:   Finalizing appliance staging for the run
+[run_1] 2026-09-21 16:48:33,565 INFO:   Waiting for device programming to complete
+[run_1] 2026-09-21 16:48:38,934 INFO:   Device programming is complete
+[run_1] 2026-09-21 16:48:39,229 INFO:   Using network type: ROCE
+[run_1] 2026-09-21 16:48:39,230 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+[run_1] 2026-09-21 16:48:47,588 INFO:   Input workers have begun streaming input data
+[run_1] 2026-09-21 16:48:47,737 INFO:   Appliance staging is complete
+[run_1] 2026-09-21 16:48:47,737 INFO:   Beginning appliance run
+[run_1] 2026-09-21 16:49:07,408 INFO:   | Eval Device=CSX, GlobalStep=600, Batch=10, Loss=0.54505, Rate=2801.52 samples/sec, GlobalRate=646.88 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:31:44
+[run_1] 2026-09-21 16:49:07,448 INFO:   Avg Eval Loss: 0.5450516641139984
+[run_1] 2026-09-21 16:49:07,450 INFO:   Evaluation metrics:
+[run_1] 2026-09-21 16:49:07,450 INFO:     - eval/masked_accuracy = 0.8786715269088745
+[run_1] 2026-09-21 16:49:07,451 INFO:   Evaluation completed successfully!
+[run_1] 2026-09-21 16:49:07,507 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:49:07,507 INFO:   Starting train loop 16 of 25, from global step 601 to 640 (40 steps)
+[run_1] 2026-09-21 16:49:07,507 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:49:16,784 INFO:   Compiling the model. This may take a few minutes.
+[run_1] 2026-09-21 16:49:16,784 INFO:   Found existing cached compile.
+[run_1] 2026-09-21 16:49:16,784 INFO:   Compile was successful!
+[run_1] 2026-09-21 16:49:16,785 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+[run_1] 2026-09-21 16:49:16,785 INFO:   Preparing to execute using 1 CSX
+[run_1] 2026-09-21 16:49:34,764 INFO:   About to send initial weights
+[run_1] 2026-09-21 16:49:34,805 INFO:   Finished sending initial weights
+[run_1] 2026-09-21 16:49:34,805 INFO:   Finalizing appliance staging for the run
+[run_1] 2026-09-21 16:49:34,945 INFO:   Waiting for device programming to complete
+[run_1] 2026-09-21 16:49:53,277 INFO:   Device programming is complete
+[run_1] 2026-09-21 16:49:53,578 INFO:   Using network type: ROCE
+[run_1] 2026-09-21 16:49:53,579 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+[run_1] 2026-09-21 16:49:53,587 INFO:   Input workers have begun streaming input data
+[run_1] 2026-09-21 16:49:53,702 INFO:   Appliance staging is complete
+[run_1] 2026-09-21 16:49:53,702 INFO:   Beginning appliance run
+[run_1] 2026-09-21 16:50:02,377 INFO:   | Train Device=CSX, Step=610, Loss=0.56841, Rate=3337.94 samples/sec, GlobalRate=854.85 samples/sec, LoopTimeRemaining=0:00:34, TimeRemaining=0:30:18
+[run_1] 2026-09-21 16:50:23,611 INFO:   | Train Device=CSX, Step=620, Loss=0.56849, Rate=1728.16 samples/sec, GlobalRate=1184.69 samples/sec, LoopTimeRemaining=0:00:24, TimeRemaining=0:30:43
+[run_1] 2026-09-21 16:50:43,902 INFO:   | Train Device=CSX, Step=630, Loss=0.59246, Rate=3148.16 samples/sec, GlobalRate=1373.89 samples/sec, LoopTimeRemaining=0:00:12, TimeRemaining=0:30:28
+[run_1] 2026-09-21 16:51:12,233 INFO:   | Train Device=CSX, Step=640, Loss=0.71391, Rate=3141.10 samples/sec, GlobalRate=1391.18 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:30:14
+[run_1] 2026-09-21 16:51:12,322 INFO:   Training completed successfully!
+[run_1] 2026-09-21 16:51:12,343 INFO:   Ordinal 0: Initializing GNNDataProcessor for dataset 'ogbn-products' (split=valid, mode=neighbor).
+[run_1] 2026-09-21 16:51:49,993 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:51:49,993 INFO:   Starting val_dataloader_2 loop 16 of 25, with 10 steps
+[run_1] 2026-09-21 16:51:49,993 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:51:52,077 INFO:   Compiling the model. This may take a few minutes.
+[run_1] 2026-09-21 16:51:52,078 INFO:   Found existing cached compile.
+[run_1] 2026-09-21 16:51:52,078 INFO:   Compile was successful!
+[run_1] 2026-09-21 16:51:52,079 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+[run_1] 2026-09-21 16:51:52,079 INFO:   Preparing to execute using 1 CSX
+[run_1] 2026-09-21 16:52:01,475 INFO:   About to send initial weights
+[run_1] 2026-09-21 16:52:01,491 INFO:   Finished sending initial weights
+[run_1] 2026-09-21 16:52:01,491 INFO:   Finalizing appliance staging for the run
+[run_1] 2026-09-21 16:52:02,886 INFO:   Waiting for device programming to complete
+[run_1] 2026-09-21 16:52:24,978 INFO:   Device programming is complete
+[run_1] 2026-09-21 16:52:25,291 INFO:   Using network type: ROCE
+[run_1] 2026-09-21 16:52:25,292 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+[run_1] 2026-09-21 16:52:25,299 INFO:   Input workers have begun streaming input data
+[run_1] 2026-09-21 16:52:25,374 INFO:   Appliance staging is complete
+[run_1] 2026-09-21 16:52:25,374 INFO:   Beginning appliance run
+[run_1] 2026-09-21 16:52:36,733 INFO:   | Eval Device=CSX, GlobalStep=640, Batch=10, Loss=0.62178, Rate=2870.10 samples/sec, GlobalRate=876.34 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:26:48
+[run_1] 2026-09-21 16:52:36,772 INFO:   Avg Eval Loss: 0.6217762470245362
+[run_1] 2026-09-21 16:52:36,774 INFO:   Evaluation metrics:
+[run_1] 2026-09-21 16:52:36,774 INFO:     - eval/masked_accuracy = 0.855122983455658
+[run_1] 2026-09-21 16:52:36,774 INFO:   Evaluation completed successfully!
+[run_1] 2026-09-21 16:52:36,831 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:52:36,831 INFO:   Starting train loop 17 of 25, from global step 641 to 680 (40 steps)
+[run_1] 2026-09-21 16:52:36,831 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:52:45,748 INFO:   Compiling the model. This may take a few minutes.
+[run_1] 2026-09-21 16:52:45,748 INFO:   Found existing cached compile.
+[run_1] 2026-09-21 16:52:45,748 INFO:   Compile was successful!
+[run_1] 2026-09-21 16:52:45,749 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+[run_1] 2026-09-21 16:52:45,750 INFO:   Preparing to execute using 1 CSX
+[run_1] 2026-09-21 16:52:55,390 INFO:   About to send initial weights
+[run_1] 2026-09-21 16:52:55,439 INFO:   Finished sending initial weights
+[run_1] 2026-09-21 16:52:55,439 INFO:   Finalizing appliance staging for the run
+[run_1] 2026-09-21 16:52:56,559 INFO:   Waiting for device programming to complete
+[run_1] 2026-09-21 16:53:22,124 INFO:   Device programming is complete
+[run_1] 2026-09-21 16:53:22,436 INFO:   Using network type: ROCE
+[run_1] 2026-09-21 16:53:22,437 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+[run_1] 2026-09-21 16:53:22,444 INFO:   Input workers have begun streaming input data
+[run_1] 2026-09-21 16:53:22,533 INFO:   Appliance staging is complete
+[run_1] 2026-09-21 16:53:22,534 INFO:   Beginning appliance run
+[run_1] 2026-09-21 16:53:30,930 INFO:   | Train Device=CSX, Step=650, Loss=0.62469, Rate=3436.11 samples/sec, GlobalRate=868.80 samples/sec, LoopTimeRemaining=0:00:34, TimeRemaining=0:25:17
+[run_1] 2026-09-21 16:53:52,572 INFO:   | Train Device=CSX, Step=660, Loss=0.59472, Rate=1754.43 samples/sec, GlobalRate=1190.92 samples/sec, LoopTimeRemaining=0:00:24, TimeRemaining=0:25:25
+[run_1] 2026-09-21 16:54:12,677 INFO:   | Train Device=CSX, Step=670, Loss=0.57308, Rate=3189.08 samples/sec, GlobalRate=1382.34 samples/sec, LoopTimeRemaining=0:00:12, TimeRemaining=0:25:20
+[run_1] 2026-09-21 16:54:37,564 INFO:   | Train Device=CSX, Step=680, Loss=0.54660, Rate=1557.71 samples/sec, GlobalRate=1439.98 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:25:09
+[run_1] 2026-09-21 16:54:37,659 INFO:   Training completed successfully!
+[run_1] 2026-09-21 16:54:37,684 INFO:   Ordinal 0: Initializing GNNDataProcessor for dataset 'ogbn-products' (split=valid, mode=neighbor).
+[run_1] 2026-09-21 16:55:15,231 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:55:15,231 INFO:   Starting val_dataloader_2 loop 17 of 25, with 10 steps
+[run_1] 2026-09-21 16:55:15,231 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:55:17,277 INFO:   Compiling the model. This may take a few minutes.
+[run_1] 2026-09-21 16:55:17,277 INFO:   Found existing cached compile.
+[run_1] 2026-09-21 16:55:17,277 INFO:   Compile was successful!
+[run_1] 2026-09-21 16:55:17,278 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+[run_1] 2026-09-21 16:55:17,278 INFO:   Preparing to execute using 1 CSX
+[run_1] 2026-09-21 16:55:35,988 INFO:   About to send initial weights
+[run_1] 2026-09-21 16:55:36,000 INFO:   Finished sending initial weights
+[run_1] 2026-09-21 16:55:36,000 INFO:   Finalizing appliance staging for the run
+[run_1] 2026-09-21 16:55:37,713 INFO:   Waiting for device programming to complete
+[run_1] 2026-09-21 16:55:50,151 INFO:   Device programming is complete
+[run_1] 2026-09-21 16:55:50,501 INFO:   Using network type: ROCE
+[run_1] 2026-09-21 16:55:50,502 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+[run_1] 2026-09-21 16:55:50,511 INFO:   Input workers have begun streaming input data
+[run_1] 2026-09-21 16:55:50,593 INFO:   Appliance staging is complete
+[run_1] 2026-09-21 16:55:50,593 INFO:   Beginning appliance run
+[run_1] 2026-09-21 16:56:10,434 INFO:   | Eval Device=CSX, GlobalStep=680, Batch=10, Loss=0.52184, Rate=2720.41 samples/sec, GlobalRate=742.00 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:24:45
+[run_1] 2026-09-21 16:56:10,474 INFO:   Avg Eval Loss: 0.5218430161476135
+[run_1] 2026-09-21 16:56:10,476 INFO:   Evaluation metrics:
+[run_1] 2026-09-21 16:56:10,476 INFO:     - eval/masked_accuracy = 0.8828421235084534
+[run_1] 2026-09-21 16:56:10,477 INFO:   Evaluation completed successfully!
+[run_1] 2026-09-21 16:56:10,533 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:56:10,533 INFO:   Starting train loop 18 of 25, from global step 681 to 720 (40 steps)
+[run_1] 2026-09-21 16:56:10,533 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:56:19,822 INFO:   Compiling the model. This may take a few minutes.
+[run_1] 2026-09-21 16:56:19,823 INFO:   Found existing cached compile.
+[run_1] 2026-09-21 16:56:19,823 INFO:   Compile was successful!
+[run_1] 2026-09-21 16:56:19,824 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+[run_1] 2026-09-21 16:56:19,824 INFO:   Preparing to execute using 1 CSX
+[run_1] 2026-09-21 16:56:46,990 INFO:   About to send initial weights
+[run_1] 2026-09-21 16:56:47,036 INFO:   Finished sending initial weights
+[run_1] 2026-09-21 16:56:47,037 INFO:   Finalizing appliance staging for the run
+[run_1] 2026-09-21 16:56:47,775 INFO:   Waiting for device programming to complete
+[run_1] 2026-09-21 16:56:56,274 INFO:   Device programming is complete
+[run_1] 2026-09-21 16:56:56,608 INFO:   Using network type: ROCE
+[run_1] 2026-09-21 16:56:56,608 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+[run_1] 2026-09-21 16:56:56,616 INFO:   Input workers have begun streaming input data
+[run_1] 2026-09-21 16:56:56,703 INFO:   Appliance staging is complete
+[run_1] 2026-09-21 16:56:56,703 INFO:   Beginning appliance run
+[run_1] 2026-09-21 16:57:16,127 INFO:   | Train Device=CSX, Step=690, Loss=0.56971, Rate=2472.61 samples/sec, GlobalRate=699.34 samples/sec, LoopTimeRemaining=0:00:36, TimeRemaining=0:23:49
+[run_1] 2026-09-21 16:57:40,344 INFO:   | Train Device=CSX, Step=700, Loss=0.57070, Rate=2139.79 samples/sec, GlobalRate=989.54 samples/sec, LoopTimeRemaining=0:00:31, TimeRemaining=0:25:24
+[run_1] 2026-09-21 16:58:01,644 INFO:   | Train Device=CSX, Step=710, Loss=0.58158, Rate=3226.71 samples/sec, GlobalRate=1180.56 samples/sec, LoopTimeRemaining=0:00:17, TimeRemaining=0:25:46
+[run_1] 2026-09-21 16:58:28,136 INFO:   | Train Device=CSX, Step=720, Loss=0.55629, Rate=1861.52 samples/sec, GlobalRate=1254.73 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:25:38
+[run_1] 2026-09-21 16:58:28,228 INFO:   Training completed successfully!
+[run_1] 2026-09-21 16:58:28,249 INFO:   Ordinal 0: Initializing GNNDataProcessor for dataset 'ogbn-products' (split=valid, mode=neighbor).
+[run_1] 2026-09-21 16:59:06,100 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:59:06,100 INFO:   Starting val_dataloader_2 loop 18 of 25, with 10 steps
+[run_1] 2026-09-21 16:59:06,101 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 16:59:08,220 INFO:   Compiling the model. This may take a few minutes.
+[run_1] 2026-09-21 16:59:08,221 INFO:   Found existing cached compile.
+[run_1] 2026-09-21 16:59:08,221 INFO:   Compile was successful!
+[run_1] 2026-09-21 16:59:08,222 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+[run_1] 2026-09-21 16:59:08,222 INFO:   Preparing to execute using 1 CSX
+[run_1] 2026-09-21 16:59:25,453 INFO:   About to send initial weights
+[run_1] 2026-09-21 16:59:25,465 INFO:   Finished sending initial weights
+[run_1] 2026-09-21 16:59:25,465 INFO:   Finalizing appliance staging for the run
+[run_1] 2026-09-21 16:59:26,888 INFO:   Waiting for device programming to complete
+[run_1] 2026-09-21 16:59:41,080 INFO:   Device programming is complete
+[run_1] 2026-09-21 16:59:41,365 INFO:   Using network type: ROCE
+[run_1] 2026-09-21 16:59:41,366 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+[run_1] 2026-09-21 16:59:41,373 INFO:   Input workers have begun streaming input data
+[run_1] 2026-09-21 16:59:41,502 INFO:   Appliance staging is complete
+[run_1] 2026-09-21 16:59:41,502 INFO:   Beginning appliance run
+[run_1] 2026-09-21 16:59:59,949 INFO:   | Eval Device=CSX, GlobalStep=720, Batch=10, Loss=0.51489, Rate=2774.36 samples/sec, GlobalRate=760.66 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:23:48
+[run_1] 2026-09-21 16:59:59,988 INFO:   Avg Eval Loss: 0.514888522028923
+[run_1] 2026-09-21 16:59:59,990 INFO:   Evaluation metrics:
+[run_1] 2026-09-21 16:59:59,990 INFO:     - eval/masked_accuracy = 0.884571373462677
+[run_1] 2026-09-21 16:59:59,990 INFO:   Evaluation completed successfully!
+[run_1] 2026-09-21 17:00:00,046 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 17:00:00,046 INFO:   Starting train loop 19 of 25, from global step 721 to 760 (40 steps)
+[run_1] 2026-09-21 17:00:00,046 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 17:00:09,255 INFO:   Compiling the model. This may take a few minutes.
+[run_1] 2026-09-21 17:00:09,255 INFO:   Found existing cached compile.
+[run_1] 2026-09-21 17:00:09,255 INFO:   Compile was successful!
+[run_1] 2026-09-21 17:00:09,256 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+[run_1] 2026-09-21 17:00:09,256 INFO:   Preparing to execute using 1 CSX
+[run_1] 2026-09-21 17:00:27,486 INFO:   About to send initial weights
+[run_1] 2026-09-21 17:00:27,528 INFO:   Finished sending initial weights
+[run_1] 2026-09-21 17:00:27,528 INFO:   Finalizing appliance staging for the run
+[run_1] 2026-09-21 17:00:28,677 INFO:   Waiting for device programming to complete
+[run_1] 2026-09-21 17:00:45,632 INFO:   Device programming is complete
+[run_1] 2026-09-21 17:00:45,957 INFO:   Using network type: ROCE
+[run_1] 2026-09-21 17:00:45,958 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+[run_1] 2026-09-21 17:00:45,967 INFO:   Input workers have begun streaming input data
+[run_1] 2026-09-21 17:00:46,086 INFO:   Appliance staging is complete
+[run_1] 2026-09-21 17:00:46,087 INFO:   Beginning appliance run
+[run_1] 2026-09-21 17:00:54,472 INFO:   | Train Device=CSX, Step=730, Loss=0.54793, Rate=3514.19 samples/sec, GlobalRate=862.17 samples/sec, LoopTimeRemaining=0:00:33, TimeRemaining=0:19:59
+[run_1] 2026-09-21 17:01:20,075 INFO:   | Train Device=CSX, Step=740, Loss=0.61867, Rate=1746.22 samples/sec, GlobalRate=1120.49 samples/sec, LoopTimeRemaining=0:00:23, TimeRemaining=0:20:03
+[run_1] 2026-09-21 17:01:40,665 INFO:   | Train Device=CSX, Step=750, Loss=0.62466, Rate=3198.07 samples/sec, GlobalRate=1311.41 samples/sec, LoopTimeRemaining=0:00:12, TimeRemaining=0:19:55
+[run_1] 2026-09-21 17:02:05,554 INFO:   | Train Device=CSX, Step=760, Loss=0.61552, Rate=1765.83 samples/sec, GlobalRate=1381.57 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:19:43
+[run_1] 2026-09-21 17:02:05,651 INFO:   Training completed successfully!
+[run_1] 2026-09-21 17:02:05,673 INFO:   Ordinal 0: Initializing GNNDataProcessor for dataset 'ogbn-products' (split=valid, mode=neighbor).
+[run_1] 2026-09-21 17:02:43,110 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 17:02:43,110 INFO:   Starting val_dataloader_2 loop 19 of 25, with 10 steps
+[run_1] 2026-09-21 17:02:43,110 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 17:02:45,283 INFO:   Compiling the model. This may take a few minutes.
+[run_1] 2026-09-21 17:02:45,284 INFO:   Found existing cached compile.
+[run_1] 2026-09-21 17:02:45,284 INFO:   Compile was successful!
+[run_1] 2026-09-21 17:02:45,285 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+[run_1] 2026-09-21 17:02:45,285 INFO:   Preparing to execute using 1 CSX
+[run_1] 2026-09-21 17:03:10,852 INFO:   About to send initial weights
+[run_1] 2026-09-21 17:03:10,864 INFO:   Finished sending initial weights
+[run_1] 2026-09-21 17:03:10,864 INFO:   Finalizing appliance staging for the run
+[run_1] 2026-09-21 17:03:11,268 INFO:   Waiting for device programming to complete
+[run_1] 2026-09-21 17:03:18,373 INFO:   Device programming is complete
+[run_1] 2026-09-21 17:03:18,674 INFO:   Using network type: ROCE
+[run_1] 2026-09-21 17:03:18,675 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+[run_1] 2026-09-21 17:03:25,447 INFO:   Input workers have begun streaming input data
+[run_1] 2026-09-21 17:03:25,506 INFO:   Appliance staging is complete
+[run_1] 2026-09-21 17:03:25,507 INFO:   Beginning appliance run
+[run_1] 2026-09-21 17:03:45,143 INFO:   | Eval Device=CSX, GlobalStep=760, Batch=10, Loss=0.52350, Rate=2772.84 samples/sec, GlobalRate=660.30 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:19:18
+[run_1] 2026-09-21 17:03:45,183 INFO:   Avg Eval Loss: 0.523504662513733
+[run_1] 2026-09-21 17:03:45,185 INFO:   Evaluation metrics:
+[run_1] 2026-09-21 17:03:45,185 INFO:     - eval/masked_accuracy = 0.8840882182121277
+[run_1] 2026-09-21 17:03:45,185 INFO:   Evaluation completed successfully!
+[run_1] 2026-09-21 17:03:45,242 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 17:03:45,242 INFO:   Starting train loop 20 of 25, from global step 761 to 800 (40 steps)
+[run_1] 2026-09-21 17:03:45,242 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 17:03:54,431 INFO:   Compiling the model. This may take a few minutes.
+[run_1] 2026-09-21 17:03:54,431 INFO:   Found existing cached compile.
+[run_1] 2026-09-21 17:03:54,432 INFO:   Compile was successful!
+[run_1] 2026-09-21 17:03:54,433 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+[run_1] 2026-09-21 17:03:54,433 INFO:   Preparing to execute using 1 CSX
+[run_1] 2026-09-21 17:04:04,541 INFO:   About to send initial weights
+[run_1] 2026-09-21 17:04:04,585 INFO:   Finished sending initial weights
+[run_1] 2026-09-21 17:04:04,585 INFO:   Finalizing appliance staging for the run
+[run_1] 2026-09-21 17:04:04,711 INFO:   Waiting for device programming to complete
+[run_1] 2026-09-21 17:04:30,660 INFO:   Device programming is complete
+[run_1] 2026-09-21 17:04:30,965 INFO:   Using network type: ROCE
+[run_1] 2026-09-21 17:04:30,966 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+[run_1] 2026-09-21 17:04:30,974 INFO:   Input workers have begun streaming input data
+[run_1] 2026-09-21 17:04:31,081 INFO:   Appliance staging is complete
+[run_1] 2026-09-21 17:04:31,081 INFO:   Beginning appliance run
+[run_1] 2026-09-21 17:04:39,653 INFO:   | Train Device=CSX, Step=770, Loss=0.63625, Rate=3486.75 samples/sec, GlobalRate=861.54 samples/sec, LoopTimeRemaining=0:00:34, TimeRemaining=0:18:06
+[run_1] 2026-09-21 17:05:00,947 INFO:   | Train Device=CSX, Step=780, Loss=0.55465, Rate=1860.78 samples/sec, GlobalRate=1190.05 samples/sec, LoopTimeRemaining=0:00:23, TimeRemaining=0:18:02
+[run_1] 2026-09-21 17:05:25,674 INFO:   | Train Device=CSX, Step=790, Loss=0.63860, Rate=2762.27 samples/sec, GlobalRate=1313.33 samples/sec, LoopTimeRemaining=0:00:12, TimeRemaining=0:17:50
+[run_1] 2026-09-21 17:05:45,701 INFO:   | Train Device=CSX, Step=800, Loss=0.58070, Rate=3250.24 samples/sec, GlobalRate=1442.37 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:17:40
+[run_1] 2026-09-21 17:05:45,798 INFO:   Training completed successfully!
+[run_1] 2026-09-21 17:05:45,823 INFO:   Ordinal 0: Initializing GNNDataProcessor for dataset 'ogbn-products' (split=valid, mode=neighbor).
+[run_1] 2026-09-21 17:06:23,341 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 17:06:23,341 INFO:   Starting val_dataloader_2 loop 20 of 25, with 10 steps
+[run_1] 2026-09-21 17:06:23,341 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 17:06:25,488 INFO:   Compiling the model. This may take a few minutes.
+[run_1] 2026-09-21 17:06:25,488 INFO:   Found existing cached compile.
+[run_1] 2026-09-21 17:06:25,488 INFO:   Compile was successful!
+[run_1] 2026-09-21 17:06:25,490 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+[run_1] 2026-09-21 17:06:25,490 INFO:   Preparing to execute using 1 CSX
+[run_1] 2026-09-21 17:06:44,224 INFO:   About to send initial weights
+[run_1] 2026-09-21 17:06:44,236 INFO:   Finished sending initial weights
+[run_1] 2026-09-21 17:06:44,236 INFO:   Finalizing appliance staging for the run
+[run_1] 2026-09-21 17:06:45,236 INFO:   Waiting for device programming to complete
+[run_1] 2026-09-21 17:06:58,435 INFO:   Device programming is complete
+[run_1] 2026-09-21 17:06:58,709 INFO:   Using network type: ROCE
+[run_1] 2026-09-21 17:06:58,710 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+[run_1] 2026-09-21 17:06:58,718 INFO:   Input workers have begun streaming input data
+[run_1] 2026-09-21 17:06:58,792 INFO:   Appliance staging is complete
+[run_1] 2026-09-21 17:06:58,792 INFO:   Beginning appliance run
+[run_1] 2026-09-21 17:07:18,611 INFO:   | Eval Device=CSX, GlobalStep=800, Batch=10, Loss=0.52614, Rate=2770.30 samples/sec, GlobalRate=741.10 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:15:05
+[run_1] 2026-09-21 17:07:18,650 INFO:   Avg Eval Loss: 0.5261447787284851
+[run_1] 2026-09-21 17:07:18,652 INFO:   Evaluation metrics:
+[run_1] 2026-09-21 17:07:18,653 INFO:     - eval/masked_accuracy = 0.8836812973022461
+[run_1] 2026-09-21 17:07:18,653 INFO:   Evaluation completed successfully!
+[run_1] 2026-09-21 17:07:18,708 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 17:07:18,708 INFO:   Starting train loop 21 of 25, from global step 801 to 840 (40 steps)
+[run_1] 2026-09-21 17:07:18,708 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 17:07:27,860 INFO:   Compiling the model. This may take a few minutes.
+[run_1] 2026-09-21 17:07:27,860 INFO:   Found existing cached compile.
+[run_1] 2026-09-21 17:07:27,860 INFO:   Compile was successful!
+[run_1] 2026-09-21 17:07:27,862 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+[run_1] 2026-09-21 17:07:27,862 INFO:   Preparing to execute using 1 CSX
+[run_1] 2026-09-21 17:07:45,811 INFO:   About to send initial weights
+[run_1] 2026-09-21 17:07:45,850 INFO:   Finished sending initial weights
+[run_1] 2026-09-21 17:07:45,850 INFO:   Finalizing appliance staging for the run
+[run_1] 2026-09-21 17:07:46,985 INFO:   Waiting for device programming to complete
+[run_1] 2026-09-21 17:08:04,468 INFO:   Device programming is complete
+[run_1] 2026-09-21 17:08:04,757 INFO:   Using network type: ROCE
+[run_1] 2026-09-21 17:08:04,758 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+[run_1] 2026-09-21 17:08:04,766 INFO:   Input workers have begun streaming input data
+[run_1] 2026-09-21 17:08:04,846 INFO:   Appliance staging is complete
+[run_1] 2026-09-21 17:08:04,846 INFO:   Beginning appliance run
+[run_1] 2026-09-21 17:08:13,450 INFO:   | Train Device=CSX, Step=810, Loss=0.55595, Rate=3262.40 samples/sec, GlobalRate=856.66 samples/sec, LoopTimeRemaining=0:00:34, TimeRemaining=0:13:57
+[run_1] 2026-09-21 17:08:34,578 INFO:   | Train Device=CSX, Step=820, Loss=0.57277, Rate=1785.70 samples/sec, GlobalRate=1188.26 samples/sec, LoopTimeRemaining=0:00:24, TimeRemaining=0:14:01
+[run_1] 2026-09-21 17:08:54,722 INFO:   | Train Device=CSX, Step=830, Loss=0.57116, Rate=3276.90 samples/sec, GlobalRate=1379.34 samples/sec, LoopTimeRemaining=0:00:12, TimeRemaining=0:13:49
+[run_1] 2026-09-21 17:09:22,894 INFO:   | Train Device=CSX, Step=840, Loss=0.67896, Rate=3128.72 samples/sec, GlobalRate=1397.27 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:13:35
+[run_1] 2026-09-21 17:09:22,988 INFO:   Training completed successfully!
+[run_1] 2026-09-21 17:09:23,008 INFO:   Ordinal 0: Initializing GNNDataProcessor for dataset 'ogbn-products' (split=valid, mode=neighbor).
+[run_1] 2026-09-21 17:10:00,591 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 17:10:00,591 INFO:   Starting val_dataloader_2 loop 21 of 25, with 10 steps
+[run_1] 2026-09-21 17:10:00,591 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 17:10:02,804 INFO:   Compiling the model. This may take a few minutes.
+[run_1] 2026-09-21 17:10:02,804 INFO:   Found existing cached compile.
+[run_1] 2026-09-21 17:10:02,805 INFO:   Compile was successful!
+[run_1] 2026-09-21 17:10:02,806 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+[run_1] 2026-09-21 17:10:02,806 INFO:   Preparing to execute using 1 CSX
+[run_1] 2026-09-21 17:10:12,617 INFO:   About to send initial weights
+[run_1] 2026-09-21 17:10:12,628 INFO:   Finished sending initial weights
+[run_1] 2026-09-21 17:10:12,628 INFO:   Finalizing appliance staging for the run
+[run_1] 2026-09-21 17:10:14,038 INFO:   Waiting for device programming to complete
+[run_1] 2026-09-21 17:10:35,943 INFO:   Device programming is complete
+[run_1] 2026-09-21 17:10:36,256 INFO:   Using network type: ROCE
+[run_1] 2026-09-21 17:10:36,257 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+[run_1] 2026-09-21 17:10:36,265 INFO:   Input workers have begun streaming input data
+[run_1] 2026-09-21 17:10:36,382 INFO:   Appliance staging is complete
+[run_1] 2026-09-21 17:10:36,382 INFO:   Beginning appliance run
+[run_1] 2026-09-21 17:10:47,129 INFO:   | Eval Device=CSX, GlobalStep=840, Batch=10, Loss=0.61762, Rate=2891.16 samples/sec, GlobalRate=880.16 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:11:54
+[run_1] 2026-09-21 17:10:47,169 INFO:   Avg Eval Loss: 0.617621099948883
+[run_1] 2026-09-21 17:10:47,171 INFO:   Evaluation metrics:
+[run_1] 2026-09-21 17:10:47,171 INFO:     - eval/masked_accuracy = 0.8652442693710327
+[run_1] 2026-09-21 17:10:47,172 INFO:   Evaluation completed successfully!
+[run_1] 2026-09-21 17:10:47,227 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 17:10:47,227 INFO:   Starting train loop 22 of 25, from global step 841 to 880 (40 steps)
+[run_1] 2026-09-21 17:10:47,228 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 17:10:56,212 INFO:   Compiling the model. This may take a few minutes.
+[run_1] 2026-09-21 17:10:56,213 INFO:   Found existing cached compile.
+[run_1] 2026-09-21 17:10:56,213 INFO:   Compile was successful!
+[run_1] 2026-09-21 17:10:56,214 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+[run_1] 2026-09-21 17:10:56,214 INFO:   Preparing to execute using 1 CSX
+[run_1] 2026-09-21 17:11:06,405 INFO:   About to send initial weights
+[run_1] 2026-09-21 17:11:06,445 INFO:   Finished sending initial weights
+[run_1] 2026-09-21 17:11:06,445 INFO:   Finalizing appliance staging for the run
+[run_1] 2026-09-21 17:11:06,568 INFO:   Waiting for device programming to complete
+[run_1] 2026-09-21 17:11:32,654 INFO:   Device programming is complete
+[run_1] 2026-09-21 17:11:33,001 INFO:   Using network type: ROCE
+[run_1] 2026-09-21 17:11:33,001 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+[run_1] 2026-09-21 17:11:33,010 INFO:   Input workers have begun streaming input data
+[run_1] 2026-09-21 17:11:33,133 INFO:   Appliance staging is complete
+[run_1] 2026-09-21 17:11:33,133 INFO:   Beginning appliance run
+[run_1] 2026-09-21 17:11:41,488 INFO:   | Train Device=CSX, Step=850, Loss=0.64729, Rate=3498.14 samples/sec, GlobalRate=865.80 samples/sec, LoopTimeRemaining=0:00:34, TimeRemaining=0:10:42
+[run_1] 2026-09-21 17:12:02,937 INFO:   | Train Device=CSX, Step=860, Loss=0.56941, Rate=1665.97 samples/sec, GlobalRate=1191.42 samples/sec, LoopTimeRemaining=0:00:24, TimeRemaining=0:10:42
+[run_1] 2026-09-21 17:12:23,816 INFO:   | Train Device=CSX, Step=870, Loss=0.54476, Rate=2877.43 samples/sec, GlobalRate=1370.86 samples/sec, LoopTimeRemaining=0:00:12, TimeRemaining=0:10:32
+[run_1] 2026-09-21 17:12:47,494 INFO:   | Train Device=CSX, Step=880, Loss=0.54208, Rate=1862.57 samples/sec, GlobalRate=1445.89 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:10:20
+[run_1] 2026-09-21 17:12:47,586 INFO:   Training completed successfully!
+[run_1] 2026-09-21 17:12:47,607 INFO:   Ordinal 0: Initializing GNNDataProcessor for dataset 'ogbn-products' (split=valid, mode=neighbor).
+[run_1] 2026-09-21 17:13:26,080 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 17:13:26,080 INFO:   Starting val_dataloader_2 loop 22 of 25, with 10 steps
+[run_1] 2026-09-21 17:13:26,080 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 17:13:28,392 INFO:   Compiling the model. This may take a few minutes.
+[run_1] 2026-09-21 17:13:28,393 INFO:   Found existing cached compile.
+[run_1] 2026-09-21 17:13:28,393 INFO:   Compile was successful!
+[run_1] 2026-09-21 17:13:28,394 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+[run_1] 2026-09-21 17:13:28,394 INFO:   Preparing to execute using 1 CSX
+[run_1] 2026-09-21 17:13:37,903 INFO:   About to send initial weights
+[run_1] 2026-09-21 17:13:37,915 INFO:   Finished sending initial weights
+[run_1] 2026-09-21 17:13:37,915 INFO:   Finalizing appliance staging for the run
+[run_1] 2026-09-21 17:13:39,312 INFO:   Waiting for device programming to complete
+[run_1] 2026-09-21 17:14:01,439 INFO:   Device programming is complete
+[run_1] 2026-09-21 17:14:01,725 INFO:   Using network type: ROCE
+[run_1] 2026-09-21 17:14:01,725 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+[run_1] 2026-09-21 17:14:01,733 INFO:   Input workers have begun streaming input data
+[run_1] 2026-09-21 17:14:01,818 INFO:   Appliance staging is complete
+[run_1] 2026-09-21 17:14:01,818 INFO:   Beginning appliance run
+[run_1] 2026-09-21 17:14:11,965 INFO:   | Eval Device=CSX, GlobalStep=880, Batch=10, Loss=0.51345, Rate=2951.35 samples/sec, GlobalRate=892.68 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:09:04
+[run_1] 2026-09-21 17:14:12,043 INFO:   Avg Eval Loss: 0.5134503841400146
+[run_1] 2026-09-21 17:14:12,058 INFO:   Evaluation metrics:
+[run_1] 2026-09-21 17:14:12,058 INFO:     - eval/masked_accuracy = 0.8863006234169006
+[run_1] 2026-09-21 17:14:12,058 INFO:   Evaluation completed successfully!
+[run_1] 2026-09-21 17:14:12,115 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 17:14:12,115 INFO:   Starting train loop 23 of 25, from global step 881 to 920 (40 steps)
+[run_1] 2026-09-21 17:14:12,115 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 17:14:21,166 INFO:   Compiling the model. This may take a few minutes.
+[run_1] 2026-09-21 17:14:21,166 INFO:   Found existing cached compile.
+[run_1] 2026-09-21 17:14:21,166 INFO:   Compile was successful!
+[run_1] 2026-09-21 17:14:21,168 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+[run_1] 2026-09-21 17:14:21,168 INFO:   Preparing to execute using 1 CSX
+[run_1] 2026-09-21 17:14:30,845 INFO:   About to send initial weights
+[run_1] 2026-09-21 17:14:30,883 INFO:   Finished sending initial weights
+[run_1] 2026-09-21 17:14:30,883 INFO:   Finalizing appliance staging for the run
+[run_1] 2026-09-21 17:14:31,997 INFO:   Waiting for device programming to complete
+[run_1] 2026-09-21 17:14:57,591 INFO:   Device programming is complete
+[run_1] 2026-09-21 17:14:57,928 INFO:   Using network type: ROCE
+[run_1] 2026-09-21 17:14:57,929 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+[run_1] 2026-09-21 17:14:57,937 INFO:   Input workers have begun streaming input data
+[run_1] 2026-09-21 17:14:58,026 INFO:   Appliance staging is complete
+[run_1] 2026-09-21 17:14:58,026 INFO:   Beginning appliance run
+[run_1] 2026-09-21 17:15:06,766 INFO:   | Train Device=CSX, Step=890, Loss=0.70404, Rate=3557.63 samples/sec, GlobalRate=858.31 samples/sec, LoopTimeRemaining=0:00:34, TimeRemaining=0:07:56
+[run_1] 2026-09-21 17:15:28,242 INFO:   | Train Device=CSX, Step=900, Loss=0.62216, Rate=1776.57 samples/sec, GlobalRate=1183.86 samples/sec, LoopTimeRemaining=0:00:24, TimeRemaining=0:07:49
+[run_1] 2026-09-21 17:15:48,294 INFO:   | Train Device=CSX, Step=910, Loss=0.59209, Rate=3021.33 samples/sec, GlobalRate=1376.81 samples/sec, LoopTimeRemaining=0:00:12, TimeRemaining=0:07:40
+[run_1] 2026-09-21 17:16:12,423 INFO:   | Train Device=CSX, Step=920, Loss=0.51217, Rate=1805.87 samples/sec, GlobalRate=1445.06 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:07:30
+[run_1] 2026-09-21 17:16:12,517 INFO:   Training completed successfully!
+[run_1] 2026-09-21 17:16:12,542 INFO:   Ordinal 0: Initializing GNNDataProcessor for dataset 'ogbn-products' (split=valid, mode=neighbor).
+[run_1] 2026-09-21 17:16:50,259 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 17:16:50,259 INFO:   Starting val_dataloader_2 loop 23 of 25, with 10 steps
+[run_1] 2026-09-21 17:16:50,259 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 17:16:52,582 INFO:   Compiling the model. This may take a few minutes.
+[run_1] 2026-09-21 17:16:52,582 INFO:   Found existing cached compile.
+[run_1] 2026-09-21 17:16:52,582 INFO:   Compile was successful!
+[run_1] 2026-09-21 17:16:52,584 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+[run_1] 2026-09-21 17:16:52,584 INFO:   Preparing to execute using 1 CSX
+[run_1] 2026-09-21 17:17:19,238 INFO:   About to send initial weights
+[run_1] 2026-09-21 17:17:19,252 INFO:   Finished sending initial weights
+[run_1] 2026-09-21 17:17:19,252 INFO:   Finalizing appliance staging for the run
+[run_1] 2026-09-21 17:17:21,255 INFO:   Waiting for device programming to complete
+[run_1] 2026-09-21 17:17:25,293 INFO:   Device programming is complete
+[run_1] 2026-09-21 17:17:25,593 INFO:   Using network type: ROCE
+[run_1] 2026-09-21 17:17:25,593 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+[run_1] 2026-09-21 17:17:33,899 INFO:   Input workers have begun streaming input data
+[run_1] 2026-09-21 17:17:33,964 INFO:   Appliance staging is complete
+[run_1] 2026-09-21 17:17:33,964 INFO:   Beginning appliance run
+[run_1] 2026-09-21 17:17:53,935 INFO:   | Eval Device=CSX, GlobalStep=920, Batch=10, Loss=0.51550, Rate=2797.85 samples/sec, GlobalRate=643.26 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:06:31
+[run_1] 2026-09-21 17:17:53,974 INFO:   Avg Eval Loss: 0.5154977530241013
+[run_1] 2026-09-21 17:17:53,976 INFO:   Evaluation metrics:
+[run_1] 2026-09-21 17:17:53,976 INFO:     - eval/masked_accuracy = 0.8865549564361572
+[run_1] 2026-09-21 17:17:53,976 INFO:   Evaluation completed successfully!
+[run_1] 2026-09-21 17:17:54,033 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 17:17:54,034 INFO:   Starting train loop 24 of 25, from global step 921 to 960 (40 steps)
+[run_1] 2026-09-21 17:17:54,034 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 17:18:03,423 INFO:   Compiling the model. This may take a few minutes.
+[run_1] 2026-09-21 17:18:03,423 INFO:   Found existing cached compile.
+[run_1] 2026-09-21 17:18:03,423 INFO:   Compile was successful!
+[run_1] 2026-09-21 17:18:03,425 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+[run_1] 2026-09-21 17:18:03,425 INFO:   Preparing to execute using 1 CSX
+[run_1] 2026-09-21 17:18:30,725 INFO:   About to send initial weights
+[run_1] 2026-09-21 17:18:30,765 INFO:   Finished sending initial weights
+[run_1] 2026-09-21 17:18:30,766 INFO:   Finalizing appliance staging for the run
+[run_1] 2026-09-21 17:18:32,160 INFO:   Waiting for device programming to complete
+[run_1] 2026-09-21 17:18:39,948 INFO:   Device programming is complete
+[run_1] 2026-09-21 17:18:40,233 INFO:   Using network type: ROCE
+[run_1] 2026-09-21 17:18:40,234 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+[run_1] 2026-09-21 17:18:40,242 INFO:   Input workers have begun streaming input data
+[run_1] 2026-09-21 17:18:40,324 INFO:   Appliance staging is complete
+[run_1] 2026-09-21 17:18:40,324 INFO:   Beginning appliance run
+[run_1] 2026-09-21 17:18:48,278 INFO:   | Train Device=CSX, Step=930, Loss=0.60434, Rate=3732.34 samples/sec, GlobalRate=865.41 samples/sec, LoopTimeRemaining=0:00:32, TimeRemaining=0:05:22
+[run_1] 2026-09-21 17:19:17,008 INFO:   | Train Device=CSX, Step=940, Loss=0.58390, Rate=1819.26 samples/sec, GlobalRate=1077.05 samples/sec, LoopTimeRemaining=0:00:23, TimeRemaining=0:05:13
+[run_1] 2026-09-21 17:19:37,304 INFO:   | Train Device=CSX, Step=950, Loss=0.56428, Rate=3114.52 samples/sec, GlobalRate=1275.28 samples/sec, LoopTimeRemaining=0:00:12, TimeRemaining=0:05:03
+[run_1] 2026-09-21 17:20:01,615 INFO:   | Train Device=CSX, Step=960, Loss=0.56037, Rate=1807.11 samples/sec, GlobalRate=1357.79 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:04:52
+[run_1] 2026-09-21 17:20:01,713 INFO:   Training completed successfully!
+[run_1] 2026-09-21 17:20:01,735 INFO:   Ordinal 0: Initializing GNNDataProcessor for dataset 'ogbn-products' (split=valid, mode=neighbor).
+[run_1] 2026-09-21 17:20:39,405 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 17:20:39,405 INFO:   Starting val_dataloader_2 loop 24 of 25, with 10 steps
+[run_1] 2026-09-21 17:20:39,405 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 17:20:41,682 INFO:   Compiling the model. This may take a few minutes.
+[run_1] 2026-09-21 17:20:41,682 INFO:   Found existing cached compile.
+[run_1] 2026-09-21 17:20:41,682 INFO:   Compile was successful!
+[run_1] 2026-09-21 17:20:41,683 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+[run_1] 2026-09-21 17:20:41,683 INFO:   Preparing to execute using 1 CSX
+[run_1] 2026-09-21 17:20:59,103 INFO:   About to send initial weights
+[run_1] 2026-09-21 17:20:59,114 INFO:   Finished sending initial weights
+[run_1] 2026-09-21 17:20:59,114 INFO:   Finalizing appliance staging for the run
+[run_1] 2026-09-21 17:20:59,526 INFO:   Waiting for device programming to complete
+[run_1] 2026-09-21 17:21:14,673 INFO:   Device programming is complete
+[run_1] 2026-09-21 17:21:14,965 INFO:   Using network type: ROCE
+[run_1] 2026-09-21 17:21:14,966 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+[run_1] 2026-09-21 17:21:14,980 INFO:   Input workers have begun streaming input data
+[run_1] 2026-09-21 17:21:15,112 INFO:   Appliance staging is complete
+[run_1] 2026-09-21 17:21:15,112 INFO:   Beginning appliance run
+[run_1] 2026-09-21 17:21:33,890 INFO:   | Eval Device=CSX, GlobalStep=960, Batch=10, Loss=0.50437, Rate=2786.21 samples/sec, GlobalRate=751.78 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:03:06
+[run_1] 2026-09-21 17:21:33,935 INFO:   Avg Eval Loss: 0.5043682813644409
+[run_1] 2026-09-21 17:21:33,937 INFO:   Evaluation metrics:
+[run_1] 2026-09-21 17:21:33,937 INFO:     - eval/masked_accuracy = 0.8858683109283447
+[run_1] 2026-09-21 17:21:33,938 INFO:   Evaluation completed successfully!
+[run_1] 2026-09-21 17:21:34,001 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 17:21:34,001 INFO:   Starting train loop 25 of 25, from global step 961 to 1000 (40 steps)
+[run_1] 2026-09-21 17:21:34,001 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 17:21:43,473 INFO:   Compiling the model. This may take a few minutes.
+[run_1] 2026-09-21 17:21:43,474 INFO:   Found existing cached compile.
+[run_1] 2026-09-21 17:21:43,474 INFO:   Compile was successful!
+[run_1] 2026-09-21 17:21:43,475 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+[run_1] 2026-09-21 17:21:43,475 INFO:   Preparing to execute using 1 CSX
+[run_1] 2026-09-21 17:22:01,136 INFO:   About to send initial weights
+[run_1] 2026-09-21 17:22:01,191 INFO:   Finished sending initial weights
+[run_1] 2026-09-21 17:22:01,192 INFO:   Finalizing appliance staging for the run
+[run_1] 2026-09-21 17:22:02,288 INFO:   Waiting for device programming to complete
+[run_1] 2026-09-21 17:22:19,920 INFO:   Device programming is complete
+[run_1] 2026-09-21 17:22:20,263 INFO:   Using network type: ROCE
+[run_1] 2026-09-21 17:22:20,264 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+[run_1] 2026-09-21 17:22:20,273 INFO:   Input workers have begun streaming input data
+[run_1] 2026-09-21 17:22:20,390 INFO:   Appliance staging is complete
+[run_1] 2026-09-21 17:22:20,390 INFO:   Beginning appliance run
+[run_1] 2026-09-21 17:22:28,916 INFO:   | Train Device=CSX, Step=970, Loss=0.50676, Rate=3389.80 samples/sec, GlobalRate=854.51 samples/sec, LoopTimeRemaining=0:00:34, TimeRemaining=0:02:06
+[run_1] 2026-09-21 17:22:45,852 INFO:   | Train Device=CSX, Step=980, Loss=0.18061, Rate=3610.93 samples/sec, GlobalRate=1262.83 samples/sec, LoopTimeRemaining=0:00:23, TimeRemaining=0:01:55
+[run_1] 2026-09-21 17:23:14,122 INFO:   | Train Device=CSX, Step=990, Loss=0.60349, Rate=2785.40 samples/sec, GlobalRate=1319.30 samples/sec, LoopTimeRemaining=0:00:12, TimeRemaining=0:01:44
+[run_1] 2026-09-21 17:23:34,147 INFO:   | Train Device=CSX, Step=1000, Loss=0.57894, Rate=3311.79 samples/sec, GlobalRate=1447.79 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:01:32
+[run_1] 2026-09-21 17:23:34,242 INFO:   Training completed successfully!
+[run_1] 2026-09-21 17:23:34,264 INFO:   Ordinal 0: Initializing GNNDataProcessor for dataset 'ogbn-products' (split=valid, mode=neighbor).
+[run_1] 2026-09-21 17:24:13,133 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 17:24:13,133 INFO:   Starting val_dataloader_2 loop 25 of 25, with 10 steps
+[run_1] 2026-09-21 17:24:13,133 INFO:   ---------------------------------------------------------------------------
+[run_1] 2026-09-21 17:24:15,290 INFO:   Compiling the model. This may take a few minutes.
+[run_1] 2026-09-21 17:24:15,290 INFO:   Found existing cached compile.
+[run_1] 2026-09-21 17:24:15,290 INFO:   Compile was successful!
+[run_1] 2026-09-21 17:24:15,291 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+[run_1] 2026-09-21 17:24:15,291 INFO:   Preparing to execute using 1 CSX
+[run_1] 2026-09-21 17:24:25,166 INFO:   About to send initial weights
+[run_1] 2026-09-21 17:24:25,179 INFO:   Finished sending initial weights
+[run_1] 2026-09-21 17:24:25,179 INFO:   Finalizing appliance staging for the run
+[run_1] 2026-09-21 17:24:25,700 INFO:   Waiting for device programming to complete
+[run_1] 2026-09-21 17:24:48,466 INFO:   Device programming is complete
+[run_1] 2026-09-21 17:24:48,742 INFO:   Using network type: ROCE
+[run_1] 2026-09-21 17:24:48,743 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+[run_1] 2026-09-21 17:24:48,751 INFO:   Input workers have begun streaming input data
+[run_1] 2026-09-21 17:24:48,835 INFO:   Appliance staging is complete
+[run_1] 2026-09-21 17:24:48,835 INFO:   Beginning appliance run
+[run_1] 2026-09-21 17:24:59,939 INFO:   | Eval Device=CSX, GlobalStep=1000, Batch=10, Loss=0.51429, Rate=2855.90 samples/sec, GlobalRate=875.11 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:00:01
+[run_1] 2026-09-21 17:24:59,980 INFO:   Avg Eval Loss: 0.5142934411764145
+[run_1] 2026-09-21 17:24:59,982 INFO:   Evaluation metrics:
+[run_1] 2026-09-21 17:24:59,982 INFO:     - eval/masked_accuracy = 0.8854359984397888
+[run_1] 2026-09-21 17:24:59,982 INFO:   Evaluation completed successfully!
+[run_1] 2026-09-21 17:25:00,040 INFO:   Processed 4096000 training sample(s) in 5859.506107914 seconds.

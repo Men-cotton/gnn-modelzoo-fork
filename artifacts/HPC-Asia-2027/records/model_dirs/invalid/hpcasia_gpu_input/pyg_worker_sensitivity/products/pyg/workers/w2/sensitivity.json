@@ -1,0 +1,78 @@
+{
+  "definition": "Equal-weight run mean and sample standard deviation (ddof=1); includes unstable finite runs. Missing runs are not zero.",
+  "runs": [
+    {
+      "job_ids": "",
+      "metric": "seed_nodes_per_second",
+      "num_workers": 2,
+      "reason": null,
+      "repeat": 1,
+      "status": "completed",
+      "throughput": 18401.509702055042,
+      "training_window_seconds": 348.8117607699969,
+      "trial_id": "sensitivity_w02_p2_s1_r1"
+    },
+    {
+      "job_ids": "",
+      "metric": "seed_nodes_per_second",
+      "num_workers": 2,
+      "reason": null,
+      "repeat": 2,
+      "status": "completed",
+      "throughput": 18326.94715831657,
+      "training_window_seconds": 350.2308892229921,
+      "trial_id": "sensitivity_w02_p2_s1_r2"
+    },
+    {
+      "job_ids": "",
+      "metric": "seed_nodes_per_second",
+      "num_workers": 2,
+      "reason": null,
+      "repeat": 3,
+      "status": "completed",
+      "throughput": 18298.297674109825,
+      "training_window_seconds": 350.7792426550004,
+      "trial_id": "sensitivity_w02_p2_s1_r3"
+    }
+  ],
+  "settings": {
+    "backend": "pyg",
+    "base_config": "$REPO_ROOT/src/cerebras/modelzoo/models/gnn/configs/autotune/products_w40.yaml",
+    "cache": "none",
+    "compile": false,
+    "confirm_steps": 1600,
+    "continue_on_failure": true,
+    "dataset": "products",
+    "job_label_study": null,
+    "job_time_sec": 7200,
+    "measure_steps": 1600,
+    "mode": "sensitivity",
+    "persistent_workers": true,
+    "prefetch_factor": 2,
+    "prefetch_factors": [],
+    "repeats": 3,
+    "stability_tolerance_percent": 2.0,
+    "top_k": 2,
+    "trial_timeout_sec": 1800,
+    "warmup_steps": 40,
+    "workers": [
+      2
+    ],
+    "wsc_workers": null
+  },
+  "status": "completed",
+  "summary": [
+    {
+      "failed_or_invalid_runs": 0,
+      "mean": 18342.25151149381,
+      "measured_runs": 3,
+      "metric": "seed_nodes_per_second",
+      "not_run": 0,
+      "num_workers": 2,
+      "planned_runs": 3,
+      "running_runs": 0,
+      "sample_stddev": 53.28084175171623,
+      "unstable_runs": 0
+    }
+  ]
+}

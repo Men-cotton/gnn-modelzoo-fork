@@ -1,0 +1,111 @@
+trainer:
+  init:
+    model:
+      name: bert
+      vocab_size: 30522
+      max_position_embeddings: 512
+      hidden_size: 1024
+      embedding_dropout_rate: 0.1
+      embedding_pad_token_id: 0
+      num_hidden_layers: 24
+      layer_norm_epsilon: 1.0e-05
+      num_heads: 16
+      dropout_rate: 0.1
+      nonlinearity: gelu
+      pooler_nonlinearity: tanh
+      attention_dropout_rate: 0.1
+      filter_size: 4096
+      default_initializer:
+        name: truncated_normal
+        mean: 0.0
+        std: 0.02
+        a: -0.04
+        b: 0.04
+      embeddings_initializer:
+        name: truncated_normal
+        mean: 0.0
+        std: 0.02
+        a: -0.04
+        b: 0.04
+      position_embeddings_initializer:
+        name: truncated_normal
+        mean: 0.0
+        std: 0.02
+        a: -0.04
+        b: 0.04
+      segment_embeddings_initializer:
+        name: truncated_normal
+        mean: 0.0
+        std: 0.02
+        a: -0.04
+        b: 0.04
+      num_segments: 2
+      add_pooling_layer: true
+      scale_qk_dot_by_d: false
+      encoder_nonlinearity: gelu
+      mlm_nonlinearity: gelu
+      mlm_loss_weight: 0.019
+    backend:
+      backend_type: CSX
+      cluster_config:
+        num_csx: 1
+        mount_dirs:
+        - $REPO_ROOT
+        python_paths:
+        - $REPO_ROOT/src
+    model_dir: $REPO_ROOT/model_dirs/non_gnn/campaign_csx_20260918_133713_5bbf7dfa/bert_large_msl512
+    optimizer:
+      AdamW:
+        params: []
+        lr: 0.0001
+        weight_decay: 0.01
+    precision:
+      enabled: true
+      fp16_type: bfloat16
+      loss_scaling_factor: 1.0
+      max_gradient_norm: 1.0
+    loop:
+      max_steps: 200
+      eval_frequency: null
+      grad_accum_steps: 1
+    checkpoint:
+      steps: null
+      autoload_last_checkpoint: false
+      save_initial_checkpoint: false
+    logging:
+      log_steps: 1
+    callbacks:
+    - ScopedTrainFlags:
+        csx.performance.micro_batch_size: auto
+    - CheckLoss: {}
+    - LogOptimizerParamGroup:
+        keys: lr
+    - ComputeNorm: {}
+    - ModelEvalMetrics: {}
+    - RateProfiler: {}
+    - DurationProfiler: {}
+    - FlopUtilization: {}
+    - SavePerformanceData: {}
+    - DumpAvailableTensorNames: {}
+    - ModelZooParamsMetadata: {}
+    - SamplesStreamedInfo: {}
+    loggers:
+    - ProgressLogger: {}
+    - TensorBoardLogger: {}
+    - TelemetryLogger: {}
+    seed: 42
+  fit:
+    train_dataloader:
+      data_processor: BertCSVDynamicMaskDataProcessor
+      data_dir: $REPO_ROOT/model_dirs/non_gnn/data/cb5fd0a104d8ce684db7/bert_msl512
+      batch_size: 64
+      do_lower: true
+      vocab_file: $REPO_ROOT/model_dirs/non_gnn/data/cb5fd0a104d8ce684db7/bert_vocab.txt
+      max_sequence_length: 512
+      max_predictions_per_seq: 80
+      masked_lm_prob: 0.15
+      shuffle: true
+      shuffle_seed: 42
+      num_workers: 2
+      prefetch_factor: 2
+      persistent_workers: true

@@ -1,0 +1,155 @@
+$REPO_ROOT/.venv/lib/python3.11/site-packages/outdated/__init__.py:36: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import parse_version
+2026-09-18 06:01:12,063 INFO:   Current Working Directory: $REPO_ROOT/src/cerebras/modelzoo/models/gnn
+2026-09-18 06:01:12,063 INFO:   Running command: $REPO_ROOT/.venv/bin/cszoo fit $REPO_ROOT/model_dirs/hpcasia_r04/campaign_20260918T032805.576636Z/control_prefetch1_r2/params.yaml --target_device CSX --model_dir $REPO_ROOT/model_dirs/hpcasia_r04/campaign_20260918T032805.576636Z/control_prefetch1_r2/model
+2026-09-18 06:01:12,947 INFO:   Connectivity check: running command: ping -c 1 -W 3 10.125.8.2
+2026-09-18 06:01:12,953 INFO:   Connectivity check succeeded.
+2026-09-18 06:01:13,000 INFO:   Appliance client semantic version: 1.14.0, cluster server semantic version: 1.20.2, job operator semantic version: 1.20.2
+2026-09-18 06:01:13,003 INFO:   Successfully initialized workflow with id: wflow-9gjfbsroylsupnf6pkqovm
+2026-09-18 06:01:13,003 INFO:   No checkpoint was provided. Using randomly initialized model parameters.
+2026-09-18 06:01:13,003 INFO:   Ordinal 0: Initializing GNNDataProcessor for dataset 'ogbn-arxiv' (split=train, mode=neighbor).
+$REPO_ROOT/.venv/lib/python3.11/site-packages/ogb/nodeproppred/dataset_pyg.py:69: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  self.data, self.slices = torch.load(self.processed_paths[0])
+2026-09-18 06:01:13,274 INFO:   ===========================================================================
+2026-09-18 06:01:13,274 INFO:   Trainer Fit Summary
+2026-09-18 06:01:13,274 INFO:   ---------------------------------------------------------------------------
+2026-09-18 06:01:13,274 INFO:   Trainer will run 1 train loop.
+2026-09-18 06:01:13,274 INFO:   
+2026-09-18 06:01:13,274 INFO:   Train steps per train loop:
+2026-09-18 06:01:13,275 INFO:   * 1 loop of 440 steps
+2026-09-18 06:01:13,275 INFO:   for a total of 440 train steps.
+2026-09-18 06:01:13,275 INFO:   
+2026-09-18 06:01:13,275 INFO:   Progress will be logged every 10 steps.
+2026-09-18 06:01:13,275 INFO:   ===========================================================================
+2026-09-18 06:01:13,275 INFO:   ---------------------------------------------------------------------------
+2026-09-18 06:01:13,275 INFO:   Starting train loop 1 of 1, from global step 1 to 440 (440 steps)
+2026-09-18 06:01:13,275 INFO:   ---------------------------------------------------------------------------
+2026-09-18 06:01:18,286 INFO:   Compiling the model. This may take a few minutes.
+2026-09-18 06:01:18,287 INFO:   Connectivity check: running command: ping -c 1 -W 3 10.125.8.2
+2026-09-18 06:01:18,292 INFO:   Connectivity check succeeded.
+2026-09-18 06:01:18,309 INFO:   Appliance client semantic version: 1.14.0, cluster server semantic version: 1.20.2, job operator semantic version: 1.20.2
+2026-09-18 06:01:20,100 INFO:   Initiating a new image build job against the cluster server.
+2026-09-18 06:01:20,117 INFO:   Job id: imgjob-56d1cf1649401fc4fc87097ab5d5881e, workflow id: wflow-9gjfbsroylsupnf6pkqovm, namespace: job-operator, remote log path: /n1/wsjob/workdir/job-operator/imgjob-56d1cf1649401fc4fc87097ab5d5881e
+2026-09-18 06:01:20,120 INFO:   Connectivity check: running command: ping -c 1 -W 3 10.125.8.2
+2026-09-18 06:01:20,125 INFO:   Connectivity check succeeded.
+2026-09-18 06:01:20,141 INFO:   Appliance client semantic version: 1.14.0, cluster server semantic version: 1.20.2, job operator semantic version: 1.20.2
+2026-09-18 06:01:20,176 INFO:   Initiating a new compile wsjob against the cluster server.
+2026-09-18 06:01:20,218 INFO:   Job id: wsjob-r7ogst2yvsg7vap9pojyrt, workflow id: wflow-9gjfbsroylsupnf6pkqovm, namespace: job-operator, remote log path: /n1/wsjob/workdir/job-operator/wsjob-r7ogst2yvsg7vap9pojyrt
+2026-09-18 06:01:40,219 INFO:   Poll ingress status: Waiting for all Coordinator pods to be running, current running: 0/1.
+2026-09-18 06:01:40,221 INFO:   Recording the timestamp when jobs is scheduled.
+2026-09-18 06:01:40,245 WARNING:   Event 2026-09-18 06:01:21 +0000 UTC reason=InconsistentVersion wsjob=wsjob-r7ogst2yvsg7vap9pojyrt message='Warning: client semantic version 1.14.0 is inconsistent with cluster server semantic version 1.20.2, there's a risk job could fail due to inconsistent setup.'
+2026-09-18 06:01:50,245 INFO:   Poll ingress status: Waiting for job ingress readiness.
+2026-09-18 06:02:00,261 INFO:   Poll ingress status: Job ingress ready, dashboard: <internal-dashboard-url>
+2026-09-18 06:02:00,277 INFO:   Poll ingress success: Job ingress ready, dashboard: <internal-dashboard-url>
+2026-09-18 06:02:00,288 INFO:   Finalizing out-of-cluster job handle with ingress service url: 
+2026-09-18 06:02:00,288 WARNING:   Empty ingress service url. Falling back to default server: 10.125.8.2:443
+2026-09-18 06:02:00,356 INFO:   Found existing cached compile with hash: "cs_1827028249484550059"
+2026-09-18 06:02:02,240 INFO:   Using power profile none
+
+2026-09-18 06:02:02,253 INFO:   Compile artifacts successfully written to remote compile directory. Compile hash is: cs_1827028249484550059
+2026-09-18 06:02:10,257 ERROR:   Image build job imgjob-56d1cf1649401fc4fc87097ab5d5881e failed. Please check the error log in $REPO_ROOT/model_dirs/hpcasia_r04/campaign_20260918T032805.576636Z/control_prefetch1_r2/model/cerebras_logs/20260918_060112/executors/000001/custom_worker_build.out. 
+2026-09-18 06:02:10,257 INFO:   Falling back to venv mounting.
+2026-09-18 06:02:10,260 INFO:   Compile was successful!
+2026-09-18 06:02:10,260 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+2026-09-18 06:02:12,270 INFO:   Connectivity check: running command: ping -c 1 -W 3 10.125.8.2
+2026-09-18 06:02:12,277 INFO:   Connectivity check succeeded.
+2026-09-18 06:02:12,295 INFO:   Appliance client semantic version: 1.14.0, cluster server semantic version: 1.20.2, job operator semantic version: 1.20.2
+2026-09-18 06:02:12,298 INFO:   Initiating a new execute wsjob against the cluster server.
+2026-09-18 06:02:12,336 INFO:   Job id: wsjob-ushchg4hr6hv9zbcfqez2f, workflow id: wflow-9gjfbsroylsupnf6pkqovm, namespace: job-operator, remote log path: /n1/wsjob/workdir/job-operator/wsjob-ushchg4hr6hv9zbcfqez2f
+2026-09-18 06:02:32,337 INFO:   Poll ingress status: Waiting for all Weight pods to be running, current running: 0/2.
+2026-09-18 06:02:32,340 INFO:   Recording the timestamp when jobs is scheduled.
+2026-09-18 06:02:32,366 WARNING:   Event 2026-09-18 06:02:19 +0000 UTC reason=InconsistentVersion wsjob=wsjob-ushchg4hr6hv9zbcfqez2f message='Warning: client semantic version 1.14.0 is inconsistent with cluster server semantic version 1.20.2, there's a risk job could fail due to inconsistent setup.'
+2026-09-18 06:02:32,366 INFO:   Infrastructure setup started for job wsjob-ushchg4hr6hv9zbcfqez2f
+2026-09-18 06:02:42,366 INFO:   Poll ingress status: Waiting for all Command pods to be running, current running: 0/1.
+2026-09-18 06:02:42,384 INFO:   Infrastructure setup completed successfully for job wsjob-ushchg4hr6hv9zbcfqez2f
+2026-09-18 06:02:52,384 INFO:   Poll ingress status: Waiting for all Weight pods to be running, current running: 0/2.
+2026-09-18 06:02:52,409 INFO:   Infrastructure setup completed successfully for job wsjob-ushchg4hr6hv9zbcfqez2f
+2026-09-18 06:03:02,409 INFO:   Infrastructure setup completed successfully for job wsjob-ushchg4hr6hv9zbcfqez2f
+2026-09-18 06:03:12,410 INFO:   Poll ingress status: Waiting for all Activation pods to be running, current running: 0/21.
+2026-09-18 06:03:12,436 INFO:   Infrastructure setup completed successfully for job wsjob-ushchg4hr6hv9zbcfqez2f
+2026-09-18 06:03:22,437 INFO:   Poll ingress status: Waiting for all Worker pods to be running, current running: 0/1.
+2026-09-18 06:03:22,456 INFO:   Infrastructure setup completed successfully for job wsjob-ushchg4hr6hv9zbcfqez2f
+2026-09-18 06:03:32,456 INFO:   Poll ingress status: Waiting for all Chief pods to be running, current running: 0/1.
+2026-09-18 06:03:32,475 INFO:   Infrastructure setup completed successfully for job wsjob-ushchg4hr6hv9zbcfqez2f
+2026-09-18 06:03:42,475 INFO:   Poll ingress status: Waiting for all Activation pods to be running, current running: 0/21.
+2026-09-18 06:03:42,494 INFO:   Infrastructure setup completed successfully for job wsjob-ushchg4hr6hv9zbcfqez2f
+2026-09-18 06:03:52,494 INFO:   Poll ingress status: Waiting for all Worker pods to be running, current running: 0/1.
+2026-09-18 06:03:52,514 INFO:   Infrastructure setup completed successfully for job wsjob-ushchg4hr6hv9zbcfqez2f
+2026-09-18 06:04:02,515 INFO:   Poll ingress status: Waiting for all Activation pods to be running, current running: 0/21.
+2026-09-18 06:04:02,532 INFO:   Infrastructure setup completed successfully for job wsjob-ushchg4hr6hv9zbcfqez2f
+2026-09-18 06:04:12,532 INFO:   Infrastructure setup completed successfully for job wsjob-ushchg4hr6hv9zbcfqez2f
+2026-09-18 06:04:22,532 INFO:   Infrastructure setup completed successfully for job wsjob-ushchg4hr6hv9zbcfqez2f
+2026-09-18 06:04:32,533 INFO:   Poll ingress status: Waiting for all Chief pods to be running, current running: 0/1.
+2026-09-18 06:04:32,551 INFO:   Infrastructure setup completed successfully for job wsjob-ushchg4hr6hv9zbcfqez2f
+2026-09-18 06:04:42,551 INFO:   Poll ingress status: Waiting for all Activation pods to be running, current running: 0/21.
+2026-09-18 06:04:42,571 INFO:   Infrastructure setup completed successfully for job wsjob-ushchg4hr6hv9zbcfqez2f
+2026-09-18 06:04:52,571 INFO:   Poll ingress status: Waiting for all Weight pods to be running, current running: 1/2.
+2026-09-18 06:04:52,590 INFO:   Infrastructure setup completed successfully for job wsjob-ushchg4hr6hv9zbcfqez2f
+2026-09-18 06:05:02,590 INFO:   Poll ingress status: Waiting for all Activation pods to be running, current running: 0/21.
+2026-09-18 06:05:02,609 INFO:   Infrastructure setup completed successfully for job wsjob-ushchg4hr6hv9zbcfqez2f
+2026-09-18 06:05:12,609 INFO:   Infrastructure setup completed successfully for job wsjob-ushchg4hr6hv9zbcfqez2f
+2026-09-18 06:05:22,609 INFO:   Infrastructure setup completed successfully for job wsjob-ushchg4hr6hv9zbcfqez2f
+2026-09-18 06:05:32,609 INFO:   Poll ingress status: Waiting for all Chief pods to be running, current running: 0/1.
+2026-09-18 06:05:32,629 INFO:   Infrastructure setup completed successfully for job wsjob-ushchg4hr6hv9zbcfqez2f
+2026-09-18 06:05:42,629 INFO:   Poll ingress status: Job ingress ready, dashboard: <internal-dashboard-url>
+2026-09-18 06:05:42,648 INFO:   Infrastructure setup completed successfully for job wsjob-ushchg4hr6hv9zbcfqez2f
+2026-09-18 06:05:42,648 INFO:   Poll ingress success: Job ingress ready, dashboard: <internal-dashboard-url>
+2026-09-18 06:05:42,662 INFO:   Finalizing out-of-cluster job handle with ingress service url: 
+2026-09-18 06:05:42,662 WARNING:   Empty ingress service url. Falling back to default server: 10.125.8.2:443
+2026-09-18 06:05:42,743 INFO:   Preparing to execute using 1 CSX
+2026-09-18 06:05:59,974 INFO:   About to send initial weights
+2026-09-18 06:06:00,207 INFO:   Finished sending initial weights
+2026-09-18 06:06:00,207 INFO:   Finalizing appliance staging for the run
+2026-09-18 06:06:05,161 INFO:   Waiting for device programming to complete
+2026-09-18 06:06:21,547 INFO:   Device programming is complete
+2026-09-18 06:06:21,879 INFO:   Using network type: ROCE
+2026-09-18 06:06:21,880 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+2026-09-18 06:06:21,891 INFO:   Input workers have begun streaming input data
+2026-09-18 06:06:22,053 INFO:   Appliance staging is complete
+2026-09-18 06:06:22,053 INFO:   Beginning appliance run
+2026-09-18 06:06:33,224 INFO:   | Train Device=CSX, Step=10, Loss=3.37735, Rate=2640.05 samples/sec, GlobalRate=129.11 samples/sec, LoopTimeRemaining=0:11:04, TimeRemaining=0:11:04
+2026-09-18 06:06:49,060 INFO:   | Train Device=CSX, Step=20, Loss=2.77050, Rate=2609.69 samples/sec, GlobalRate=245.94 samples/sec, LoopTimeRemaining=0:10:59, TimeRemaining=0:10:59
+2026-09-18 06:07:08,111 INFO:   | Train Device=CSX, Step=30, Loss=2.45144, Rate=2602.29 samples/sec, GlobalRate=348.95 samples/sec, LoopTimeRemaining=0:10:43, TimeRemaining=0:10:43
+2026-09-18 06:07:24,103 INFO:   | Train Device=CSX, Step=40, Loss=2.23498, Rate=2603.29 samples/sec, GlobalRate=445.06 samples/sec, LoopTimeRemaining=0:10:28, TimeRemaining=0:10:28
+2026-09-18 06:07:43,055 INFO:   | Train Device=CSX, Step=50, Loss=1.97032, Rate=2552.87 samples/sec, GlobalRate=529.09 samples/sec, LoopTimeRemaining=0:10:11, TimeRemaining=0:10:11
+2026-09-18 06:07:59,136 INFO:   | Train Device=CSX, Step=60, Loss=1.74339, Rate=2572.18 samples/sec, GlobalRate=609.58 samples/sec, LoopTimeRemaining=0:09:57, TimeRemaining=0:09:57
+2026-09-18 06:08:18,179 INFO:   | Train Device=CSX, Step=70, Loss=1.60173, Rate=1569.19 samples/sec, GlobalRate=679.10 samples/sec, LoopTimeRemaining=0:09:41, TimeRemaining=0:09:41
+2026-09-18 06:08:34,024 INFO:   | Train Device=CSX, Step=80, Loss=1.46741, Rate=2499.72 samples/sec, GlobalRate=748.04 samples/sec, LoopTimeRemaining=0:09:26, TimeRemaining=0:09:26
+2026-09-18 06:08:49,781 INFO:   | Train Device=CSX, Step=90, Loss=1.47445, Rate=2666.71 samples/sec, GlobalRate=812.33 samples/sec, LoopTimeRemaining=0:09:11, TimeRemaining=0:09:11
+2026-09-18 06:09:08,969 INFO:   | Train Device=CSX, Step=100, Loss=1.36067, Rate=2584.55 samples/sec, GlobalRate=865.97 samples/sec, LoopTimeRemaining=0:08:55, TimeRemaining=0:08:55
+2026-09-18 06:09:25,021 INFO:   | Train Device=CSX, Step=110, Loss=1.29482, Rate=2466.67 samples/sec, GlobalRate=921.30 samples/sec, LoopTimeRemaining=0:08:40, TimeRemaining=0:08:40
+2026-09-18 06:09:44,399 INFO:   | Train Device=CSX, Step=120, Loss=1.26045, Rate=2532.32 samples/sec, GlobalRate=966.75 samples/sec, LoopTimeRemaining=0:08:24, TimeRemaining=0:08:24
+2026-09-18 06:10:00,101 INFO:   | Train Device=CSX, Step=130, Loss=1.28337, Rate=2614.59 samples/sec, GlobalRate=1015.94 samples/sec, LoopTimeRemaining=0:08:08, TimeRemaining=0:08:08
+2026-09-18 06:10:19,234 INFO:   | Train Device=CSX, Step=140, Loss=1.20418, Rate=2190.67 samples/sec, GlobalRate=1055.55 samples/sec, LoopTimeRemaining=0:07:52, TimeRemaining=0:07:52
+2026-09-18 06:10:35,035 INFO:   | Train Device=CSX, Step=150, Loss=1.22476, Rate=2567.83 samples/sec, GlobalRate=1098.98 samples/sec, LoopTimeRemaining=0:07:37, TimeRemaining=0:07:37
+2026-09-18 06:10:50,834 INFO:   | Train Device=CSX, Step=160, Loss=1.20532, Rate=2674.56 samples/sec, GlobalRate=1140.03 samples/sec, LoopTimeRemaining=0:07:21, TimeRemaining=0:07:21
+2026-09-18 06:11:10,351 INFO:   | Train Device=CSX, Step=170, Loss=1.12047, Rate=2530.25 samples/sec, GlobalRate=1171.51 samples/sec, LoopTimeRemaining=0:07:05, TimeRemaining=0:07:05
+2026-09-18 06:11:26,267 INFO:   | Train Device=CSX, Step=180, Loss=1.18720, Rate=2583.54 samples/sec, GlobalRate=1208.07 samples/sec, LoopTimeRemaining=0:06:50, TimeRemaining=0:06:50
+2026-09-18 06:11:45,471 INFO:   | Train Device=CSX, Step=190, Loss=1.19095, Rate=2440.94 samples/sec, GlobalRate=1236.29 samples/sec, LoopTimeRemaining=0:06:34, TimeRemaining=0:06:34
+2026-09-18 06:12:01,323 INFO:   | Train Device=CSX, Step=200, Loss=1.17069, Rate=2586.92 samples/sec, GlobalRate=1269.39 samples/sec, LoopTimeRemaining=0:06:19, TimeRemaining=0:06:19
+2026-09-18 06:12:20,412 INFO:   | Train Device=CSX, Step=210, Loss=1.15325, Rate=2464.17 samples/sec, GlobalRate=1294.57 samples/sec, LoopTimeRemaining=0:06:02, TimeRemaining=0:06:02
+2026-09-18 06:12:36,255 INFO:   | Train Device=CSX, Step=220, Loss=1.11943, Rate=2604.60 samples/sec, GlobalRate=1324.63 samples/sec, LoopTimeRemaining=0:05:47, TimeRemaining=0:05:47
+2026-09-18 06:12:52,001 INFO:   | Train Device=CSX, Step=230, Loss=0.22059, Rate=2694.98 samples/sec, GlobalRate=1353.51 samples/sec, LoopTimeRemaining=0:05:31, TimeRemaining=0:05:31
+2026-09-18 06:13:11,278 INFO:   | Train Device=CSX, Step=240, Loss=1.11535, Rate=2575.58 samples/sec, GlobalRate=1374.30 samples/sec, LoopTimeRemaining=0:05:15, TimeRemaining=0:05:15
+2026-09-18 06:13:27,263 INFO:   | Train Device=CSX, Step=250, Loss=1.07508, Rate=2609.28 samples/sec, GlobalRate=1400.27 samples/sec, LoopTimeRemaining=0:04:59, TimeRemaining=0:04:59
+2026-09-18 06:13:46,308 INFO:   | Train Device=CSX, Step=260, Loss=1.07652, Rate=2586.00 samples/sec, GlobalRate=1419.31 samples/sec, LoopTimeRemaining=0:04:44, TimeRemaining=0:04:44
+2026-09-18 06:14:02,303 INFO:   | Train Device=CSX, Step=270, Loss=1.07627, Rate=2577.29 samples/sec, GlobalRate=1443.14 samples/sec, LoopTimeRemaining=0:04:28, TimeRemaining=0:04:28
+2026-09-18 06:14:21,248 INFO:   | Train Device=CSX, Step=280, Loss=1.11397, Rate=2558.34 samples/sec, GlobalRate=1460.48 samples/sec, LoopTimeRemaining=0:04:12, TimeRemaining=0:04:12
+2026-09-18 06:14:36,917 INFO:   | Train Device=CSX, Step=290, Loss=1.05808, Rate=2611.67 samples/sec, GlobalRate=1483.05 samples/sec, LoopTimeRemaining=0:03:56, TimeRemaining=0:03:56
+2026-09-18 06:14:55,905 INFO:   | Train Device=CSX, Step=300, Loss=1.04904, Rate=1573.67 samples/sec, GlobalRate=1498.66 samples/sec, LoopTimeRemaining=0:03:40, TimeRemaining=0:03:40
+2026-09-18 06:15:11,673 INFO:   | Train Device=CSX, Step=310, Loss=1.04673, Rate=2561.02 samples/sec, GlobalRate=1519.40 samples/sec, LoopTimeRemaining=0:03:24, TimeRemaining=0:03:24
+2026-09-18 06:15:27,554 INFO:   | Train Device=CSX, Step=320, Loss=1.10195, Rate=2626.10 samples/sec, GlobalRate=1539.16 samples/sec, LoopTimeRemaining=0:03:09, TimeRemaining=0:03:09
+2026-09-18 06:15:46,678 INFO:   | Train Device=CSX, Step=330, Loss=1.03732, Rate=2516.57 samples/sec, GlobalRate=1552.40 samples/sec, LoopTimeRemaining=0:02:53, TimeRemaining=0:02:53
+2026-09-18 06:16:02,510 INFO:   | Train Device=CSX, Step=340, Loss=1.02415, Rate=2605.10 samples/sec, GlobalRate=1570.88 samples/sec, LoopTimeRemaining=0:02:37, TimeRemaining=0:02:37
+2026-09-18 06:16:21,773 INFO:   | Train Device=CSX, Step=350, Loss=1.01087, Rate=2504.07 samples/sec, GlobalRate=1582.69 samples/sec, LoopTimeRemaining=0:02:22, TimeRemaining=0:02:22
+2026-09-18 06:16:37,897 INFO:   | Train Device=CSX, Step=360, Loss=1.05186, Rate=2574.83 samples/sec, GlobalRate=1599.44 samples/sec, LoopTimeRemaining=0:02:06, TimeRemaining=0:02:06
+2026-09-18 06:16:57,050 INFO:   | Train Device=CSX, Step=370, Loss=1.00344, Rate=2210.81 samples/sec, GlobalRate=1610.41 samples/sec, LoopTimeRemaining=0:01:50, TimeRemaining=0:01:50
+2026-09-18 06:17:12,805 INFO:   | Train Device=CSX, Step=380, Loss=1.03261, Rate=2591.02 samples/sec, GlobalRate=1626.70 samples/sec, LoopTimeRemaining=0:01:35, TimeRemaining=0:01:35
+2026-09-18 06:17:28,782 INFO:   | Train Device=CSX, Step=390, Loss=1.02045, Rate=2616.57 samples/sec, GlobalRate=1642.09 samples/sec, LoopTimeRemaining=0:01:19, TimeRemaining=0:01:19
+2026-09-18 06:17:48,006 INFO:   | Train Device=CSX, Step=400, Loss=0.95261, Rate=2535.26 samples/sec, GlobalRate=1651.56 samples/sec, LoopTimeRemaining=0:01:03, TimeRemaining=0:01:03
+2026-09-18 06:18:04,198 INFO:   | Train Device=CSX, Step=410, Loss=1.02588, Rate=2566.25 samples/sec, GlobalRate=1665.66 samples/sec, LoopTimeRemaining=0:00:47, TimeRemaining=0:00:47
+2026-09-18 06:18:23,345 INFO:   | Train Device=CSX, Step=420, Loss=1.02978, Rate=2492.29 samples/sec, GlobalRate=1674.49 samples/sec, LoopTimeRemaining=0:00:32, TimeRemaining=0:00:32
+2026-09-18 06:18:39,194 INFO:   | Train Device=CSX, Step=430, Loss=1.01330, Rate=2593.78 samples/sec, GlobalRate=1688.31 samples/sec, LoopTimeRemaining=0:00:16, TimeRemaining=0:00:16
+2026-09-18 06:18:58,220 INFO:   | Train Device=CSX, Step=440, Loss=0.99537, Rate=2436.27 samples/sec, GlobalRate=1696.63 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:00:00
+2026-09-18 06:18:58,321 INFO:   Training completed successfully!
+2026-09-18 06:18:58,325 INFO:   Processed 1802240 training sample(s) in 1065.051934412 seconds.

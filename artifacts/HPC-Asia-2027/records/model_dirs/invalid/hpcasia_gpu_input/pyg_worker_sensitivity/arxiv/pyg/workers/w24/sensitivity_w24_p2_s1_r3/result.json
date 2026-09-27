@@ -1,0 +1,67 @@
+{
+  "candidate_id": "w24_p2_s1",
+  "client_wall_seconds": 163.77152513701003,
+  "command": [
+    "$REPO_ROOT/.venv/bin/python",
+    "-u",
+    "$REPO_ROOT/src/cerebras/modelzoo/models/gnn/pyg_graphsage.py",
+    "--config",
+    "$REPO_ROOT/model_dirs/hpcasia_gpu_input/pyg_worker_sensitivity/arxiv/pyg/workers/w24/sensitivity_w24_p2_s1_r3/params.yaml"
+  ],
+  "config_sha256": "b4425c6fde7e8e185bb8214000e03b7da29fd439afcbe48366e5af6037f4e342",
+  "failure_reason": null,
+  "finished_at": "2026-09-19T12:40:19.950394+00:00",
+  "job_ids": [],
+  "knobs": {
+    "num_workers": 24,
+    "persistent_workers": true,
+    "prefetch_factor": 2
+  },
+  "measurement": {
+    "count": 3162455,
+    "definition": "actual trained seed nodes / synchronized training-window wall time",
+    "end_step": 840,
+    "half_window_check": {
+      "first_half": {
+        "count": 1579594,
+        "end_step": 440,
+        "measured_steps": 400,
+        "metric": "seed_nodes_per_second",
+        "seed_nodes": 1579594,
+        "seed_nodes_per_second": 113331.22843703457,
+        "start_step": 40,
+        "throughput": 113331.22843703457,
+        "training_window_seconds": 13.937852980016032
+      },
+      "interpretation": "screening heuristic, not proof of stationarity",
+      "second_half": {
+        "count": 1582861,
+        "end_step": 840,
+        "measured_steps": 400,
+        "metric": "seed_nodes_per_second",
+        "seed_nodes": 1582861,
+        "seed_nodes_per_second": 115087.7555509132,
+        "start_step": 440,
+        "throughput": 115087.7555509132,
+        "training_window_seconds": 13.753513503004797
+      },
+      "symmetric_difference_percent": 1.5379869774495754,
+      "tolerance_percent": 2.0,
+      "within_tolerance": true
+    },
+    "measured_steps": 800,
+    "metric": "seed_nodes_per_second",
+    "seed_nodes": 3162455,
+    "seed_nodes_per_second": 114203.64545531126,
+    "start_step": 40,
+    "throughput": 114203.64545531126,
+    "training_window_seconds": 27.69136648302083
+  },
+  "performance_files": [],
+  "phase": "sensitivity",
+  "repeat": 3,
+  "returncode": 0,
+  "started_at": "2026-09-19T12:37:36.173958+00:00",
+  "status": "completed",
+  "trial_id": "sensitivity_w24_p2_s1_r3"
+}

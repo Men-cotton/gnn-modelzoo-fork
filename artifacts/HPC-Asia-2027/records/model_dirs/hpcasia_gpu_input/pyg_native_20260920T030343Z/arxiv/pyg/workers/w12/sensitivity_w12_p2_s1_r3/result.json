@@ -1,0 +1,76 @@
+{
+  "candidate_id": "w12_p2_s1",
+  "client_wall_seconds": 102.29570971801877,
+  "command": [
+    "$REPO_ROOT/.venv/bin/python",
+    "-u",
+    "$REPO_ROOT/src/cerebras/modelzoo/models/gnn/pyg_graphsage.py",
+    "--config",
+    "$REPO_ROOT/model_dirs/hpcasia_gpu_input/pyg_native_20260920T030343Z/arxiv/pyg/workers/w12/sensitivity_w12_p2_s1_r3/params.yaml"
+  ],
+  "config_sha256": "f5b12f2e199ec05f9f9fe1a6ded7e52ece03453dbab045989d611a04c9df85ea",
+  "failure_reason": null,
+  "finished_at": "2026-09-20T03:46:08.544431+00:00",
+  "job_ids": [],
+  "knobs": {
+    "num_workers": 12,
+    "persistent_workers": true,
+    "prefetch_factor": 2
+  },
+  "measurement": {
+    "count": 3162455,
+    "definition": "actual trained seed nodes / synchronized training-window wall time",
+    "end_step": 840,
+    "half_window_check": {
+      "first_half": {
+        "count": 1579594,
+        "end_step": 440,
+        "measured_steps": 400,
+        "metric": "seed_nodes_per_second",
+        "optimizer_steps": 400,
+        "optimizer_update_check": "recorded",
+        "seed_nodes": 1579594,
+        "seed_nodes_per_second": 116289.66054751893,
+        "skipped_optimizer_steps": 0,
+        "start_step": 40,
+        "throughput": 116289.66054751893,
+        "training_window_seconds": 13.583271226030774
+      },
+      "interpretation": "screening heuristic, not proof of stationarity",
+      "second_half": {
+        "count": 1582861,
+        "end_step": 840,
+        "measured_steps": 400,
+        "metric": "seed_nodes_per_second",
+        "optimizer_steps": 400,
+        "optimizer_update_check": "recorded",
+        "seed_nodes": 1582861,
+        "seed_nodes_per_second": 116508.55961104682,
+        "skipped_optimizer_steps": 0,
+        "start_step": 440,
+        "throughput": 116508.55961104682,
+        "training_window_seconds": 13.58579150994774
+      },
+      "symmetric_difference_percent": 0.18805905249515315,
+      "tolerance_percent": 2.0,
+      "within_tolerance": true
+    },
+    "measured_steps": 800,
+    "metric": "seed_nodes_per_second",
+    "optimizer_steps": 800,
+    "optimizer_update_check": "recorded",
+    "seed_nodes": 3162455,
+    "seed_nodes_per_second": 116399.1202321504,
+    "skipped_optimizer_steps": 0,
+    "start_step": 40,
+    "throughput": 116399.1202321504,
+    "training_window_seconds": 27.169062735978514
+  },
+  "performance_files": [],
+  "phase": "sensitivity",
+  "repeat": 3,
+  "returncode": 0,
+  "started_at": "2026-09-20T03:44:26.243841+00:00",
+  "status": "completed",
+  "trial_id": "sensitivity_w12_p2_s1_r3"
+}

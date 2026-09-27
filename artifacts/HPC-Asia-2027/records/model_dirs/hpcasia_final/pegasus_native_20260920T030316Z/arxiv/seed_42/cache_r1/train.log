@@ -1,0 +1,266 @@
+$REPO_ROOT/.venv/lib/python3.11/site-packages/outdated/__init__.py:36: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import parse_version
+[ddp] Single-process mode: device=cuda
+[Info] Running in Single-Process mode (CPU or Single GPU).
+[Info] Device: cuda
+[GraphCache] Caching 169343 / 169343 nodes (100.0%) on cuda...
+[GraphCache] Moving features to GPU...
+[GraphCache] Layout complete. Cached features size: torch.Size([169343, 128])
+[Compile] {"enabled": true, "dynamic": true}
+[GPU policy] {"version": 1, "optimizer": "torch.optim.AdamW", "epsilon_convention": "sqrt_bias_corrected_second_moment_plus_eps", "optimizer_defaults": {"lr": 0.003, "betas": [0.9, 0.999], "eps": 1e-06, "weight_decay": 0.0005, "amsgrad": false, "foreach": null, "maximize": false, "capturable": false, "differentiable": false, "fused": null}, "optimizer_groups": [{"parameters": ["_orig_mod.gnn.convs.0.lin_l.weight", "_orig_mod.gnn.convs.0.lin_r.weight", "_orig_mod.gnn.convs.1.lin_l.weight", "_orig_mod.gnn.convs.1.lin_r.weight", "_orig_mod.gnn.convs.2.lin_l.weight", "_orig_mod.gnn.convs.2.lin_r.weight", "_orig_mod.classifier.weight"], "weight_decay": 0.0005}, {"parameters": ["_orig_mod.gnn.convs.0.lin_l.bias", "_orig_mod.gnn.convs.1.lin_l.bias", "_orig_mod.gnn.convs.2.lin_l.bias", "_orig_mod.classifier.bias"], "weight_decay": 0.0}], "parameter_count": 4500520, "amp": {"implementation": "torch.amp.GradScaler", "enabled": true, "init_scale": 32768.0, "growth_interval": 2000, "growth_factor": 2.0, "backoff_factor": 0.5, "sdk_scale_clamps": false}}
+[Step=0010] Wall=11.6213s | Loss=5.2128
+[Profile] Avg ms/step | Load: 84.805 (Prep: 10.877, Struc: 0.371, Fetch: 73.557) | Fwd: 866.622 | Bwd: 111.688 | Opt: 76.977 | GPU_Tot: 1129.216
+[Autotune] {"version": 2, "step": 10, "wall_seconds": 11.621299493010156, "seed_nodes": 40960, "loss": 5.2127941131591795, "all_losses_finite": true, "optimizer_steps": 9, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0020] Wall=11.8242s | Loss=3.1920
+[Profile] Avg ms/step | Load: 43.192 (Prep: 5.878, Struc: 0.331, Fetch: 36.983) | Fwd: 437.510 | Bwd: 60.663 | Opt: 38.759 | GPU_Tot: 574.247
+[Autotune] {"version": 2, "step": 20, "wall_seconds": 11.824214924010448, "seed_nodes": 81920, "loss": 3.191958427429199, "all_losses_finite": true, "optimizer_steps": 19, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0030] Wall=12.0635s | Loss=2.5796
+[Profile] Avg ms/step | Load: 30.775 (Prep: 5.651, Struc: 0.324, Fetch: 24.800) | Fwd: 294.361 | Bwd: 43.499 | Opt: 26.043 | GPU_Tot: 389.027
+[Autotune] {"version": 2, "step": 30, "wall_seconds": 12.063523382006679, "seed_nodes": 119613, "loss": 2.5795896530151365, "all_losses_finite": true, "optimizer_steps": 29, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0040] Wall=12.2682s | Loss=2.1902
+[Profile] Avg ms/step | Load: 0.000 (Prep: 0.000, Struc: 0.000, Fetch: 0.000) | Fwd: 0.000 | Bwd: 0.000 | Opt: 0.000 | GPU_Tot: 0.000
+[Autotune] {"version": 2, "step": 40, "wall_seconds": 12.268166051013395, "seed_nodes": 160573, "loss": 2.1902294158935547, "all_losses_finite": true, "optimizer_steps": 39, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0050] Wall=12.4996s | Loss=1.9179
+[Profile] Avg ms/step | Load: 5.249 (Prep: 4.520, Struc: 0.299, Fetch: 0.430) | Fwd: 8.026 | Bwd: 9.144 | Opt: 0.585 | GPU_Tot: 18.484
+[Autotune] {"version": 2, "step": 50, "wall_seconds": 12.49962818302447, "seed_nodes": 198266, "loss": 1.917913055419922, "all_losses_finite": true, "optimizer_steps": 49, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0060] Wall=12.6987s | Loss=1.7615
+[Profile] Avg ms/step | Load: 3.164 (Prep: 2.443, Struc: 0.297, Fetch: 0.424) | Fwd: 8.239 | Bwd: 9.409 | Opt: 0.577 | GPU_Tot: 18.946
+[Autotune] {"version": 2, "step": 60, "wall_seconds": 12.698733890021686, "seed_nodes": 239226, "loss": 1.761530303955078, "all_losses_finite": true, "optimizer_steps": 59, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0070] Wall=12.9356s | Loss=1.6545
+[Profile] Avg ms/step | Load: 4.077 (Prep: 3.358, Struc: 0.296, Fetch: 0.423) | Fwd: 8.154 | Bwd: 9.315 | Opt: 0.563 | GPU_Tot: 18.750
+[Autotune] {"version": 2, "step": 70, "wall_seconds": 12.935638791997917, "seed_nodes": 276919, "loss": 1.6545169830322266, "all_losses_finite": true, "optimizer_steps": 69, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0080] Wall=13.1354s | Loss=1.5503
+[Profile] Avg ms/step | Load: 3.333 (Prep: 2.613, Struc: 0.296, Fetch: 0.424) | Fwd: 8.233 | Bwd: 9.402 | Opt: 0.572 | GPU_Tot: 18.926
+[Autotune] {"version": 2, "step": 80, "wall_seconds": 13.135398957005236, "seed_nodes": 317879, "loss": 1.5503241539001464, "all_losses_finite": true, "optimizer_steps": 79, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0090] Wall=13.3385s | Loss=1.4756
+[Profile] Avg ms/step | Load: 2.973 (Prep: 2.256, Struc: 0.295, Fetch: 0.422) | Fwd: 8.276 | Bwd: 9.457 | Opt: 0.564 | GPU_Tot: 19.013
+[Autotune] {"version": 2, "step": 90, "wall_seconds": 13.338546607003082, "seed_nodes": 358839, "loss": 1.4755830764770508, "all_losses_finite": true, "optimizer_steps": 89, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0100] Wall=13.5896s | Loss=1.4213
+[Profile] Avg ms/step | Load: 3.664 (Prep: 2.947, Struc: 0.297, Fetch: 0.421) | Fwd: 8.233 | Bwd: 9.406 | Opt: 0.579 | GPU_Tot: 18.935
+[Autotune] {"version": 2, "step": 100, "wall_seconds": 13.58961621898925, "seed_nodes": 396532, "loss": 1.4213249206542968, "all_losses_finite": true, "optimizer_steps": 99, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0110] Wall=13.7960s | Loss=1.3629
+[Profile] Avg ms/step | Load: 3.400 (Prep: 2.683, Struc: 0.297, Fetch: 0.420) | Fwd: 8.265 | Bwd: 9.446 | Opt: 0.575 | GPU_Tot: 19.003
+[Autotune] {"version": 2, "step": 110, "wall_seconds": 13.796048232004978, "seed_nodes": 437492, "loss": 1.3629182815551757, "all_losses_finite": true, "optimizer_steps": 109, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0120] Wall=14.0419s | Loss=1.3398
+[Profile] Avg ms/step | Load: 3.802 (Prep: 3.084, Struc: 0.298, Fetch: 0.420) | Fwd: 8.239 | Bwd: 9.412 | Opt: 0.577 | GPU_Tot: 18.945
+[Autotune] {"version": 2, "step": 120, "wall_seconds": 14.041909057006706, "seed_nodes": 475185, "loss": 1.3398069381713866, "all_losses_finite": true, "optimizer_steps": 119, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0130] Wall=14.2469s | Loss=1.3190
+[Profile] Avg ms/step | Load: 3.569 (Prep: 2.853, Struc: 0.297, Fetch: 0.419) | Fwd: 8.261 | Bwd: 9.439 | Opt: 0.575 | GPU_Tot: 18.992
+[Autotune] {"version": 2, "step": 130, "wall_seconds": 14.246924110979307, "seed_nodes": 516145, "loss": 1.3190048217773438, "all_losses_finite": true, "optimizer_steps": 129, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0140] Wall=14.4914s | Loss=1.2716
+[Profile] Avg ms/step | Load: 3.874 (Prep: 3.158, Struc: 0.297, Fetch: 0.420) | Fwd: 8.236 | Bwd: 9.410 | Opt: 0.571 | GPU_Tot: 18.934
+[Autotune] {"version": 2, "step": 140, "wall_seconds": 14.491429106972646, "seed_nodes": 553838, "loss": 1.2716064453125, "all_losses_finite": true, "optimizer_steps": 139, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0150] Wall=14.6909s | Loss=1.2635
+[Profile] Avg ms/step | Load: 3.621 (Prep: 2.904, Struc: 0.296, Fetch: 0.420) | Fwd: 8.256 | Bwd: 9.435 | Opt: 0.572 | GPU_Tot: 18.980
+[Autotune] {"version": 2, "step": 150, "wall_seconds": 14.6908771499875, "seed_nodes": 594798, "loss": 1.2634949684143066, "all_losses_finite": true, "optimizer_steps": 149, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0160] Wall=14.8934s | Loss=1.2425
+[Profile] Avg ms/step | Load: 3.444 (Prep: 2.728, Struc: 0.296, Fetch: 0.420) | Fwd: 8.271 | Bwd: 9.454 | Opt: 0.568 | GPU_Tot: 19.009
+[Autotune] {"version": 2, "step": 160, "wall_seconds": 14.893390002020169, "seed_nodes": 635758, "loss": 1.2424510955810546, "all_losses_finite": true, "optimizer_steps": 159, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0170] Wall=15.1415s | Loss=1.2278
+[Profile] Avg ms/step | Load: 3.702 (Prep: 2.985, Struc: 0.296, Fetch: 0.421) | Fwd: 8.254 | Bwd: 9.432 | Opt: 0.573 | GPU_Tot: 18.977
+[Autotune] {"version": 2, "step": 170, "wall_seconds": 15.141469465976115, "seed_nodes": 673451, "loss": 1.2278242111206055, "all_losses_finite": true, "optimizer_steps": 169, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0180] Wall=15.3449s | Loss=1.2258
+[Profile] Avg ms/step | Load: 3.551 (Prep: 2.834, Struc: 0.296, Fetch: 0.420) | Fwd: 8.266 | Bwd: 9.447 | Opt: 0.572 | GPU_Tot: 19.002
+[Autotune] {"version": 2, "step": 180, "wall_seconds": 15.344871297013015, "seed_nodes": 714411, "loss": 1.2258296966552735, "all_losses_finite": true, "optimizer_steps": 179, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0190] Wall=15.5926s | Loss=1.1950
+[Profile] Avg ms/step | Load: 3.763 (Prep: 3.047, Struc: 0.296, Fetch: 0.420) | Fwd: 8.252 | Bwd: 9.430 | Opt: 0.577 | GPU_Tot: 18.975
+[Autotune] {"version": 2, "step": 190, "wall_seconds": 15.592598268005531, "seed_nodes": 752104, "loss": 1.1950214385986329, "all_losses_finite": true, "optimizer_steps": 189, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0200] Wall=15.7976s | Loss=1.1861
+[Profile] Avg ms/step | Load: 3.634 (Prep: 2.918, Struc: 0.296, Fetch: 0.420) | Fwd: 8.264 | Bwd: 9.445 | Opt: 0.576 | GPU_Tot: 19.001
+[Autotune] {"version": 2, "step": 200, "wall_seconds": 15.797644637990743, "seed_nodes": 793064, "loss": 1.1860998153686524, "all_losses_finite": true, "optimizer_steps": 199, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0210] Wall=16.0472s | Loss=1.1993
+[Profile] Avg ms/step | Load: 3.834 (Prep: 3.118, Struc: 0.296, Fetch: 0.419) | Fwd: 8.249 | Bwd: 9.428 | Opt: 0.578 | GPU_Tot: 18.971
+[Autotune] {"version": 2, "step": 210, "wall_seconds": 16.047186476003844, "seed_nodes": 830757, "loss": 1.1993083953857422, "all_losses_finite": true, "optimizer_steps": 209, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0220] Wall=16.2465s | Loss=1.1754
+[Profile] Avg ms/step | Load: 3.681 (Prep: 2.965, Struc: 0.296, Fetch: 0.419) | Fwd: 8.262 | Bwd: 9.442 | Opt: 0.577 | GPU_Tot: 18.997
+[Autotune] {"version": 2, "step": 220, "wall_seconds": 16.246502886991948, "seed_nodes": 871717, "loss": 1.1753965377807618, "all_losses_finite": true, "optimizer_steps": 219, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0230] Wall=16.4389s | Loss=1.1534
+[Profile] Avg ms/step | Load: 3.563 (Prep: 2.849, Struc: 0.296, Fetch: 0.418) | Fwd: 8.247 | Bwd: 9.428 | Opt: 0.574 | GPU_Tot: 18.963
+[Autotune] {"version": 2, "step": 230, "wall_seconds": 16.438880854984745, "seed_nodes": 909410, "loss": 1.1534077644348144, "all_losses_finite": true, "optimizer_steps": 229, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0240] Wall=16.6920s | Loss=1.1551
+[Profile] Avg ms/step | Load: 3.703 (Prep: 2.987, Struc: 0.296, Fetch: 0.420) | Fwd: 8.260 | Bwd: 9.441 | Opt: 0.576 | GPU_Tot: 18.992
+[Autotune] {"version": 2, "step": 240, "wall_seconds": 16.692008265003096, "seed_nodes": 950370, "loss": 1.155123519897461, "all_losses_finite": true, "optimizer_steps": 239, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0250] Wall=16.8906s | Loss=1.1541
+[Profile] Avg ms/step | Load: 3.580 (Prep: 2.865, Struc: 0.296, Fetch: 0.419) | Fwd: 8.267 | Bwd: 9.451 | Opt: 0.574 | GPU_Tot: 19.007
+[Autotune] {"version": 2, "step": 250, "wall_seconds": 16.890613626979757, "seed_nodes": 991330, "loss": 1.1541048049926759, "all_losses_finite": true, "optimizer_steps": 249, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0260] Wall=17.1371s | Loss=1.1343
+[Profile] Avg ms/step | Load: 3.722 (Prep: 3.007, Struc: 0.296, Fetch: 0.420) | Fwd: 8.257 | Bwd: 9.437 | Opt: 0.576 | GPU_Tot: 18.986
+[Autotune] {"version": 2, "step": 260, "wall_seconds": 17.137114198005293, "seed_nodes": 1029023, "loss": 1.134310531616211, "all_losses_finite": true, "optimizer_steps": 259, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0270] Wall=17.3421s | Loss=1.1292
+[Profile] Avg ms/step | Load: 3.633 (Prep: 2.918, Struc: 0.296, Fetch: 0.420) | Fwd: 8.265 | Bwd: 9.448 | Opt: 0.575 | GPU_Tot: 19.004
+[Autotune] {"version": 2, "step": 270, "wall_seconds": 17.342065318021923, "seed_nodes": 1069983, "loss": 1.1291889190673827, "all_losses_finite": true, "optimizer_steps": 269, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0280] Wall=17.5869s | Loss=1.1426
+[Profile] Avg ms/step | Load: 3.755 (Prep: 3.040, Struc: 0.296, Fetch: 0.420) | Fwd: 8.256 | Bwd: 9.436 | Opt: 0.576 | GPU_Tot: 18.983
+[Autotune] {"version": 2, "step": 280, "wall_seconds": 17.5869398600189, "seed_nodes": 1107676, "loss": 1.1426162719726562, "all_losses_finite": true, "optimizer_steps": 279, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0290] Wall=17.7856s | Loss=1.1181
+[Profile] Avg ms/step | Load: 3.648 (Prep: 2.933, Struc: 0.296, Fetch: 0.420) | Fwd: 8.263 | Bwd: 9.444 | Opt: 0.575 | GPU_Tot: 18.998
+[Autotune] {"version": 2, "step": 290, "wall_seconds": 17.785600302973762, "seed_nodes": 1148636, "loss": 1.1181038856506347, "all_losses_finite": true, "optimizer_steps": 289, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0300] Wall=18.0268s | Loss=1.1127
+[Profile] Avg ms/step | Load: 3.746 (Prep: 3.031, Struc: 0.296, Fetch: 0.420) | Fwd: 8.254 | Bwd: 9.435 | Opt: 0.574 | GPU_Tot: 18.979
+[Autotune] {"version": 2, "step": 300, "wall_seconds": 18.026803967019077, "seed_nodes": 1186329, "loss": 1.1126763343811035, "all_losses_finite": true, "optimizer_steps": 299, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0310] Wall=18.2266s | Loss=1.1098
+[Profile] Avg ms/step | Load: 3.648 (Prep: 2.932, Struc: 0.296, Fetch: 0.420) | Fwd: 8.262 | Bwd: 9.444 | Opt: 0.575 | GPU_Tot: 18.997
+[Autotune] {"version": 2, "step": 310, "wall_seconds": 18.22660667897435, "seed_nodes": 1227289, "loss": 1.109842300415039, "all_losses_finite": true, "optimizer_steps": 309, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0320] Wall=18.4295s | Loss=1.1015
+[Profile] Avg ms/step | Load: 3.572 (Prep: 2.857, Struc: 0.295, Fetch: 0.420) | Fwd: 8.269 | Bwd: 9.451 | Opt: 0.574 | GPU_Tot: 19.009
+[Autotune] {"version": 2, "step": 320, "wall_seconds": 18.429540642013308, "seed_nodes": 1268249, "loss": 1.1015193939208985, "all_losses_finite": true, "optimizer_steps": 319, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0330] Wall=18.6672s | Loss=1.0979
+[Profile] Avg ms/step | Load: 3.649 (Prep: 2.933, Struc: 0.296, Fetch: 0.420) | Fwd: 8.262 | Bwd: 9.442 | Opt: 0.575 | GPU_Tot: 18.994
+[Autotune] {"version": 2, "step": 330, "wall_seconds": 18.667200042982586, "seed_nodes": 1305942, "loss": 1.0979374885559081, "all_losses_finite": true, "optimizer_steps": 329, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0340] Wall=18.8715s | Loss=1.1067
+[Profile] Avg ms/step | Load: 3.582 (Prep: 2.866, Struc: 0.296, Fetch: 0.420) | Fwd: 8.268 | Bwd: 9.449 | Opt: 0.574 | GPU_Tot: 19.007
+[Autotune] {"version": 2, "step": 340, "wall_seconds": 18.871472787985113, "seed_nodes": 1346902, "loss": 1.1067010879516601, "all_losses_finite": true, "optimizer_steps": 339, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0350] Wall=19.1181s | Loss=1.1026
+[Profile] Avg ms/step | Load: 3.681 (Prep: 2.965, Struc: 0.296, Fetch: 0.420) | Fwd: 8.261 | Bwd: 9.441 | Opt: 0.575 | GPU_Tot: 18.993
+[Autotune] {"version": 2, "step": 350, "wall_seconds": 19.118148574023508, "seed_nodes": 1384595, "loss": 1.10259952545166, "all_losses_finite": true, "optimizer_steps": 349, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0360] Wall=19.3236s | Loss=1.0962
+[Profile] Avg ms/step | Load: 3.620 (Prep: 2.904, Struc: 0.296, Fetch: 0.420) | Fwd: 8.267 | Bwd: 9.448 | Opt: 0.575 | GPU_Tot: 19.006
+[Autotune] {"version": 2, "step": 360, "wall_seconds": 19.3236326900078, "seed_nodes": 1425555, "loss": 1.096186637878418, "all_losses_finite": true, "optimizer_steps": 359, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0370] Wall=19.5540s | Loss=1.0802
+[Profile] Avg ms/step | Load: 3.667 (Prep: 2.951, Struc: 0.296, Fetch: 0.420) | Fwd: 8.259 | Bwd: 9.440 | Opt: 0.574 | GPU_Tot: 18.989
+[Autotune] {"version": 2, "step": 370, "wall_seconds": 19.553996809001546, "seed_nodes": 1463248, "loss": 1.0801935195922852, "all_losses_finite": true, "optimizer_steps": 369, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0380] Wall=19.7542s | Loss=1.0800
+[Profile] Avg ms/step | Load: 3.592 (Prep: 2.876, Struc: 0.296, Fetch: 0.420) | Fwd: 8.266 | Bwd: 9.447 | Opt: 0.575 | GPU_Tot: 19.003
+[Autotune] {"version": 2, "step": 380, "wall_seconds": 19.754154095018748, "seed_nodes": 1504208, "loss": 1.0799650192260741, "all_losses_finite": true, "optimizer_steps": 379, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0390] Wall=19.9570s | Loss=1.0690
+[Profile] Avg ms/step | Load: 3.532 (Prep: 2.816, Struc: 0.296, Fetch: 0.420) | Fwd: 8.271 | Bwd: 9.454 | Opt: 0.573 | GPU_Tot: 19.013
+[Autotune] {"version": 2, "step": 390, "wall_seconds": 19.957020216970704, "seed_nodes": 1545168, "loss": 1.0689827919006347, "all_losses_finite": true, "optimizer_steps": 389, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0400] Wall=20.2080s | Loss=1.0680
+[Profile] Avg ms/step | Load: 3.629 (Prep: 2.912, Struc: 0.296, Fetch: 0.421) | Fwd: 8.266 | Bwd: 9.446 | Opt: 0.576 | GPU_Tot: 19.004
+[Autotune] {"version": 2, "step": 400, "wall_seconds": 20.20795177097898, "seed_nodes": 1582861, "loss": 1.0679866790771484, "all_losses_finite": true, "optimizer_steps": 399, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0410] Wall=20.4122s | Loss=1.0695
+[Profile] Avg ms/step | Load: 3.574 (Prep: 2.858, Struc: 0.296, Fetch: 0.420) | Fwd: 8.271 | Bwd: 9.452 | Opt: 0.576 | GPU_Tot: 19.014
+[Autotune] {"version": 2, "step": 410, "wall_seconds": 20.41223788599018, "seed_nodes": 1623821, "loss": 1.0694781303405763, "all_losses_finite": true, "optimizer_steps": 409, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0420] Wall=20.6490s | Loss=1.0740
+[Profile] Avg ms/step | Load: 3.630 (Prep: 2.913, Struc: 0.296, Fetch: 0.421) | Fwd: 8.265 | Bwd: 9.445 | Opt: 0.576 | GPU_Tot: 19.003
+[Autotune] {"version": 2, "step": 420, "wall_seconds": 20.64904435200151, "seed_nodes": 1661514, "loss": 1.0740012168884276, "all_losses_finite": true, "optimizer_steps": 419, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0430] Wall=20.8541s | Loss=1.0571
+[Profile] Avg ms/step | Load: 3.581 (Prep: 2.864, Struc: 0.296, Fetch: 0.421) | Fwd: 8.270 | Bwd: 9.450 | Opt: 0.576 | GPU_Tot: 19.012
+[Autotune] {"version": 2, "step": 430, "wall_seconds": 20.854103280988056, "seed_nodes": 1702474, "loss": 1.057146167755127, "all_losses_finite": true, "optimizer_steps": 429, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0440] Wall=21.0908s | Loss=1.0630
+[Profile] Avg ms/step | Load: 3.633 (Prep: 2.916, Struc: 0.296, Fetch: 0.421) | Fwd: 8.265 | Bwd: 9.444 | Opt: 0.577 | GPU_Tot: 19.002
+[Autotune] {"version": 2, "step": 440, "wall_seconds": 21.09083333896706, "seed_nodes": 1740167, "loss": 1.062983512878418, "all_losses_finite": true, "optimizer_steps": 439, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0450] Wall=21.2902s | Loss=1.0527
+[Profile] Avg ms/step | Load: 3.571 (Prep: 2.854, Struc: 0.296, Fetch: 0.421) | Fwd: 8.270 | Bwd: 9.450 | Opt: 0.577 | GPU_Tot: 19.013
+[Autotune] {"version": 2, "step": 450, "wall_seconds": 21.29021925997222, "seed_nodes": 1781127, "loss": 1.0526960372924805, "all_losses_finite": true, "optimizer_steps": 449, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0460] Wall=21.4832s | Loss=1.0367
+[Profile] Avg ms/step | Load: 3.520 (Prep: 2.804, Struc: 0.296, Fetch: 0.421) | Fwd: 8.264 | Bwd: 9.443 | Opt: 0.575 | GPU_Tot: 18.999
+[Autotune] {"version": 2, "step": 460, "wall_seconds": 21.483247914991807, "seed_nodes": 1818820, "loss": 1.0366996765136718, "all_losses_finite": true, "optimizer_steps": 459, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0470] Wall=21.7366s | Loss=1.0461
+[Profile] Avg ms/step | Load: 3.587 (Prep: 2.870, Struc: 0.296, Fetch: 0.422) | Fwd: 8.269 | Bwd: 9.448 | Opt: 0.577 | GPU_Tot: 19.011
+[Autotune] {"version": 2, "step": 470, "wall_seconds": 21.736600616015494, "seed_nodes": 1859780, "loss": 1.0460574150085449, "all_losses_finite": true, "optimizer_steps": 469, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0480] Wall=21.9407s | Loss=1.0388
+[Profile] Avg ms/step | Load: 3.541 (Prep: 2.824, Struc: 0.296, Fetch: 0.421) | Fwd: 8.273 | Bwd: 9.454 | Opt: 0.576 | GPU_Tot: 19.020
+[Autotune] {"version": 2, "step": 480, "wall_seconds": 21.94072002900066, "seed_nodes": 1900740, "loss": 1.0387581825256347, "all_losses_finite": true, "optimizer_steps": 479, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0490] Wall=22.1888s | Loss=1.0283
+[Profile] Avg ms/step | Load: 3.614 (Prep: 2.897, Struc: 0.296, Fetch: 0.421) | Fwd: 8.268 | Bwd: 9.448 | Opt: 0.577 | GPU_Tot: 19.010
+[Autotune] {"version": 2, "step": 490, "wall_seconds": 22.188798821007367, "seed_nodes": 1938433, "loss": 1.0282511711120605, "all_losses_finite": true, "optimizer_steps": 489, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0500] Wall=22.3944s | Loss=1.0308
+[Profile] Avg ms/step | Load: 3.572 (Prep: 2.855, Struc: 0.296, Fetch: 0.421) | Fwd: 8.273 | Bwd: 9.453 | Opt: 0.577 | GPU_Tot: 19.020
+[Autotune] {"version": 2, "step": 500, "wall_seconds": 22.39437694096705, "seed_nodes": 1979393, "loss": 1.0307731628417969, "all_losses_finite": true, "optimizer_steps": 499, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0510] Wall=22.6315s | Loss=1.0108
+[Profile] Avg ms/step | Load: 3.618 (Prep: 2.901, Struc: 0.296, Fetch: 0.421) | Fwd: 8.268 | Bwd: 9.447 | Opt: 0.577 | GPU_Tot: 19.010
+[Autotune] {"version": 2, "step": 510, "wall_seconds": 22.6315003070049, "seed_nodes": 2017086, "loss": 1.0108434677124023, "all_losses_finite": true, "optimizer_steps": 509, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0520] Wall=22.8309s | Loss=1.0305
+[Profile] Avg ms/step | Load: 3.566 (Prep: 2.849, Struc: 0.296, Fetch: 0.421) | Fwd: 8.272 | Bwd: 9.452 | Opt: 0.577 | GPU_Tot: 19.018
+[Autotune] {"version": 2, "step": 520, "wall_seconds": 22.830895300023258, "seed_nodes": 2058046, "loss": 1.0305177688598632, "all_losses_finite": true, "optimizer_steps": 519, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0530] Wall=23.0866s | Loss=1.0332
+[Profile] Avg ms/step | Load: 3.650 (Prep: 2.933, Struc: 0.296, Fetch: 0.421) | Fwd: 8.267 | Bwd: 9.446 | Opt: 0.577 | GPU_Tot: 19.007
+[Autotune] {"version": 2, "step": 530, "wall_seconds": 23.08664781297557, "seed_nodes": 2095739, "loss": 1.0332374572753906, "all_losses_finite": true, "optimizer_steps": 529, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0540] Wall=23.2868s | Loss=1.0184
+[Profile] Avg ms/step | Load: 3.599 (Prep: 2.882, Struc: 0.296, Fetch: 0.421) | Fwd: 8.271 | Bwd: 9.451 | Opt: 0.578 | GPU_Tot: 19.016
+[Autotune] {"version": 2, "step": 540, "wall_seconds": 23.286823211004958, "seed_nodes": 2136699, "loss": 1.0183771133422852, "all_losses_finite": true, "optimizer_steps": 539, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0550] Wall=23.4916s | Loss=1.0343
+[Profile] Avg ms/step | Load: 3.561 (Prep: 2.845, Struc: 0.296, Fetch: 0.421) | Fwd: 8.275 | Bwd: 9.455 | Opt: 0.577 | GPU_Tot: 19.023
+[Autotune] {"version": 2, "step": 550, "wall_seconds": 23.491569880978204, "seed_nodes": 2177659, "loss": 1.0343057632446289, "all_losses_finite": true, "optimizer_steps": 549, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0560] Wall=23.7343s | Loss=1.0341
+[Profile] Avg ms/step | Load: 3.613 (Prep: 2.897, Struc: 0.296, Fetch: 0.421) | Fwd: 8.271 | Bwd: 9.450 | Opt: 0.578 | GPU_Tot: 19.015
+[Autotune] {"version": 2, "step": 560, "wall_seconds": 23.734343554009683, "seed_nodes": 2215352, "loss": 1.0340697288513183, "all_losses_finite": true, "optimizer_steps": 559, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0570] Wall=23.9345s | Loss=1.0116
+[Profile] Avg ms/step | Load: 3.568 (Prep: 2.852, Struc: 0.296, Fetch: 0.421) | Fwd: 8.274 | Bwd: 9.454 | Opt: 0.577 | GPU_Tot: 19.022
+[Autotune] {"version": 2, "step": 570, "wall_seconds": 23.934545324998908, "seed_nodes": 2256312, "loss": 1.0115610122680665, "all_losses_finite": true, "optimizer_steps": 569, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0580] Wall=24.1720s | Loss=1.0133
+[Profile] Avg ms/step | Load: 3.609 (Prep: 2.892, Struc: 0.296, Fetch: 0.421) | Fwd: 8.270 | Bwd: 9.449 | Opt: 0.578 | GPU_Tot: 19.013
+[Autotune] {"version": 2, "step": 580, "wall_seconds": 24.171962663007434, "seed_nodes": 2294005, "loss": 1.0133296966552734, "all_losses_finite": true, "optimizer_steps": 579, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0590] Wall=24.3779s | Loss=0.9995
+[Profile] Avg ms/step | Load: 3.575 (Prep: 2.859, Struc: 0.296, Fetch: 0.421) | Fwd: 8.273 | Bwd: 9.453 | Opt: 0.577 | GPU_Tot: 19.020
+[Autotune] {"version": 2, "step": 590, "wall_seconds": 24.377913195989095, "seed_nodes": 2334965, "loss": 0.9994915962219239, "all_losses_finite": true, "optimizer_steps": 589, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0600] Wall=24.6193s | Loss=1.0053
+[Profile] Avg ms/step | Load: 3.622 (Prep: 2.905, Struc: 0.296, Fetch: 0.421) | Fwd: 8.269 | Bwd: 9.448 | Opt: 0.577 | GPU_Tot: 19.011
+[Autotune] {"version": 2, "step": 600, "wall_seconds": 24.61932058900129, "seed_nodes": 2372658, "loss": 1.0053059577941894, "all_losses_finite": true, "optimizer_steps": 599, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0610] Wall=24.8188s | Loss=1.0101
+[Profile] Avg ms/step | Load: 3.577 (Prep: 2.861, Struc: 0.296, Fetch: 0.421) | Fwd: 8.273 | Bwd: 9.452 | Opt: 0.577 | GPU_Tot: 19.019
+[Autotune] {"version": 2, "step": 610, "wall_seconds": 24.818783165013883, "seed_nodes": 2413618, "loss": 1.0101137161254883, "all_losses_finite": true, "optimizer_steps": 609, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0620] Wall=25.0211s | Loss=1.0007
+[Profile] Avg ms/step | Load: 3.542 (Prep: 2.825, Struc: 0.296, Fetch: 0.421) | Fwd: 8.275 | Bwd: 9.456 | Opt: 0.577 | GPU_Tot: 19.024
+[Autotune] {"version": 2, "step": 620, "wall_seconds": 25.021100884012412, "seed_nodes": 2454578, "loss": 1.0007240295410156, "all_losses_finite": true, "optimizer_steps": 619, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0630] Wall=25.2547s | Loss=1.0153
+[Profile] Avg ms/step | Load: 3.574 (Prep: 2.857, Struc: 0.296, Fetch: 0.421) | Fwd: 8.271 | Bwd: 9.450 | Opt: 0.577 | GPU_Tot: 19.015
+[Autotune] {"version": 2, "step": 630, "wall_seconds": 25.254712762020063, "seed_nodes": 2492271, "loss": 1.0152955055236816, "all_losses_finite": true, "optimizer_steps": 629, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0640] Wall=25.4612s | Loss=0.9988
+[Profile] Avg ms/step | Load: 3.544 (Prep: 2.828, Struc: 0.296, Fetch: 0.421) | Fwd: 8.275 | Bwd: 9.454 | Opt: 0.576 | GPU_Tot: 19.022
+[Autotune] {"version": 2, "step": 640, "wall_seconds": 25.461234271991998, "seed_nodes": 2533231, "loss": 0.9987751007080078, "all_losses_finite": true, "optimizer_steps": 639, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0650] Wall=25.7125s | Loss=0.9976
+[Profile] Avg ms/step | Load: 3.603 (Prep: 2.887, Struc: 0.296, Fetch: 0.421) | Fwd: 8.271 | Bwd: 9.450 | Opt: 0.578 | GPU_Tot: 19.014
+[Autotune] {"version": 2, "step": 650, "wall_seconds": 25.712487965007313, "seed_nodes": 2570924, "loss": 0.9976275444030762, "all_losses_finite": true, "optimizer_steps": 649, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0660] Wall=25.9180s | Loss=0.9916
+[Profile] Avg ms/step | Load: 3.573 (Prep: 2.856, Struc: 0.296, Fetch: 0.421) | Fwd: 8.274 | Bwd: 9.453 | Opt: 0.577 | GPU_Tot: 19.021
+[Autotune] {"version": 2, "step": 660, "wall_seconds": 25.918007493019104, "seed_nodes": 2611884, "loss": 0.9915586471557617, "all_losses_finite": true, "optimizer_steps": 659, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0670] Wall=26.1626s | Loss=0.9927
+[Profile] Avg ms/step | Load: 3.619 (Prep: 2.903, Struc: 0.296, Fetch: 0.421) | Fwd: 8.270 | Bwd: 9.449 | Opt: 0.578 | GPU_Tot: 19.013
+[Autotune] {"version": 2, "step": 670, "wall_seconds": 26.162583421973977, "seed_nodes": 2649577, "loss": 0.9926611900329589, "all_losses_finite": true, "optimizer_steps": 669, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0680] Wall=26.3621s | Loss=0.9873
+[Profile] Avg ms/step | Load: 3.580 (Prep: 2.863, Struc: 0.296, Fetch: 0.421) | Fwd: 8.273 | Bwd: 9.453 | Opt: 0.577 | GPU_Tot: 19.019
+[Autotune] {"version": 2, "step": 680, "wall_seconds": 26.362125511979684, "seed_nodes": 2690537, "loss": 0.9873302459716797, "all_losses_finite": true, "optimizer_steps": 679, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0690] Wall=26.5552s | Loss=0.9874
+[Profile] Avg ms/step | Load: 3.547 (Prep: 2.831, Struc: 0.296, Fetch: 0.420) | Fwd: 8.269 | Bwd: 9.449 | Opt: 0.577 | GPU_Tot: 19.010
+[Autotune] {"version": 2, "step": 690, "wall_seconds": 26.555217051994987, "seed_nodes": 2728230, "loss": 0.9874258995056152, "all_losses_finite": true, "optimizer_steps": 689, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0700] Wall=26.8133s | Loss=0.9806
+[Profile] Avg ms/step | Load: 3.597 (Prep: 2.880, Struc: 0.296, Fetch: 0.421) | Fwd: 8.273 | Bwd: 9.452 | Opt: 0.578 | GPU_Tot: 19.019
+[Autotune] {"version": 2, "step": 700, "wall_seconds": 26.813262609008234, "seed_nodes": 2769190, "loss": 0.9806095123291015, "all_losses_finite": true, "optimizer_steps": 699, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0710] Wall=27.0169s | Loss=0.9728
+[Profile] Avg ms/step | Load: 3.567 (Prep: 2.850, Struc: 0.296, Fetch: 0.421) | Fwd: 8.275 | Bwd: 9.456 | Opt: 0.577 | GPU_Tot: 19.024
+[Autotune] {"version": 2, "step": 710, "wall_seconds": 27.016942984017078, "seed_nodes": 2810150, "loss": 0.9727939605712891, "all_losses_finite": true, "optimizer_steps": 709, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0720] Wall=27.2606s | Loss=0.9830
+[Profile] Avg ms/step | Load: 3.608 (Prep: 2.891, Struc: 0.296, Fetch: 0.421) | Fwd: 8.272 | Bwd: 9.452 | Opt: 0.578 | GPU_Tot: 19.018
+[Autotune] {"version": 2, "step": 720, "wall_seconds": 27.26061075698817, "seed_nodes": 2847843, "loss": 0.9830092430114746, "all_losses_finite": true, "optimizer_steps": 719, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0730] Wall=27.4669s | Loss=0.9787
+[Profile] Avg ms/step | Load: 3.581 (Prep: 2.865, Struc: 0.296, Fetch: 0.421) | Fwd: 8.275 | Bwd: 9.455 | Opt: 0.577 | GPU_Tot: 19.023
+[Autotune] {"version": 2, "step": 730, "wall_seconds": 27.46687684301287, "seed_nodes": 2888803, "loss": 0.9786964416503906, "all_losses_finite": true, "optimizer_steps": 729, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0740] Wall=27.7174s | Loss=0.9800
+[Profile] Avg ms/step | Load: 3.631 (Prep: 2.915, Struc: 0.296, Fetch: 0.420) | Fwd: 8.272 | Bwd: 9.451 | Opt: 0.578 | GPU_Tot: 19.017
+[Autotune] {"version": 2, "step": 740, "wall_seconds": 27.71739919297397, "seed_nodes": 2926496, "loss": 0.9799997329711914, "all_losses_finite": true, "optimizer_steps": 739, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0750] Wall=27.9166s | Loss=0.9787
+[Profile] Avg ms/step | Load: 3.595 (Prep: 2.879, Struc: 0.296, Fetch: 0.420) | Fwd: 8.274 | Bwd: 9.454 | Opt: 0.577 | GPU_Tot: 19.022
+[Autotune] {"version": 2, "step": 750, "wall_seconds": 27.91656088497257, "seed_nodes": 2967456, "loss": 0.9787216186523438, "all_losses_finite": true, "optimizer_steps": 749, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0760] Wall=28.1670s | Loss=0.9857
+[Profile] Avg ms/step | Load: 3.644 (Prep: 2.929, Struc: 0.296, Fetch: 0.420) | Fwd: 8.271 | Bwd: 9.450 | Opt: 0.577 | GPU_Tot: 19.014
+[Autotune] {"version": 2, "step": 760, "wall_seconds": 28.16700448701158, "seed_nodes": 3005149, "loss": 0.9857216835021972, "all_losses_finite": true, "optimizer_steps": 759, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0770] Wall=28.3672s | Loss=0.9685
+[Profile] Avg ms/step | Load: 3.610 (Prep: 2.894, Struc: 0.296, Fetch: 0.420) | Fwd: 8.274 | Bwd: 9.454 | Opt: 0.577 | GPU_Tot: 19.021
+[Autotune] {"version": 2, "step": 770, "wall_seconds": 28.367237486003432, "seed_nodes": 3046109, "loss": 0.9684549331665039, "all_losses_finite": true, "optimizer_steps": 769, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0780] Wall=28.5707s | Loss=0.9613
+[Profile] Avg ms/step | Load: 3.582 (Prep: 2.866, Struc: 0.295, Fetch: 0.420) | Fwd: 8.276 | Bwd: 9.457 | Opt: 0.577 | GPU_Tot: 19.026
+[Autotune] {"version": 2, "step": 780, "wall_seconds": 28.570707808015868, "seed_nodes": 3087069, "loss": 0.9612935066223145, "all_losses_finite": true, "optimizer_steps": 779, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0790] Wall=28.8223s | Loss=0.9846
+[Profile] Avg ms/step | Load: 3.630 (Prep: 2.914, Struc: 0.296, Fetch: 0.420) | Fwd: 8.273 | Bwd: 9.453 | Opt: 0.578 | GPU_Tot: 19.019
+[Autotune] {"version": 2, "step": 790, "wall_seconds": 28.82233878702391, "seed_nodes": 3124762, "loss": 0.9845808029174805, "all_losses_finite": true, "optimizer_steps": 789, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0800] Wall=29.0272s | Loss=0.9737
+[Profile] Avg ms/step | Load: 3.604 (Prep: 2.889, Struc: 0.296, Fetch: 0.420) | Fwd: 8.275 | Bwd: 9.456 | Opt: 0.577 | GPU_Tot: 19.024
+[Autotune] {"version": 2, "step": 800, "wall_seconds": 29.02724666602444, "seed_nodes": 3165722, "loss": 0.9737218856811524, "all_losses_finite": true, "optimizer_steps": 799, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0810] Wall=29.2684s | Loss=0.9717
+[Profile] Avg ms/step | Load: 3.638 (Prep: 2.922, Struc: 0.296, Fetch: 0.420) | Fwd: 8.272 | Bwd: 9.452 | Opt: 0.577 | GPU_Tot: 19.017
+[Autotune] {"version": 2, "step": 810, "wall_seconds": 29.268427675007842, "seed_nodes": 3203415, "loss": 0.9717267036437989, "all_losses_finite": true, "optimizer_steps": 809, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0820] Wall=29.4747s | Loss=0.9620
+[Profile] Avg ms/step | Load: 3.614 (Prep: 2.898, Struc: 0.296, Fetch: 0.420) | Fwd: 8.275 | Bwd: 9.455 | Opt: 0.577 | GPU_Tot: 19.023
+[Autotune] {"version": 2, "step": 820, "wall_seconds": 29.4746525749797, "seed_nodes": 3244375, "loss": 0.9620128631591797, "all_losses_finite": true, "optimizer_steps": 819, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0830] Wall=29.7197s | Loss=0.9660
+[Profile] Avg ms/step | Load: 3.651 (Prep: 2.935, Struc: 0.296, Fetch: 0.420) | Fwd: 8.272 | Bwd: 9.451 | Opt: 0.578 | GPU_Tot: 19.016
+[Autotune] {"version": 2, "step": 830, "wall_seconds": 29.71967959497124, "seed_nodes": 3282068, "loss": 0.9659528732299805, "all_losses_finite": true, "optimizer_steps": 829, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+[Step=0840] Wall=29.9190s | Loss=0.9669
+[Profile] Avg ms/step | Load: 3.619 (Prep: 2.904, Struc: 0.296, Fetch: 0.420) | Fwd: 8.274 | Bwd: 9.454 | Opt: 0.577 | GPU_Tot: 19.021
+[Autotune] {"version": 2, "step": 840, "wall_seconds": 29.918967085017357, "seed_nodes": 3323028, "loss": 0.9668696403503418, "all_losses_finite": true, "optimizer_steps": 839, "skipped_optimizer_steps": 1, "loss_scale": 16384.0}
+------------------------------------------------------------
+Training Completed. Total Steps: 840 (Active: 800)
+Avg Breakdown (ms): Load=3.619 [Prep:2.904, Struc:0.296, Fetch:0.420], Fwd=8.274, Bwd=9.454, Opt=0.577
+------------------------------------------------------------

@@ -1,0 +1,78 @@
+{
+  "definition": "Equal-weight run mean and sample standard deviation (ddof=1); includes unstable finite runs. Missing runs are not zero.",
+  "runs": [
+    {
+      "job_ids": "",
+      "metric": "seed_nodes_per_second",
+      "num_workers": 24,
+      "reason": "Half-window stability check failed or midpoint missing",
+      "repeat": 1,
+      "status": "unstable",
+      "throughput": 8980.659431346727,
+      "training_window_seconds": 352.14062220882624,
+      "trial_id": "sensitivity_w24_p2_s1_r1"
+    },
+    {
+      "job_ids": "",
+      "metric": "seed_nodes_per_second",
+      "num_workers": 24,
+      "reason": "Half-window stability check failed or midpoint missing",
+      "repeat": 2,
+      "status": "unstable",
+      "throughput": 9009.449406967275,
+      "training_window_seconds": 351.01534590497613,
+      "trial_id": "sensitivity_w24_p2_s1_r2"
+    },
+    {
+      "job_ids": "",
+      "metric": "seed_nodes_per_second",
+      "num_workers": 24,
+      "reason": "Half-window stability check failed or midpoint missing",
+      "repeat": 3,
+      "status": "unstable",
+      "throughput": 8974.30309671121,
+      "training_window_seconds": 352.3900369666517,
+      "trial_id": "sensitivity_w24_p2_s1_r3"
+    }
+  ],
+  "settings": {
+    "backend": "fixed_shape",
+    "base_config": "$REPO_ROOT/src/cerebras/modelzoo/models/gnn/configs/fixed_shape_gpu/arxiv.yaml",
+    "cache": "none",
+    "compile": true,
+    "confirm_steps": 800,
+    "continue_on_failure": true,
+    "dataset": "arxiv",
+    "job_label_study": null,
+    "job_time_sec": 7200,
+    "measure_steps": 800,
+    "mode": "sensitivity",
+    "persistent_workers": true,
+    "prefetch_factor": 2,
+    "prefetch_factors": [],
+    "repeats": 3,
+    "stability_tolerance_percent": 2.0,
+    "top_k": 2,
+    "trial_timeout_sec": 1800,
+    "warmup_steps": 40,
+    "workers": [
+      24
+    ],
+    "wsc_workers": null
+  },
+  "status": "completed",
+  "summary": [
+    {
+      "failed_or_invalid_runs": 0,
+      "mean": 8988.137311675071,
+      "measured_runs": 3,
+      "metric": "seed_nodes_per_second",
+      "not_run": 0,
+      "num_workers": 24,
+      "planned_runs": 3,
+      "running_runs": 0,
+      "sample_stddev": 18.72844899631739,
+      "unstable_runs": 3
+    }
+  ]
+}

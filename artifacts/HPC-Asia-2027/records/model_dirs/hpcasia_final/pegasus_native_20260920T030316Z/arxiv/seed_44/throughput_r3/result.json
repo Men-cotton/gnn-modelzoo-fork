@@ -1,0 +1,182 @@
+{
+  "client_status": "completed",
+  "client_wall_seconds": 73.76695090599242,
+  "command": [
+    "$REPO_ROOT/.venv/bin/python3",
+    "-u",
+    "$REPO_ROOT/src/cerebras/modelzoo/models/gnn/pyg_graphsage.py",
+    "--config",
+    "$REPO_ROOT/model_dirs/hpcasia_final/pegasus_native_20260920T030316Z/arxiv/seed_44/throughput_r3/params.yaml"
+  ],
+  "config": {
+    "runconfig": {
+      "python_paths": [
+        "$MODELZOO_ROOT/../.."
+      ]
+    },
+    "trainer": {
+      "fit": {
+        "ckpt_path": null,
+        "train_dataloader": {
+          "batch_size": 4096,
+          "cache_fraction": 0.0,
+          "data_processor": "GNNDataProcessor",
+          "dataset": "ogbn_arxiv",
+          "dataset_profiles": {
+            "ogbn_arxiv": {
+              "data_dir": "$MODELZOO_ROOT/models/gnn/data/datasets",
+              "dataset_name": "ogbn-arxiv",
+              "pad_node_id": 0
+            }
+          },
+          "drop_last_batch": false,
+          "fanouts": [
+            15,
+            10,
+            5
+          ],
+          "measure_batch_accounting": true,
+          "num_workers": 4,
+          "persistent_workers": true,
+          "pin_memory": true,
+          "prefetch_factor": 2,
+          "sampler_seed": 44,
+          "sampling_mode": "neighbor",
+          "shuffle": true,
+          "split": "train",
+          "static_batch_cache_size": 0,
+          "use_fake_data": false,
+          "worker_diagnostics": {
+            "enabled": false
+          }
+        },
+        "val_dataloader": null
+      },
+      "init": {
+        "autorestart": {
+          "max_num_restarts": 0
+        },
+        "benchmark": {
+          "warmup_steps": 40
+        },
+        "checkpoint": {
+          "autoload_last_checkpoint": false,
+          "save_initial_checkpoint": false,
+          "steps": null
+        },
+        "logging": {
+          "log_steps": 10
+        },
+        "loop": {
+          "eval_frequency": null,
+          "grad_accum_steps": 1,
+          "max_steps": 840,
+          "num_epochs": null,
+          "num_steps": null,
+          "steps_per_epoch": null
+        },
+        "model": {
+          "architecture": {
+            "aggregator": "mean",
+            "dropout": 0.5,
+            "hidden_dim": 1024,
+            "n_class": 40,
+            "n_feat": 128,
+            "num_layers": 3,
+            "type": "graphsage"
+          },
+          "name": "gnn",
+          "task": {
+            "compute_eval_metrics": false,
+            "disable_log_softmax": false,
+            "to_float16": true
+          }
+        },
+        "model_dir": "$REPO_ROOT/model_dirs/hpcasia_final/pegasus_native_20260920T030316Z/arxiv/seed_44/throughput_r3/model",
+        "optimizer": {
+          "AdamW": {
+            "betas": [
+              0.9,
+              0.999
+            ],
+            "eps": 1e-06,
+            "learning_rate": 0.003,
+            "params": [],
+            "weight_decay": 0.0005
+          }
+        },
+        "precision": {
+          "enabled": true,
+          "fp16_type": "float16",
+          "initial_loss_scale": 32768.0,
+          "loss_scaling_factor": "dynamic",
+          "steps_per_increase": 2000
+        },
+        "seed": 44
+      },
+      "validate": null,
+      "validate_all": null
+    }
+  },
+  "config_sha256": "630bc8c648715c516bde5d7d914b4ba77abbab8b5dc3e3c5ce4d3f5a87518b32",
+  "directory": "$REPO_ROOT/model_dirs/hpcasia_final/pegasus_native_20260920T030316Z/arxiv/seed_44/throughput_r3",
+  "failure_reason": null,
+  "finished_at": "2026-09-20T03:06:01.194734+00:00",
+  "id": "seed_44/throughput_r3",
+  "job_ids": [],
+  "kind": "throughput",
+  "measurement": {
+    "count": 3162455,
+    "definition": "actual trained seed nodes / synchronized training-window wall time",
+    "end_step": 840,
+    "half_window_check": {
+      "first_half": {
+        "count": 1579594,
+        "end_step": 440,
+        "measured_steps": 400,
+        "metric": "seed_nodes_per_second",
+        "optimizer_steps": 400,
+        "optimizer_update_check": "recorded",
+        "seed_nodes": 1579594,
+        "seed_nodes_per_second": 106346.33176370748,
+        "skipped_optimizer_steps": 0,
+        "start_step": 40,
+        "throughput": 106346.33176370748,
+        "training_window_seconds": 14.853300285991281
+      },
+      "interpretation": "screening heuristic, not proof of stationarity",
+      "second_half": {
+        "count": 1582861,
+        "end_step": 840,
+        "measured_steps": 400,
+        "metric": "seed_nodes_per_second",
+        "optimizer_steps": 400,
+        "optimizer_update_check": "recorded",
+        "seed_nodes": 1582861,
+        "seed_nodes_per_second": 106497.42348976657,
+        "skipped_optimizer_steps": 0,
+        "start_step": 440,
+        "throughput": 106497.42348976657,
+        "training_window_seconds": 14.86290417300188
+      },
+      "symmetric_difference_percent": 0.1419743096330546,
+      "tolerance_percent": 2.0,
+      "within_tolerance": true
+    },
+    "measured_steps": 800,
+    "metric": "seed_nodes_per_second",
+    "optimizer_steps": 800,
+    "optimizer_update_check": "recorded",
+    "seed_nodes": 3162455,
+    "seed_nodes_per_second": 106421.9020421678,
+    "skipped_optimizer_steps": 0,
+    "start_step": 40,
+    "throughput": 106421.9020421678,
+    "training_window_seconds": 29.71620445899316
+  },
+  "repeat": 3,
+  "returncode": 0,
+  "seed": 44,
+  "started_at": "2026-09-20T03:04:47.424693+00:00",
+  "status": "completed"
+}

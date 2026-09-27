@@ -1,0 +1,137 @@
+{
+  "client_status": "failed",
+  "command": [
+    "uv",
+    "run",
+    "--no-sync",
+    "--",
+    "cszoo",
+    "fit",
+    "$REPO_ROOT/model_dirs/hpcasia_r04/campaign_20260918T032805.576636Z/diagnostic_w12/params.yaml",
+    "--target_device",
+    "CSX",
+    "--model_dir",
+    "$REPO_ROOT/model_dirs/hpcasia_r04/campaign_20260918T032805.576636Z/diagnostic_w12/model"
+  ],
+  "config": {
+    "runconfig": {
+      "python_paths": [
+        "$MODELZOO_ROOT/../.."
+      ]
+    },
+    "trainer": {
+      "fit": {
+        "ckpt_path": null,
+        "train_dataloader": {
+          "batch_size": 4096,
+          "cache_fraction": null,
+          "data_processor": "GNNDataProcessor",
+          "dataset": "ogbn_arxiv",
+          "dataset_profiles": {
+            "ogbn_arxiv": {
+              "data_dir": "$MODELZOO_ROOT/models/gnn/data/datasets",
+              "dataset_name": "ogbn-arxiv",
+              "pad_node_id": 0
+            }
+          },
+          "drop_last_batch": false,
+          "fanouts": [
+            15,
+            10,
+            5
+          ],
+          "num_workers": 12,
+          "persistent_workers": true,
+          "pin_memory": true,
+          "prefetch_factor": 2,
+          "sampler_seed": 42,
+          "sampling_mode": "neighbor",
+          "shuffle": true,
+          "split": "train",
+          "static_batch_cache_size": 0,
+          "use_fake_data": false,
+          "worker_diagnostics": {
+            "enabled": true,
+            "max_batches": 80,
+            "max_snapshots": 120,
+            "output_dir": "$REPO_ROOT/model_dirs/hpcasia_r04/campaign_20260918T032805.576636Z/diagnostic_w12/worker_diagnostics",
+            "resource_monitor": true,
+            "resource_monitor_pss": true,
+            "snapshot_interval_seconds": 5.0
+          }
+        },
+        "val_dataloader": null
+      },
+      "init": {
+        "backend": {
+          "backend_type": "CSX",
+          "cluster_config": {
+            "job_time_sec": 7200,
+            "num_csx": 1,
+            "num_workers_per_csx": 1
+          }
+        },
+        "checkpoint": {
+          "autoload_last_checkpoint": false,
+          "save_initial_checkpoint": false,
+          "steps": null
+        },
+        "logging": {
+          "log_steps": 10
+        },
+        "loop": {
+          "eval_frequency": null,
+          "max_steps": 80,
+          "num_epochs": null,
+          "num_steps": null,
+          "steps_per_epoch": null
+        },
+        "model": {
+          "architecture": {
+            "aggregator": "mean",
+            "dropout": 0.5,
+            "hidden_dim": 1024,
+            "n_class": 40,
+            "n_feat": 128,
+            "num_layers": 3,
+            "type": "graphsage"
+          },
+          "name": "gnn",
+          "task": {
+            "compute_eval_metrics": false,
+            "disable_log_softmax": false,
+            "to_float16": true
+          }
+        },
+        "model_dir": "$REPO_ROOT/model_dirs/hpcasia_r04/campaign_20260918T032805.576636Z/diagnostic_w12/model",
+        "optimizer": {
+          "AdamW": {
+            "learning_rate": 0.003,
+            "params": [],
+            "weight_decay": 0.0005
+          }
+        },
+        "precision": {
+          "enabled": true,
+          "fp16_type": "float16",
+          "loss_scaling_factor": "dynamic"
+        },
+        "seed": 42
+      },
+      "validate": null,
+      "validate_all": null
+    }
+  },
+  "config_sha256": "28a7e4327a619e9d9252b8e238d56337844f6389436d0c37acf83425988aad36",
+  "control": null,
+  "directory": "$REPO_ROOT/model_dirs/hpcasia_r04/campaign_20260918T032805.576636Z/diagnostic_w12",
+  "failure_reason": "Client exited with 1",
+  "id": "diagnostic_w12",
+  "kind": "diagnostic",
+  "repeat": 1,
+  "returncode": 1,
+  "started_at": "2026-09-18T12:23:51.707959+00:00",
+  "status": "failed",
+  "trials": 1,
+  "workers": 12
+}

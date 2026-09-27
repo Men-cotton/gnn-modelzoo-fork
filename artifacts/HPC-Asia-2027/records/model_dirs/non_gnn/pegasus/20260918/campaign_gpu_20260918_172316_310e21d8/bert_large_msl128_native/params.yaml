@@ -1,0 +1,56 @@
+trainer:
+  init:
+    backend:
+      backend_type: GPU
+    model_dir: $REPO_ROOT/model_dirs/non_gnn/campaign_gpu_20260918_172316_310e21d8/bert_large_msl128_native
+    seed: 42
+    model:
+      name: bert
+      vocab_size: 30522
+      hidden_size: 1024
+      num_hidden_layers: 24
+      num_heads: 16
+      filter_size: 4096
+      encoder_nonlinearity: gelu
+      pooler_nonlinearity: tanh
+      dropout_rate: 0.1
+      attention_dropout_rate: 0.1
+      max_position_embeddings: 512
+      layer_norm_epsilon: 1.0e-05
+      mlm_loss_weight: 0.058
+    optimizer:
+      AdamW:
+        weight_decay: 0.01
+        lr: 0.0001
+        params: []
+    precision:
+      enabled: true
+      fp16_type: bfloat16
+      loss_scaling_factor: 1.0
+      max_gradient_norm: 1.0
+    loop:
+      max_steps: 200
+      eval_frequency: null
+      grad_accum_steps: 16
+    checkpoint:
+      steps: null
+      save_initial_checkpoint: false
+      autoload_last_checkpoint: false
+    logging:
+      log_steps: 1
+    callbacks: []
+  fit:
+    train_dataloader:
+      data_processor: BertCSVDynamicMaskDataProcessor
+      data_dir: $REPO_ROOT/model_dirs/non_gnn/data/cb5fd0a104d8ce684db7/bert_msl128
+      vocab_file: $REPO_ROOT/model_dirs/non_gnn/data/cb5fd0a104d8ce684db7/bert_vocab.txt
+      max_sequence_length: 128
+      max_predictions_per_seq: 20
+      batch_size: 16
+      do_lower: true
+      masked_lm_prob: 0.15
+      shuffle: true
+      shuffle_seed: 42
+      num_workers: 2
+      prefetch_factor: 2
+      persistent_workers: true

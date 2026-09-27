@@ -1,0 +1,125 @@
+trainer:
+  init:
+    model:
+      name: llama
+      vocab_size: 128256
+      max_position_embeddings: 1024
+      embd_pdrop: 0.0
+      position_embedding_type: rotary
+      hidden_size: 2048
+      share_embedding_weights: true
+      embedding_layer_norm: false
+      rotary_dim: 64
+      rope_theta: 500000.0
+      num_hidden_layers: 16
+      dropout_rate: 0.0
+      norm_type: rmsnorm
+      layer_norm_epsilon: 1.0e-05
+      num_heads: 32
+      attention_type: scaled_dot_product
+      attention_module: multiquery_attention
+      extra_attention_params:
+        num_kv_groups: 8
+      use_projection_bias_in_attention: false
+      use_ffn_bias_in_attention: false
+      attention_dropout_rate: 0.0
+      filter_size: 8192
+      nonlinearity: swiglu
+      use_ffn_bias: false
+      use_bias_in_output: false
+      initializer_range: 0.02
+      lr_adjustment_groups:
+        embedding:
+          param_filter_patterns: '*embedding*weight'
+          scale: 1.0
+        decoder_kernel:
+          param_filter_patterns:
+          - '*decoder*dense*weight'
+          - '*decoder*linear*weight'
+          - '*decoder*linear*expert_weights'
+          scale: 1.0
+        decoder_attention:
+          param_filter_patterns: '*decoder*attn*dense*weight'
+          scale: 1.0
+        decoder_input_ffn:
+          param_filter_patterns:
+          - '*decoder*ffn.ffn.[!1]*weight'
+          - '*decoder*ffn.ffn.[!1]*expert_weights'
+          scale: 1.0
+        decoder_output_ffn:
+          param_filter_patterns:
+          - '*decoder*ffn.ffn.[1]*weight'
+          - '*decoder*ffn.ffn.[1]*expert_weights'
+          scale: 1.0
+      pos_scaling_factor: 32.0
+      pos_scaling_type: llama3
+      pos_scaling_extra_args:
+        high_freq_factor: 4.0
+        low_freq_factor: 1.0
+        original_max_position_embeddings: 8192
+      loss_scaling: num_tokens
+      loss_weight: 1.0
+    backend:
+      backend_type: CSX
+      cluster_config:
+        num_csx: 1
+        mount_dirs:
+        - $REPO_ROOT
+        python_paths:
+        - $REPO_ROOT/src
+    model_dir: $REPO_ROOT/model_dirs/non_gnn/campaign_csx_20260918_133713_5bbf7dfa/llama3p2_1b_msl1024
+    optimizer:
+      AdamW:
+        params: []
+        lr: 0.0003
+        betas:
+        - 0.9
+        - 0.95
+        weight_decay: 0.1
+        correct_bias: true
+    precision:
+      enabled: true
+      fp16_type: bfloat16
+      loss_scaling_factor: 1.0
+      max_gradient_norm: 1.0
+    loop:
+      max_steps: 200
+      eval_frequency: null
+      grad_accum_steps: 1
+    checkpoint:
+      steps: null
+      autoload_last_checkpoint: false
+      save_initial_checkpoint: false
+    logging:
+      log_steps: 1
+    callbacks:
+    - ScopedTrainFlags:
+        csx.performance.micro_batch_size: auto
+    - CheckLoss: {}
+    - LogOptimizerParamGroup:
+        keys: lr
+    - ComputeNorm: {}
+    - ModelEvalMetrics: {}
+    - RateProfiler: {}
+    - DurationProfiler: {}
+    - FlopUtilization: {}
+    - SavePerformanceData: {}
+    - DumpAvailableTensorNames: {}
+    - ModelZooParamsMetadata: {}
+    - SamplesStreamedInfo: {}
+    loggers:
+    - ProgressLogger: {}
+    - TensorBoardLogger: {}
+    - TelemetryLogger: {}
+    seed: 42
+  fit:
+    train_dataloader:
+      data_dir: $REPO_ROOT/model_dirs/non_gnn/data/cb5fd0a104d8ce684db7/llama_corpus
+      batch_size: 32
+      shuffle: true
+      shuffle_seed: 42
+      max_sequence_length: 1024
+      data_processor: GptHDF5MapDataProcessor
+      num_workers: 2
+      prefetch_factor: 2
+      persistent_workers: true

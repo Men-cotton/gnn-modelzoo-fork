@@ -1,0 +1,72 @@
+{
+  "candidate_id": "w12_p2_s1",
+  "client_wall_seconds": 1829.2964265160263,
+  "command": [
+    "uv",
+    "run",
+    "--no-sync",
+    "--",
+    "cszoo",
+    "fit",
+    "$REPO_ROOT/model_dirs/hpcasia_r04/campaign_20260918T032805.576636Z/workers_w12/sensitivity_w12_p2_s1_r1/params.yaml",
+    "--target_device",
+    "CSX",
+    "--model_dir",
+    "$REPO_ROOT/model_dirs/hpcasia_r04/campaign_20260918T032805.576636Z/workers_w12/sensitivity_w12_p2_s1_r1/model"
+  ],
+  "config_sha256": "f3f55324c054b5759efad7aadef216ba5e1e69aece558e2e68fe4f0c94b31c0f",
+  "failure_reason": null,
+  "finished_at": "2026-09-18T11:20:54.655809+00:00",
+  "job_ids": [
+    "wsjob-dashboard",
+    "wsjob-w3ganbknmczyqaqtuyn3rp",
+    "wsjob-ypuntahdseanagkskwknl5"
+  ],
+  "knobs": {
+    "num_workers": 12,
+    "persistent_workers": true,
+    "prefetch_factor": 2
+  },
+  "measurement": {
+    "definition": "nominal seed-node slots/s; includes padded slots",
+    "end_step": 440,
+    "half_window_check": {
+      "first_half": {
+        "end_step": 240,
+        "measured_steps": 200,
+        "nominal_batch_size": 4096,
+        "nominal_slots_per_second": 2406.8491782278866,
+        "start_step": 40,
+        "training_window_seconds": 340.362
+      },
+      "interpretation": "screening heuristic, not proof of stationarity",
+      "second_half": {
+        "end_step": 440,
+        "measured_steps": 200,
+        "nominal_batch_size": 4096,
+        "nominal_slots_per_second": 2404.1650280857657,
+        "start_step": 240,
+        "training_window_seconds": 340.742
+      },
+      "symmetric_difference_percent": 0.11158354671239058,
+      "tolerance_percent": 2.0,
+      "within_tolerance": true
+    },
+    "measured_steps": 400,
+    "metric": "nominal_slots_per_second",
+    "nominal_batch_size": 4096,
+    "nominal_slots_per_second": 2405.5063543893443,
+    "start_step": 40,
+    "throughput": 2405.5063543893443,
+    "training_window_seconds": 681.104
+  },
+  "performance_files": [
+    "model/cerebras_logs/20260918_105033/executors/000001/performance.json"
+  ],
+  "phase": "sensitivity",
+  "repeat": 1,
+  "returncode": 0,
+  "started_at": "2026-09-18T10:50:25.352619+00:00",
+  "status": "completed",
+  "trial_id": "sensitivity_w12_p2_s1_r1"
+}

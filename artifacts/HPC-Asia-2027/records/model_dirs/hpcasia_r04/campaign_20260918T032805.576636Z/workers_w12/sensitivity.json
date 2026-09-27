@@ -1,0 +1,120 @@
+{
+  "definition": "Equal-weight run mean and sample standard deviation (ddof=1); includes unstable finite runs. Missing runs are not zero.",
+  "runs": [
+    {
+      "job_ids": "wsjob-6skxam2gwmfd4q7wxqsuah;wsjob-dashboard;wsjob-mde6z3otu4ymzznd4avxqm",
+      "metric": "nominal_slots_per_second",
+      "num_workers": 4,
+      "reason": null,
+      "repeat": 1,
+      "status": "completed",
+      "throughput": 2378.408510242951,
+      "training_window_seconds": 688.864,
+      "trial_id": "sensitivity_w04_p2_s1_r1"
+    },
+    {
+      "job_ids": "wsjob-8ybqvd9nhfzkxdk5adxn59;wsjob-9ndeelu3ax5x55sztghvaj;wsjob-dashboard",
+      "metric": "nominal_slots_per_second",
+      "num_workers": 4,
+      "reason": null,
+      "repeat": 2,
+      "status": "completed",
+      "throughput": 2370.4663962081795,
+      "training_window_seconds": 691.172,
+      "trial_id": "sensitivity_w04_p2_s1_r2"
+    },
+    {
+      "job_ids": "wsjob-pcvv4ete27oqsevlucqlar",
+      "metric": null,
+      "num_workers": 4,
+      "reason": "Client exited with 1",
+      "repeat": 3,
+      "status": "failed",
+      "throughput": null,
+      "training_window_seconds": null,
+      "trial_id": "sensitivity_w04_p2_s1_r3"
+    },
+    {
+      "job_ids": "wsjob-dashboard;wsjob-w3ganbknmczyqaqtuyn3rp;wsjob-ypuntahdseanagkskwknl5",
+      "metric": "nominal_slots_per_second",
+      "num_workers": 12,
+      "reason": null,
+      "repeat": 1,
+      "status": "completed",
+      "throughput": 2405.5063543893443,
+      "training_window_seconds": 681.104,
+      "trial_id": "sensitivity_w12_p2_s1_r1"
+    },
+    {
+      "job_ids": "wsjob-4x3ayetd8dj34wb9vfwkl5;wsjob-dashboard;wsjob-rsm8putnbxxbdwwzrj7han",
+      "metric": "nominal_slots_per_second",
+      "num_workers": 12,
+      "reason": null,
+      "repeat": 2,
+      "status": "completed",
+      "throughput": 2326.3309597677076,
+      "training_window_seconds": 704.285,
+      "trial_id": "sensitivity_w12_p2_s1_r2"
+    },
+    {
+      "job_ids": "wsjob-dashboard;wsjob-pzxrtabgiu3da2ksagn2bq;wsjob-uvd9vy6xgubbndda92cprf",
+      "metric": "nominal_slots_per_second",
+      "num_workers": 12,
+      "reason": null,
+      "repeat": 3,
+      "status": "completed",
+      "throughput": 2326.565504235928,
+      "training_window_seconds": 704.214,
+      "trial_id": "sensitivity_w12_p2_s1_r3"
+    }
+  ],
+  "settings": {
+    "backend": "csx",
+    "cache": "none",
+    "confirm_steps": 400,
+    "continue_on_failure": true,
+    "dataset": "arxiv",
+    "job_time_sec": 7200,
+    "measure_steps": 400,
+    "mode": "sensitivity",
+    "persistent_workers": true,
+    "prefetch_factors": [],
+    "repeats": 3,
+    "stability_tolerance_percent": 2.0,
+    "top_k": 2,
+    "trial_timeout_sec": 9000,
+    "warmup_steps": 40,
+    "workers": [
+      4,
+      12
+    ],
+    "wsc_workers": 1
+  },
+  "status": "completed_with_missing_measurements",
+  "summary": [
+    {
+      "failed_or_invalid_runs": 1,
+      "mean": 2374.437453225565,
+      "measured_runs": 2,
+      "metric": "nominal_slots_per_second",
+      "not_run": 0,
+      "num_workers": 4,
+      "planned_runs": 3,
+      "running_runs": 0,
+      "sample_stddev": 5.615922690943633,
+      "unstable_runs": 0
+    },
+    {
+      "failed_or_invalid_runs": 0,
+      "mean": 2352.800939464327,
+      "measured_runs": 3,
+      "metric": "nominal_slots_per_second",
+      "not_run": 0,
+      "num_workers": 12,
+      "planned_runs": 3,
+      "running_runs": 0,
+      "sample_stddev": 45.64437889368854,
+      "unstable_runs": 0
+    }
+  ]
+}

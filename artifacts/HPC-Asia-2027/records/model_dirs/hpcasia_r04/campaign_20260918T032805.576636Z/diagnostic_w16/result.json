@@ -1,0 +1,178 @@
+{
+  "client_status": "completed",
+  "command": [
+    "uv",
+    "run",
+    "--no-sync",
+    "--",
+    "cszoo",
+    "fit",
+    "$REPO_ROOT/model_dirs/hpcasia_r04/campaign_20260918T032805.576636Z/diagnostic_w16/params.yaml",
+    "--target_device",
+    "CSX",
+    "--model_dir",
+    "$REPO_ROOT/model_dirs/hpcasia_r04/campaign_20260918T032805.576636Z/diagnostic_w16/model"
+  ],
+  "config": {
+    "runconfig": {
+      "python_paths": [
+        "$MODELZOO_ROOT/../.."
+      ]
+    },
+    "trainer": {
+      "fit": {
+        "ckpt_path": null,
+        "train_dataloader": {
+          "batch_size": 4096,
+          "cache_fraction": null,
+          "data_processor": "GNNDataProcessor",
+          "dataset": "ogbn_arxiv",
+          "dataset_profiles": {
+            "ogbn_arxiv": {
+              "data_dir": "$MODELZOO_ROOT/models/gnn/data/datasets",
+              "dataset_name": "ogbn-arxiv",
+              "pad_node_id": 0
+            }
+          },
+          "drop_last_batch": false,
+          "fanouts": [
+            15,
+            10,
+            5
+          ],
+          "num_workers": 16,
+          "persistent_workers": true,
+          "pin_memory": true,
+          "prefetch_factor": 2,
+          "sampler_seed": 42,
+          "sampling_mode": "neighbor",
+          "shuffle": true,
+          "split": "train",
+          "static_batch_cache_size": 0,
+          "use_fake_data": false,
+          "worker_diagnostics": {
+            "enabled": true,
+            "max_batches": 80,
+            "max_snapshots": 120,
+            "output_dir": "$REPO_ROOT/model_dirs/hpcasia_r04/campaign_20260918T032805.576636Z/diagnostic_w16/worker_diagnostics",
+            "resource_monitor": true,
+            "resource_monitor_pss": true,
+            "snapshot_interval_seconds": 5.0
+          }
+        },
+        "val_dataloader": null
+      },
+      "init": {
+        "backend": {
+          "backend_type": "CSX",
+          "cluster_config": {
+            "job_time_sec": 7200,
+            "num_csx": 1,
+            "num_workers_per_csx": 1
+          }
+        },
+        "checkpoint": {
+          "autoload_last_checkpoint": false,
+          "save_initial_checkpoint": false,
+          "steps": null
+        },
+        "logging": {
+          "log_steps": 10
+        },
+        "loop": {
+          "eval_frequency": null,
+          "max_steps": 80,
+          "num_epochs": null,
+          "num_steps": null,
+          "steps_per_epoch": null
+        },
+        "model": {
+          "architecture": {
+            "aggregator": "mean",
+            "dropout": 0.5,
+            "hidden_dim": 1024,
+            "n_class": 40,
+            "n_feat": 128,
+            "num_layers": 3,
+            "type": "graphsage"
+          },
+          "name": "gnn",
+          "task": {
+            "compute_eval_metrics": false,
+            "disable_log_softmax": false,
+            "to_float16": true
+          }
+        },
+        "model_dir": "$REPO_ROOT/model_dirs/hpcasia_r04/campaign_20260918T032805.576636Z/diagnostic_w16/model",
+        "optimizer": {
+          "AdamW": {
+            "learning_rate": 0.003,
+            "params": [],
+            "weight_decay": 0.0005
+          }
+        },
+        "precision": {
+          "enabled": true,
+          "fp16_type": "float16",
+          "loss_scaling_factor": "dynamic"
+        },
+        "seed": 42
+      },
+      "validate": null,
+      "validate_all": null
+    }
+  },
+  "config_sha256": "d90e42da6160f518e70a2de3d93c60953d64639e8905ab9122e89e90feb64b69",
+  "control": null,
+  "directory": "$REPO_ROOT/model_dirs/hpcasia_r04/campaign_20260918T032805.576636Z/diagnostic_w16",
+  "failure_reason": null,
+  "id": "diagnostic_w16",
+  "kind": "diagnostic",
+  "measurement": {
+    "definition": "nominal seed-node slots/s; includes padded slots",
+    "end_step": 80,
+    "half_window_check": {
+      "first_half": {
+        "end_step": 60,
+        "measured_steps": 20,
+        "nominal_batch_size": 4096,
+        "nominal_slots_per_second": 2443.7682715828414,
+        "start_step": 40,
+        "training_window_seconds": 33.522
+      },
+      "interpretation": "screening heuristic, not proof of stationarity",
+      "second_half": {
+        "end_step": 80,
+        "measured_steps": 20,
+        "nominal_batch_size": 4096,
+        "nominal_slots_per_second": 2449.3212940261915,
+        "start_step": 60,
+        "training_window_seconds": 33.446
+      },
+      "symmetric_difference_percent": 0.2269740771711748,
+      "tolerance_percent": 2.0,
+      "within_tolerance": true
+    },
+    "measured_steps": 40,
+    "nominal_batch_size": 4096,
+    "nominal_slots_per_second": 2446.5416318241546,
+    "start_step": 40,
+    "training_window_seconds": 66.968
+  },
+  "repeat": 1,
+  "returncode": 0,
+  "started_at": "2026-09-18T12:48:51.160422+00:00",
+  "status": "completed",
+  "step_timestamps_utc": {
+    "10": "2026-09-18T14:18:52.387000+00:00",
+    "20": "2026-09-18T14:19:06.725000+00:00",
+    "30": "2026-09-18T14:19:26.318000+00:00",
+    "40": "2026-09-18T14:19:40.413000+00:00",
+    "50": "2026-09-18T14:19:59.620000+00:00",
+    "60": "2026-09-18T14:20:13.935000+00:00",
+    "70": "2026-09-18T14:20:33.055000+00:00",
+    "80": "2026-09-18T14:20:47.381000+00:00"
+  },
+  "trials": 1,
+  "workers": 16
+}

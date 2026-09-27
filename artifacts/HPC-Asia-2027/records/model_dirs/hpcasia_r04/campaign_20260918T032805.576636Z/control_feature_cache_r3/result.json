@@ -1,0 +1,208 @@
+{
+  "client_status": "completed",
+  "command": [
+    "uv",
+    "run",
+    "--no-sync",
+    "--",
+    "cszoo",
+    "fit",
+    "$REPO_ROOT/model_dirs/hpcasia_r04/campaign_20260918T032805.576636Z/control_feature_cache_r3/params.yaml",
+    "--target_device",
+    "CSX",
+    "--model_dir",
+    "$REPO_ROOT/model_dirs/hpcasia_r04/campaign_20260918T032805.576636Z/control_feature_cache_r3/model"
+  ],
+  "config": {
+    "runconfig": {
+      "python_paths": [
+        "$MODELZOO_ROOT/../.."
+      ]
+    },
+    "trainer": {
+      "fit": {
+        "ckpt_path": null,
+        "train_dataloader": {
+          "batch_size": 4096,
+          "cache_fraction": 1.0,
+          "data_processor": "GNNDataProcessor",
+          "dataset": "ogbn_arxiv",
+          "dataset_profiles": {
+            "ogbn_arxiv": {
+              "data_dir": "$MODELZOO_ROOT/models/gnn/data/datasets",
+              "dataset_name": "ogbn-arxiv",
+              "pad_node_id": 0
+            }
+          },
+          "drop_last_batch": false,
+          "fanouts": [
+            15,
+            10,
+            5
+          ],
+          "num_workers": 4,
+          "persistent_workers": true,
+          "pin_memory": true,
+          "prefetch_factor": 2,
+          "sampler_seed": 42,
+          "sampling_mode": "neighbor",
+          "shuffle": true,
+          "split": "train",
+          "static_batch_cache_size": 0,
+          "use_fake_data": false,
+          "worker_diagnostics": {
+            "enabled": false
+          }
+        },
+        "val_dataloader": null
+      },
+      "init": {
+        "backend": {
+          "backend_type": "CSX",
+          "cluster_config": {
+            "job_time_sec": 7200,
+            "num_csx": 1,
+            "num_workers_per_csx": 1
+          }
+        },
+        "checkpoint": {
+          "autoload_last_checkpoint": false,
+          "save_initial_checkpoint": false,
+          "steps": null
+        },
+        "logging": {
+          "log_steps": 10
+        },
+        "loop": {
+          "eval_frequency": null,
+          "max_steps": 440,
+          "num_epochs": null,
+          "num_steps": null,
+          "steps_per_epoch": null
+        },
+        "model": {
+          "architecture": {
+            "aggregator": "mean",
+            "dropout": 0.5,
+            "hidden_dim": 1024,
+            "n_class": 40,
+            "n_feat": 128,
+            "num_layers": 3,
+            "type": "graphsage"
+          },
+          "name": "gnn",
+          "task": {
+            "compute_eval_metrics": false,
+            "disable_log_softmax": false,
+            "to_float16": true
+          }
+        },
+        "model_dir": "$REPO_ROOT/model_dirs/hpcasia_r04/campaign_20260918T032805.576636Z/control_feature_cache_r3/model",
+        "optimizer": {
+          "AdamW": {
+            "learning_rate": 0.003,
+            "params": [],
+            "weight_decay": 0.0005
+          }
+        },
+        "precision": {
+          "enabled": true,
+          "fp16_type": "float16",
+          "loss_scaling_factor": "dynamic"
+        },
+        "seed": 42
+      },
+      "validate": null,
+      "validate_all": null
+    }
+  },
+  "config_sha256": "5e33b664f511ccdbac3ee6ff076ac3c05e86e7eb6ec823f7b960246bf4d04c4b",
+  "control": "feature_cache",
+  "directory": "$REPO_ROOT/model_dirs/hpcasia_r04/campaign_20260918T032805.576636Z/control_feature_cache_r3",
+  "failure_reason": null,
+  "id": "control_feature_cache_r3",
+  "kind": "intervention",
+  "measurement": {
+    "definition": "nominal seed-node slots/s; includes padded slots",
+    "end_step": 440,
+    "half_window_check": {
+      "first_half": {
+        "end_step": 240,
+        "measured_steps": 200,
+        "nominal_batch_size": 4096,
+        "nominal_slots_per_second": 2363.210989854232,
+        "start_step": 40,
+        "training_window_seconds": 346.647
+      },
+      "interpretation": "screening heuristic, not proof of stationarity",
+      "second_half": {
+        "end_step": 440,
+        "measured_steps": 200,
+        "nominal_batch_size": 4096,
+        "nominal_slots_per_second": 2359.1480342352925,
+        "start_step": 240,
+        "training_window_seconds": 347.244
+      },
+      "symmetric_difference_percent": 0.17207313540600652,
+      "tolerance_percent": 2.0,
+      "within_tolerance": true
+    },
+    "measured_steps": 400,
+    "nominal_batch_size": 4096,
+    "nominal_slots_per_second": 2361.1777642309817,
+    "start_step": 40,
+    "training_window_seconds": 693.891
+  },
+  "repeat": 3,
+  "returncode": 0,
+  "started_at": "2026-09-18T06:49:51.053025+00:00",
+  "status": "completed",
+  "step_timestamps_utc": {
+    "10": "2026-09-18T06:52:47.862000+00:00",
+    "100": "2026-09-18T06:55:23.481000+00:00",
+    "110": "2026-09-18T06:55:39.321000+00:00",
+    "120": "2026-09-18T06:55:58.683000+00:00",
+    "130": "2026-09-18T06:56:14.317000+00:00",
+    "140": "2026-09-18T06:56:33.545000+00:00",
+    "150": "2026-09-18T06:56:49.356000+00:00",
+    "160": "2026-09-18T06:57:04.627000+00:00",
+    "170": "2026-09-18T06:57:24.667000+00:00",
+    "180": "2026-09-18T06:57:40.152000+00:00",
+    "190": "2026-09-18T06:57:59.434000+00:00",
+    "20": "2026-09-18T06:53:03.174000+00:00",
+    "200": "2026-09-18T06:58:15.301000+00:00",
+    "210": "2026-09-18T06:58:34.346000+00:00",
+    "220": "2026-09-18T06:58:50.270000+00:00",
+    "230": "2026-09-18T06:59:05.595000+00:00",
+    "240": "2026-09-18T06:59:24.951000+00:00",
+    "250": "2026-09-18T06:59:40.373000+00:00",
+    "260": "2026-09-18T06:59:59.807000+00:00",
+    "270": "2026-09-18T07:00:15.371000+00:00",
+    "280": "2026-09-18T07:00:34.518000+00:00",
+    "290": "2026-09-18T07:00:50.425000+00:00",
+    "30": "2026-09-18T06:53:22.366000+00:00",
+    "300": "2026-09-18T07:01:09.270000+00:00",
+    "310": "2026-09-18T07:01:25.889000+00:00",
+    "320": "2026-09-18T07:01:41.777000+00:00",
+    "330": "2026-09-18T07:02:01.411000+00:00",
+    "340": "2026-09-18T07:02:17.609000+00:00",
+    "350": "2026-09-18T07:02:36.991000+00:00",
+    "360": "2026-09-18T07:02:52.720000+00:00",
+    "370": "2026-09-18T07:03:11.783000+00:00",
+    "380": "2026-09-18T07:03:27.649000+00:00",
+    "390": "2026-09-18T07:03:43.303000+00:00",
+    "40": "2026-09-18T06:53:38.304000+00:00",
+    "400": "2026-09-18T07:04:02.890000+00:00",
+    "410": "2026-09-18T07:04:18.385000+00:00",
+    "420": "2026-09-18T07:04:37.465000+00:00",
+    "430": "2026-09-18T07:04:53.099000+00:00",
+    "440": "2026-09-18T07:05:12.195000+00:00",
+    "50": "2026-09-18T06:53:57.456000+00:00",
+    "60": "2026-09-18T06:54:13.197000+00:00",
+    "70": "2026-09-18T06:54:32.186000+00:00",
+    "80": "2026-09-18T06:54:48.110000+00:00",
+    "90": "2026-09-18T06:55:03.750000+00:00"
+  },
+  "trials": 1,
+  "workers": 4
+}

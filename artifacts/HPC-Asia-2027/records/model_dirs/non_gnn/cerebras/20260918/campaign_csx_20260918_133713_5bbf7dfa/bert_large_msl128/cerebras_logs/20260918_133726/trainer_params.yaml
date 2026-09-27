@@ -1,0 +1,279 @@
+trainer:
+  init:
+    model:
+      name: bert
+      vocab_size: 30522
+      max_position_embeddings: 512
+      position_embedding_type: learned
+      hidden_size: 1024
+      embedding_dropout_rate: 0.1
+      embedding_pad_token_id: 0
+      mask_padding_in_positional_embed: false
+      rotary_dim: null
+      rope_theta: 10000.0
+      fold_rope_consts: false
+      num_relative_attention_buckets: 32
+      alibi_trainable_slopes: false
+      pos_scaling_factor: 1.0
+      pos_scaling_type: linear
+      pos_scaling_extra_args: null
+      num_hidden_layers: 24
+      layer_norm_epsilon: 1.0e-05
+      norm_first: false
+      embedding_layer_norm: true
+      num_heads: 16
+      attention_module: aiayn_attention
+      extra_attention_params: {}
+      attention_type: scaled_dot_product
+      attention_softmax_fp32: true
+      attention_kernel: null
+      dropout_rate: 0.1
+      nonlinearity: gelu
+      pooler_nonlinearity: tanh
+      attention_dropout_rate: 0.1
+      use_projection_bias_in_attention: true
+      use_ffn_bias_in_attention: true
+      filter_size: 4096
+      use_ffn_bias: true
+      use_final_layer_norm: false
+      initializer_range: 0.02
+      default_initializer:
+        name: truncated_normal
+        mean: 0.0
+        std: 0.02
+        a: -0.04
+        b: 0.04
+      embeddings_initializer:
+        name: truncated_normal
+        mean: 0.0
+        std: 0.02
+        a: -0.04
+        b: 0.04
+      position_embeddings_initializer:
+        name: truncated_normal
+        mean: 0.0
+        std: 0.02
+        a: -0.04
+        b: 0.04
+      segment_embeddings_initializer:
+        name: truncated_normal
+        mean: 0.0
+        std: 0.02
+        a: -0.04
+        b: 0.04
+      num_segments: 2
+      add_pooling_layer: true
+      freeze_ffn_bias_in_glu: false
+      lr_adjustment_groups:
+        embedding: '*embedding*weight'
+        encoder_attention: '*transformer_encoder*attn*dense*weight'
+        encoder_input_ffn: '*transformer_encoder*ffn.ffn.[!1]*weight'
+        encoder_output_ffn: '*transformer_encoder*ffn.ffn.[1]*weight'
+        pooler: '*pooler*weight'
+      mup_base_hidden_size: null
+      mup_base_filter_size: null
+      embeddings_scale: 1.0
+      scale_qk_dot_by_d: false
+      attention_logits_alpha: 1.0
+      output_logits_alpha: 1.0
+      scale_output_logits_by_d: true
+      dtype: null
+      share_embedding_weights: true
+      pad_token_id: 0
+      encoder_nonlinearity: gelu
+      mlm_nonlinearity: gelu
+      use_ffn_bias_in_mlm: true
+      use_output_bias_in_mlm: true
+      mlm_loss_weight: 0.058
+      label_smoothing: 0.0
+      disable_nsp: false
+      num_classes: 2
+      compute_eval_metrics: true
+    device: null
+    backend:
+      backend_type: CSX
+      cluster_config:
+        num_csx: 1
+        mount_dirs:
+        - $REPO_ROOT
+        python_paths:
+        - $REPO_ROOT/src
+    model_dir: $REPO_ROOT/model_dirs/non_gnn/campaign_csx_20260918_133713_5bbf7dfa/bert_large_msl128
+    optimizer:
+      AdamW:
+        params: []
+        lr: 0.0001
+        betas:
+        - 0.9
+        - 0.999
+        eps: 1.0e-06
+        weight_decay: 0.01
+        correct_bias: true
+        amsgrad: false
+    schedulers: null
+    precision:
+      enabled: true
+      fp16_type: bfloat16
+      precision_opt_level: null
+      loss_scaling_factor: 1.0
+      initial_loss_scale: null
+      steps_per_increase: 2000
+      min_loss_scale: null
+      max_loss_scale: null
+      max_gradient_norm: 1.0
+      max_gradient_value: null
+      log_loss_scale: null
+    sparsity: null
+    loop:
+      num_steps: null
+      max_steps: 200
+      num_epochs: null
+      steps_per_epoch: null
+      eval_frequency: null
+      eval_steps: null
+      grad_accum_steps: 1
+    checkpoint:
+      steps: null
+      autoload_last_checkpoint: false
+      disable_strict_checkpoint_loading: false
+      save_initial_checkpoint: false
+      checkpoint_root: null
+      checkpoint_name: checkpoint_{step}.mdl
+      strict_version: true
+    logging:
+      log_steps: 1
+      log_level: INFO
+      wsc_log_level: null
+      enable_act_frequency: false
+    callbacks:
+    - ScopedTrainFlags:
+        csx.performance.micro_batch_size: auto
+    - CheckLoss: {}
+    - LogOptimizerParamGroup:
+        keys: lr
+    - ComputeNorm: {}
+    - ModelEvalMetrics: {}
+    - RateProfiler: {}
+    - DurationProfiler: {}
+    - FlopUtilization: {}
+    - SavePerformanceData: {}
+    - DumpAvailableTensorNames: {}
+    - ModelZooParamsMetadata:
+        params:
+          trainer:
+            init:
+              backend:
+                backend_type: CSX
+                cluster_config:
+                  num_csx: 1
+                  mount_dirs:
+                  - $REPO_ROOT
+                  python_paths:
+                  - $REPO_ROOT/src
+              model_dir: $REPO_ROOT/model_dirs/non_gnn/campaign_csx_20260918_133713_5bbf7dfa/bert_large_msl128
+              seed: 42
+              model:
+                name: bert
+                vocab_size: 30522
+                hidden_size: 1024
+                num_hidden_layers: 24
+                num_heads: 16
+                filter_size: 4096
+                encoder_nonlinearity: gelu
+                pooler_nonlinearity: tanh
+                dropout_rate: 0.1
+                attention_dropout_rate: 0.1
+                max_position_embeddings: 512
+                layer_norm_epsilon: 1.0e-05
+                mlm_loss_weight: 0.058
+              optimizer:
+                AdamW:
+                  weight_decay: 0.01
+                  lr: 0.0001
+                  params: []
+              precision:
+                enabled: true
+                fp16_type: bfloat16
+                loss_scaling_factor: 1.0
+                max_gradient_norm: 1.0
+              loop:
+                max_steps: 200
+                eval_frequency: null
+                grad_accum_steps: 1
+              checkpoint:
+                steps: null
+                save_initial_checkpoint: false
+                autoload_last_checkpoint: false
+              logging:
+                log_steps: 1
+              callbacks:
+              - ScopedTrainFlags:
+                  csx.performance.micro_batch_size: auto
+              loggers: []
+            fit:
+              train_dataloader:
+                data_processor: BertCSVDynamicMaskDataProcessor
+                data_dir: $REPO_ROOT/model_dirs/non_gnn/data/cb5fd0a104d8ce684db7/bert_msl128
+                vocab_file: $REPO_ROOT/model_dirs/non_gnn/data/cb5fd0a104d8ce684db7/bert_vocab.txt
+                max_sequence_length: 128
+                max_predictions_per_seq: 20
+                batch_size: 256
+                do_lower: true
+                masked_lm_prob: 0.15
+                shuffle: true
+                shuffle_seed: 42
+                num_workers: 2
+                prefetch_factor: 2
+                persistent_workers: true
+    - SamplesStreamedInfo: {}
+    loggers:
+    - ProgressLogger: {}
+    - TensorBoardLogger:
+        summary_dir: null
+        legacy_event_dirs: false
+    - TelemetryLogger:
+        max_buffer_size: 128
+        max_buffer_seconds: 150
+    seed: 42
+    autorestart: null
+  fit:
+    train_dataloader:
+      data_processor: BertCSVDynamicMaskDataProcessor
+      data_dir: $REPO_ROOT/model_dirs/non_gnn/data/cb5fd0a104d8ce684db7/bert_msl128
+      batch_size: 256
+      disable_nsp: false
+      dynamic_mlm_scale: false
+      buckets: null
+      mask_whole_word: false
+      do_lower: true
+      vocab_file: $REPO_ROOT/model_dirs/non_gnn/data/cb5fd0a104d8ce684db7/bert_vocab.txt
+      oov_token: '[UNK]'
+      mask_token: '[MASK]'
+      document_separator_token: '[SEP]'
+      exclude_from_masking:
+      - '[CLS]'
+      - '[SEP]'
+      - '[PAD]'
+      - '[MASK]'
+      max_sequence_length: 128
+      max_predictions_per_seq: 20
+      masked_lm_prob: 0.15
+      gather_mlm_labels: true
+      labels_pad_id: 0
+      input_pad_id: 0
+      attn_mask_pad_id: 0
+      segment_pad_id: 0
+      shuffle: true
+      shuffle_seed: 42
+      shuffle_buffer: null
+      num_workers: 2
+      prefetch_factor: 2
+      persistent_workers: true
+      drop_last: true
+      vocab_size: null
+      num_examples: null
+      steps: null
+      whole_word_masking: null
+    val_dataloader: null
+  validate: null
+  validate_all: null

@@ -1,0 +1,258 @@
+$REPO_ROOT/.venv/lib/python3.11/site-packages/outdated/__init__.py:36: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import parse_version
+2026-09-19 12:01:34,987 INFO:   Connectivity check: running command: ping -c 1 -W 3 10.125.8.2
+2026-09-19 12:01:34,993 INFO:   Connectivity check succeeded.
+2026-09-19 12:01:35,013 INFO:   Appliance client semantic version: 1.14.0, cluster server semantic version: 1.20.2, job operator semantic version: 1.20.2
+2026-09-19 12:01:35,015 INFO:   Successfully initialized workflow with id: wflow-fvzgff3yfiy276wd37tbeh
+2026-09-19 12:01:35,020 WARNING:   The trainer configuration for train_and_eval does not configure checkpointing. In the event of a failure, the run will be restarted from the beginning. If this is not intentional, please specifiy a checkpoint callback with a checkpointing frequency to enable auto-restarting from previously saved checkpoints.
+2026-09-19 12:01:35,021 INFO:   Spawning child process for the fit run ...
+2026-09-19 12:01:35,025 INFO:   Child process started with pid: 3124539
+$REPO_ROOT/.venv/lib/python3.11/site-packages/outdated/__init__.py:36: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import parse_version
+2026-09-19 12:01:41,086 INFO:   Current Working Directory: $REPO_ROOT/src/cerebras/modelzoo/models/gnn
+2026-09-19 12:01:41,087 INFO:   Running command: $REPO_ROOT/src/cerebras/modelzoo/cli/main.py fit $REPO_ROOT/model_dirs/hpcasia_final/products_20260919T033108.186214Z/seed_43/throughput_r1/params.yaml --target_device CSX --model_dir $REPO_ROOT/model_dirs/hpcasia_final/products_20260919T033108.186214Z/seed_43/throughput_r1/model
+2026-09-19 12:01:41,618 INFO:   No checkpoint was provided. Using randomly initialized model parameters.
+2026-09-19 12:01:41,619 INFO:   Ordinal 0: Initializing GNNDataProcessor for dataset 'ogbn-products' (split=train, mode=neighbor).
+$REPO_ROOT/.venv/lib/python3.11/site-packages/ogb/nodeproppred/dataset_pyg.py:69: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  self.data, self.slices = torch.load(self.processed_paths[0])
+GNN_INPUT_CONTRACT {"batch_index_origin": 0, "batch_size": 4096, "count_basis": "deterministic loader schedule; not device counters", "dataset_name": "ogbn-products", "drop_last": false, "event": "gnn_input_contract", "num_streamers": 1, "ordered_targets_and_labels_sha256": "e84443d184dd29b2cc2adf96f5762ff9a40cb54a2c5a961bf5500f8529e3f478", "restartable": false, "sampler_seed": 43, "seed_nodes_by_batch": [4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 7], "seed_nodes_per_epoch": 196615, "shuffle": true, "source_seed_nodes": 196615, "split": "train", "static_batch_cache_size": 0, "supervised_targets_by_batch": [4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 7], "traversal": "continuous_sequential_batches", "traversal_scope": "single_data_executor", "version": 1}
+2026-09-19 12:02:02,777 INFO:   Connectivity check: running command: ping -c 1 -W 3 10.125.8.2
+2026-09-19 12:02:02,784 INFO:   Connectivity check succeeded.
+2026-09-19 12:02:02,805 INFO:   Appliance client semantic version: 1.14.0, cluster server semantic version: 1.20.2, job operator semantic version: 1.20.2
+2026-09-19 12:02:02,805 INFO:   ===========================================================================
+2026-09-19 12:02:02,805 INFO:   Trainer Fit Summary
+2026-09-19 12:02:02,805 INFO:   ---------------------------------------------------------------------------
+2026-09-19 12:02:02,805 INFO:   Trainer will run 1 train loop.
+2026-09-19 12:02:02,805 INFO:   
+2026-09-19 12:02:02,805 INFO:   Train steps per train loop:
+2026-09-19 12:02:02,805 INFO:   * 1 loop of 1640 steps
+2026-09-19 12:02:02,806 INFO:   for a total of 1640 train steps.
+2026-09-19 12:02:02,806 INFO:   
+2026-09-19 12:02:02,806 INFO:   Progress will be logged every 10 steps.
+2026-09-19 12:02:02,806 INFO:   ===========================================================================
+2026-09-19 12:02:02,806 INFO:   ---------------------------------------------------------------------------
+2026-09-19 12:02:02,806 INFO:   Starting train loop 1 of 1, from global step 1 to 1640 (1640 steps)
+2026-09-19 12:02:02,806 INFO:   ---------------------------------------------------------------------------
+2026-09-19 12:02:11,599 INFO:   Compiling the model. This may take a few minutes.
+2026-09-19 12:02:11,600 INFO:   Connectivity check: running command: ping -c 1 -W 3 10.125.8.2
+2026-09-19 12:02:11,605 INFO:   Connectivity check succeeded.
+2026-09-19 12:02:11,621 INFO:   Appliance client semantic version: 1.14.0, cluster server semantic version: 1.20.2, job operator semantic version: 1.20.2
+2026-09-19 12:02:12,747 INFO:   Initiating a new image build job against the cluster server.
+2026-09-19 12:02:12,764 INFO:   Job id: imgjob-42280d4f85d91291dacb2ef766350f15, workflow id: wflow-fvzgff3yfiy276wd37tbeh, namespace: job-operator, remote log path: /n1/wsjob/workdir/job-operator/imgjob-42280d4f85d91291dacb2ef766350f15
+2026-09-19 12:02:12,767 INFO:   Connectivity check: running command: ping -c 1 -W 3 10.125.8.2
+2026-09-19 12:02:12,772 INFO:   Connectivity check succeeded.
+2026-09-19 12:02:12,789 INFO:   Appliance client semantic version: 1.14.0, cluster server semantic version: 1.20.2, job operator semantic version: 1.20.2
+2026-09-19 12:02:12,814 INFO:   Initiating a new compile wsjob against the cluster server.
+2026-09-19 12:02:12,841 INFO:   Job id: wsjob-bdcb3urxwyl6z74izrom79, workflow id: wflow-fvzgff3yfiy276wd37tbeh, namespace: job-operator, remote log path: /n1/wsjob/workdir/job-operator/wsjob-bdcb3urxwyl6z74izrom79
+2026-09-19 12:02:32,841 INFO:   Poll ingress status: Waiting for all Coordinator pods to be running, current running: 0/1.
+2026-09-19 12:02:32,845 INFO:   Recording the timestamp when jobs is scheduled.
+2026-09-19 12:02:32,855 WARNING:   Event 2026-09-19 12:02:13 +0000 UTC reason=InconsistentVersion wsjob=wsjob-bdcb3urxwyl6z74izrom79 message='Warning: client semantic version 1.14.0 is inconsistent with cluster server semantic version 1.20.2, there's a risk job could fail due to inconsistent setup.'
+2026-09-19 12:02:42,855 INFO:   Poll ingress status: Waiting for job ingress readiness.
+2026-09-19 12:02:52,866 INFO:   Poll ingress status: Job ingress ready, dashboard: <internal-dashboard-url>
+2026-09-19 12:02:52,871 INFO:   Poll ingress success: Job ingress ready, dashboard: <internal-dashboard-url>
+2026-09-19 12:02:52,886 INFO:   Finalizing out-of-cluster job handle with ingress service url: 
+2026-09-19 12:02:52,886 WARNING:   Empty ingress service url. Falling back to default server: 10.125.8.2:443
+2026-09-19 12:02:52,955 INFO:   Found existing cached compile with hash: "cs_1860238076782471050"
+2026-09-19 12:02:54,821 INFO:   Using power profile none
+
+2026-09-19 12:02:54,836 INFO:   Compile artifacts successfully written to remote compile directory. Compile hash is: cs_1860238076782471050
+2026-09-19 12:03:02,880 ERROR:   Image build job imgjob-42280d4f85d91291dacb2ef766350f15 failed. Please check the error log in $REPO_ROOT/model_dirs/hpcasia_final/products_20260919T033108.186214Z/seed_43/throughput_r1/model/cerebras_logs/20260919_120141/executors/000001/custom_worker_build.out. 
+2026-09-19 12:03:02,880 INFO:   Falling back to venv mounting.
+2026-09-19 12:03:02,882 INFO:   Compile was successful!
+2026-09-19 12:03:02,883 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+2026-09-19 12:03:04,892 INFO:   Connectivity check: running command: ping -c 1 -W 3 10.125.8.2
+2026-09-19 12:03:04,898 INFO:   Connectivity check succeeded.
+2026-09-19 12:03:04,914 INFO:   Appliance client semantic version: 1.14.0, cluster server semantic version: 1.20.2, job operator semantic version: 1.20.2
+2026-09-19 12:03:04,916 INFO:   Initiating a new execute wsjob against the cluster server.
+2026-09-19 12:03:04,963 INFO:   Job id: wsjob-uitwdttusged38qjr5zfci, workflow id: wflow-fvzgff3yfiy276wd37tbeh, namespace: job-operator, remote log path: /n1/wsjob/workdir/job-operator/wsjob-uitwdttusged38qjr5zfci
+2026-09-19 12:03:24,964 INFO:   Poll ingress status: Waiting for all Worker pods to be running, current running: 0/1.
+2026-09-19 12:03:24,967 INFO:   Recording the timestamp when jobs is scheduled.
+2026-09-19 12:03:24,982 WARNING:   Event 2026-09-19 12:03:12 +0000 UTC reason=InconsistentVersion wsjob=wsjob-uitwdttusged38qjr5zfci message='Warning: client semantic version 1.14.0 is inconsistent with cluster server semantic version 1.20.2, there's a risk job could fail due to inconsistent setup.'
+2026-09-19 12:03:24,982 INFO:   Infrastructure setup started for job wsjob-uitwdttusged38qjr5zfci
+2026-09-19 12:03:34,983 INFO:   Poll ingress status: Waiting for all Command pods to be running, current running: 0/1.
+2026-09-19 12:03:35,000 INFO:   Infrastructure setup completed successfully for job wsjob-uitwdttusged38qjr5zfci
+2026-09-19 12:03:45,000 INFO:   Infrastructure setup completed successfully for job wsjob-uitwdttusged38qjr5zfci
+2026-09-19 12:03:55,000 INFO:   Poll ingress status: Waiting for all Activation pods to be running, current running: 20/21.
+2026-09-19 12:03:55,012 INFO:   Infrastructure setup completed successfully for job wsjob-uitwdttusged38qjr5zfci
+2026-09-19 12:04:05,012 INFO:   Poll ingress status: Job ingress ready, dashboard: <internal-dashboard-url>
+2026-09-19 12:04:05,023 INFO:   Infrastructure setup completed successfully for job wsjob-uitwdttusged38qjr5zfci
+2026-09-19 12:04:05,023 INFO:   Poll ingress success: Job ingress ready, dashboard: <internal-dashboard-url>
+2026-09-19 12:04:05,036 INFO:   Finalizing out-of-cluster job handle with ingress service url: 
+2026-09-19 12:04:05,036 WARNING:   Empty ingress service url. Falling back to default server: 10.125.8.2:443
+2026-09-19 12:04:05,120 INFO:   Preparing to execute using 1 CSX
+2026-09-19 12:04:22,542 INFO:   About to send initial weights
+2026-09-19 12:04:22,761 INFO:   Finished sending initial weights
+2026-09-19 12:04:22,761 INFO:   Finalizing appliance staging for the run
+2026-09-19 12:04:29,319 INFO:   Waiting for device programming to complete
+2026-09-19 12:04:42,045 INFO:   Device programming is complete
+2026-09-19 12:04:42,399 INFO:   Using network type: ROCE
+2026-09-19 12:04:42,400 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+2026-09-19 12:05:00,552 INFO:   Input workers have begun streaming input data
+2026-09-19 12:05:00,696 INFO:   Appliance staging is complete
+2026-09-19 12:05:00,697 INFO:   Beginning appliance run
+2026-09-19 12:05:21,531 INFO:   | Train Device=CSX, Step=10, Loss=3.47683, Rate=2508.37 samples/sec, GlobalRate=213.37 samples/sec, LoopTimeRemaining=0:37:12, TimeRemaining=0:37:12
+2026-09-19 12:05:42,384 INFO:   | Train Device=CSX, Step=20, Loss=2.69869, Rate=3403.62 samples/sec, GlobalRate=384.93 samples/sec, LoopTimeRemaining=0:35:52, TimeRemaining=0:35:52
+2026-09-19 12:06:06,661 INFO:   | Train Device=CSX, Step=30, Loss=2.20280, Rate=2499.11 samples/sec, GlobalRate=518.27 samples/sec, LoopTimeRemaining=0:36:37, TimeRemaining=0:36:37
+2026-09-19 12:06:27,202 INFO:   | Train Device=CSX, Step=40, Loss=1.84471, Rate=3398.04 samples/sec, GlobalRate=635.94 samples/sec, LoopTimeRemaining=0:35:08, TimeRemaining=0:35:08
+2026-09-19 12:06:55,454 INFO:   | Train Device=CSX, Step=50, Loss=1.47274, Rate=1696.56 samples/sec, GlobalRate=716.37 samples/sec, LoopTimeRemaining=0:34:34, TimeRemaining=0:34:34
+2026-09-19 12:07:15,837 INFO:   | Train Device=CSX, Step=60, Loss=1.34442, Rate=3246.67 samples/sec, GlobalRate=802.43 samples/sec, LoopTimeRemaining=0:31:07, TimeRemaining=0:31:07
+2026-09-19 12:07:40,631 INFO:   | Train Device=CSX, Step=70, Loss=1.23824, Rate=1833.95 samples/sec, GlobalRate=866.05 samples/sec, LoopTimeRemaining=0:30:41, TimeRemaining=0:30:41
+2026-09-19 12:08:01,145 INFO:   | Train Device=CSX, Step=80, Loss=1.16626, Rate=3272.70 samples/sec, GlobalRate=932.02 samples/sec, LoopTimeRemaining=0:30:12, TimeRemaining=0:30:12
+2026-09-19 12:08:25,741 INFO:   | Train Device=CSX, Step=90, Loss=1.09868, Rate=1830.29 samples/sec, GlobalRate=979.97 samples/sec, LoopTimeRemaining=0:29:54, TimeRemaining=0:29:54
+2026-09-19 12:08:50,475 INFO:   | Train Device=CSX, Step=100, Loss=1.14349, Rate=2838.36 samples/sec, GlobalRate=1021.68 samples/sec, LoopTimeRemaining=0:29:41, TimeRemaining=0:29:41
+2026-09-19 12:09:10,870 INFO:   | Train Device=CSX, Step=110, Loss=1.02588, Rate=3463.77 samples/sec, GlobalRate=1069.44 samples/sec, LoopTimeRemaining=0:29:29, TimeRemaining=0:29:29
+2026-09-19 12:09:35,785 INFO:   | Train Device=CSX, Step=120, Loss=0.98517, Rate=2906.66 samples/sec, GlobalRate=1101.52 samples/sec, LoopTimeRemaining=0:29:15, TimeRemaining=0:29:15
+2026-09-19 12:09:56,225 INFO:   | Train Device=CSX, Step=130, Loss=0.89247, Rate=3460.20 samples/sec, GlobalRate=1141.05 samples/sec, LoopTimeRemaining=0:29:01, TimeRemaining=0:29:01
+2026-09-19 12:10:21,163 INFO:   | Train Device=CSX, Step=140, Loss=0.87695, Rate=2949.43 samples/sec, GlobalRate=1166.49 samples/sec, LoopTimeRemaining=0:28:48, TimeRemaining=0:28:48
+2026-09-19 12:10:45,217 INFO:   | Train Device=CSX, Step=150, Loss=0.92448, Rate=3241.72 samples/sec, GlobalRate=1191.50 samples/sec, LoopTimeRemaining=0:28:32, TimeRemaining=0:28:32
+2026-09-19 12:11:10,150 INFO:   | Train Device=CSX, Step=160, Loss=0.89547, Rate=1811.27 samples/sec, GlobalRate=1212.32 samples/sec, LoopTimeRemaining=0:28:21, TimeRemaining=0:28:21
+2026-09-19 12:11:30,604 INFO:   | Train Device=CSX, Step=170, Loss=0.84605, Rate=3316.23 samples/sec, GlobalRate=1241.13 samples/sec, LoopTimeRemaining=0:28:14, TimeRemaining=0:28:14
+2026-09-19 12:11:55,712 INFO:   | Train Device=CSX, Step=180, Loss=0.79437, Rate=1822.60 samples/sec, GlobalRate=1257.84 samples/sec, LoopTimeRemaining=0:28:02, TimeRemaining=0:28:02
+2026-09-19 12:12:15,808 INFO:   | Train Device=CSX, Step=190, Loss=0.78792, Rate=3340.54 samples/sec, GlobalRate=1283.71 samples/sec, LoopTimeRemaining=0:27:44, TimeRemaining=0:27:44
+2026-09-19 12:12:40,303 INFO:   | Train Device=CSX, Step=200, Loss=0.84323, Rate=3446.00 samples/sec, GlobalRate=1298.80 samples/sec, LoopTimeRemaining=0:27:32, TimeRemaining=0:27:32
+2026-09-19 12:13:05,292 INFO:   | Train Device=CSX, Step=210, Loss=0.78816, Rate=2377.66 samples/sec, GlobalRate=1311.77 samples/sec, LoopTimeRemaining=0:27:20, TimeRemaining=0:27:20
+2026-09-19 12:13:25,428 INFO:   | Train Device=CSX, Step=220, Loss=0.76319, Rate=3409.80 samples/sec, GlobalRate=1333.29 samples/sec, LoopTimeRemaining=0:27:11, TimeRemaining=0:27:11
+2026-09-19 12:13:50,120 INFO:   | Train Device=CSX, Step=230, Loss=0.73257, Rate=2590.81 samples/sec, GlobalRate=1344.77 samples/sec, LoopTimeRemaining=0:27:00, TimeRemaining=0:27:00
+2026-09-19 12:14:10,484 INFO:   | Train Device=CSX, Step=240, Loss=0.67103, Rate=3415.86 samples/sec, GlobalRate=1363.60 samples/sec, LoopTimeRemaining=0:26:57, TimeRemaining=0:26:57
+2026-09-19 12:14:39,602 INFO:   | Train Device=CSX, Step=250, Loss=0.80139, Rate=1825.47 samples/sec, GlobalRate=1365.27 samples/sec, LoopTimeRemaining=0:26:45, TimeRemaining=0:26:45
+2026-09-19 12:14:59,872 INFO:   | Train Device=CSX, Step=260, Loss=0.70878, Rate=3270.92 samples/sec, GlobalRate=1382.52 samples/sec, LoopTimeRemaining=0:26:34, TimeRemaining=0:26:34
+2026-09-19 12:15:24,973 INFO:   | Train Device=CSX, Step=270, Loss=0.72556, Rate=1836.92 samples/sec, GlobalRate=1390.38 samples/sec, LoopTimeRemaining=0:26:18, TimeRemaining=0:26:18
+2026-09-19 12:15:45,493 INFO:   | Train Device=CSX, Step=280, Loss=0.65561, Rate=3343.64 samples/sec, GlobalRate=1405.62 samples/sec, LoopTimeRemaining=0:26:05, TimeRemaining=0:26:05
+2026-09-19 12:16:10,251 INFO:   | Train Device=CSX, Step=290, Loss=0.70288, Rate=1858.53 samples/sec, GlobalRate=1412.94 samples/sec, LoopTimeRemaining=0:25:54, TimeRemaining=0:25:54
+2026-09-19 12:16:34,284 INFO:   | Train Device=CSX, Step=300, Loss=0.77353, Rate=2879.59 samples/sec, GlobalRate=1421.04 samples/sec, LoopTimeRemaining=0:25:40, TimeRemaining=0:25:40
+2026-09-19 12:16:54,702 INFO:   | Train Device=CSX, Step=310, Loss=0.73917, Rate=3486.99 samples/sec, GlobalRate=1434.54 samples/sec, LoopTimeRemaining=0:25:26, TimeRemaining=0:25:26
+2026-09-19 12:17:19,992 INFO:   | Train Device=CSX, Step=320, Loss=0.67891, Rate=2802.69 samples/sec, GlobalRate=1439.68 samples/sec, LoopTimeRemaining=0:25:14, TimeRemaining=0:25:14
+2026-09-19 12:17:40,057 INFO:   | Train Device=CSX, Step=330, Loss=0.68375, Rate=3516.82 samples/sec, GlobalRate=1452.65 samples/sec, LoopTimeRemaining=0:24:57, TimeRemaining=0:24:57
+2026-09-19 12:18:04,780 INFO:   | Train Device=CSX, Step=340, Loss=0.67506, Rate=3036.55 samples/sec, GlobalRate=1457.94 samples/sec, LoopTimeRemaining=0:24:45, TimeRemaining=0:24:45
+2026-09-19 12:18:29,033 INFO:   | Train Device=CSX, Step=350, Loss=0.79254, Rate=3280.78 samples/sec, GlobalRate=1463.65 samples/sec, LoopTimeRemaining=0:24:35, TimeRemaining=0:24:35
+2026-09-19 12:18:54,054 INFO:   | Train Device=CSX, Step=360, Loss=0.70294, Rate=1813.05 samples/sec, GlobalRate=1467.97 samples/sec, LoopTimeRemaining=0:24:22, TimeRemaining=0:24:22
+2026-09-19 12:19:14,215 INFO:   | Train Device=CSX, Step=370, Loss=0.73575, Rate=3277.36 samples/sec, GlobalRate=1479.06 samples/sec, LoopTimeRemaining=0:24:10, TimeRemaining=0:24:10
+2026-09-19 12:19:39,175 INFO:   | Train Device=CSX, Step=380, Loss=0.65113, Rate=1802.33 samples/sec, GlobalRate=1482.92 samples/sec, LoopTimeRemaining=0:24:02, TimeRemaining=0:24:02
+2026-09-19 12:19:59,503 INFO:   | Train Device=CSX, Step=390, Loss=0.66875, Rate=3345.36 samples/sec, GlobalRate=1493.02 samples/sec, LoopTimeRemaining=0:23:53, TimeRemaining=0:23:53
+2026-09-19 12:20:23,836 INFO:   | Train Device=CSX, Step=400, Loss=0.62091, Rate=3108.05 samples/sec, GlobalRate=1497.25 samples/sec, LoopTimeRemaining=0:23:43, TimeRemaining=0:23:43
+2026-09-19 12:20:48,625 INFO:   | Train Device=CSX, Step=410, Loss=0.66812, Rate=2863.51 samples/sec, GlobalRate=1500.69 samples/sec, LoopTimeRemaining=0:23:34, TimeRemaining=0:23:34
+2026-09-19 12:21:08,977 INFO:   | Train Device=CSX, Step=420, Loss=0.65817, Rate=3416.65 samples/sec, GlobalRate=1509.83 samples/sec, LoopTimeRemaining=0:23:23, TimeRemaining=0:23:23
+2026-09-19 12:21:34,281 INFO:   | Train Device=CSX, Step=430, Loss=0.65590, Rate=2893.94 samples/sec, GlobalRate=1512.20 samples/sec, LoopTimeRemaining=0:23:12, TimeRemaining=0:23:12
+2026-09-19 12:21:54,338 INFO:   | Train Device=CSX, Step=440, Loss=0.65998, Rate=3638.34 samples/sec, GlobalRate=1521.17 samples/sec, LoopTimeRemaining=0:23:01, TimeRemaining=0:23:01
+2026-09-19 12:22:23,301 INFO:   | Train Device=CSX, Step=450, Loss=0.67736, Rate=1774.69 samples/sec, GlobalRate=1518.62 samples/sec, LoopTimeRemaining=0:22:51, TimeRemaining=0:22:51
+2026-09-19 12:22:43,708 INFO:   | Train Device=CSX, Step=460, Loss=0.65244, Rate=3302.45 samples/sec, GlobalRate=1526.70 samples/sec, LoopTimeRemaining=0:22:43, TimeRemaining=0:22:43
+2026-09-19 12:23:09,377 INFO:   | Train Device=CSX, Step=470, Loss=0.59398, Rate=1794.52 samples/sec, GlobalRate=1528.10 samples/sec, LoopTimeRemaining=0:22:34, TimeRemaining=0:22:34
+2026-09-19 12:23:29,581 INFO:   | Train Device=CSX, Step=480, Loss=0.59142, Rate=3304.25 samples/sec, GlobalRate=1535.98 samples/sec, LoopTimeRemaining=0:22:20, TimeRemaining=0:22:20
+2026-09-19 12:23:49,250 INFO:   | Train Device=CSX, Step=490, Loss=0.26183, Rate=3682.74 samples/sec, GlobalRate=1544.25 samples/sec, LoopTimeRemaining=0:22:06, TimeRemaining=0:22:06
+2026-09-19 12:24:18,230 INFO:   | Train Device=CSX, Step=500, Loss=0.57459, Rate=2718.24 samples/sec, GlobalRate=1541.40 samples/sec, LoopTimeRemaining=0:21:57, TimeRemaining=0:21:57
+2026-09-19 12:24:38,412 INFO:   | Train Device=CSX, Step=510, Loss=0.60451, Rate=3419.18 samples/sec, GlobalRate=1548.70 samples/sec, LoopTimeRemaining=0:21:48, TimeRemaining=0:21:48
+2026-09-19 12:25:03,255 INFO:   | Train Device=CSX, Step=520, Loss=0.51546, Rate=2833.47 samples/sec, GlobalRate=1550.51 samples/sec, LoopTimeRemaining=0:21:37, TimeRemaining=0:21:37
+2026-09-19 12:25:23,533 INFO:   | Train Device=CSX, Step=530, Loss=0.57929, Rate=3494.86 samples/sec, GlobalRate=1557.34 samples/sec, LoopTimeRemaining=0:21:23, TimeRemaining=0:21:23
+2026-09-19 12:25:52,736 INFO:   | Train Device=CSX, Step=540, Loss=0.53925, Rate=1731.11 samples/sec, GlobalRate=1554.16 samples/sec, LoopTimeRemaining=0:21:14, TimeRemaining=0:21:14
+2026-09-19 12:26:12,997 INFO:   | Train Device=CSX, Step=550, Loss=0.56871, Rate=3184.38 samples/sec, GlobalRate=1560.73 samples/sec, LoopTimeRemaining=0:21:02, TimeRemaining=0:21:02
+2026-09-19 12:26:37,569 INFO:   | Train Device=CSX, Step=560, Loss=0.52237, Rate=1841.45 samples/sec, GlobalRate=1562.50 samples/sec, LoopTimeRemaining=0:20:54, TimeRemaining=0:20:54
+2026-09-19 12:26:57,878 INFO:   | Train Device=CSX, Step=570, Loss=0.54842, Rate=3211.11 samples/sec, GlobalRate=1568.70 samples/sec, LoopTimeRemaining=0:20:42, TimeRemaining=0:20:42
+2026-09-19 12:27:22,539 INFO:   | Train Device=CSX, Step=580, Loss=0.53324, Rate=1828.59 samples/sec, GlobalRate=1570.21 samples/sec, LoopTimeRemaining=0:20:35, TimeRemaining=0:20:35
+2026-09-19 12:27:46,632 INFO:   | Train Device=CSX, Step=590, Loss=0.50522, Rate=2845.94 samples/sec, GlobalRate=1572.24 samples/sec, LoopTimeRemaining=0:20:20, TimeRemaining=0:20:20
+2026-09-19 12:28:07,158 INFO:   | Train Device=CSX, Step=600, Loss=0.51220, Rate=3397.82 samples/sec, GlobalRate=1577.82 samples/sec, LoopTimeRemaining=0:20:07, TimeRemaining=0:20:07
+2026-09-19 12:28:31,914 INFO:   | Train Device=CSX, Step=610, Loss=0.54894, Rate=2880.67 samples/sec, GlobalRate=1579.02 samples/sec, LoopTimeRemaining=0:19:55, TimeRemaining=0:19:55
+2026-09-19 12:28:52,326 INFO:   | Train Device=CSX, Step=620, Loss=0.52103, Rate=3410.73 samples/sec, GlobalRate=1584.47 samples/sec, LoopTimeRemaining=0:19:43, TimeRemaining=0:19:43
+2026-09-19 12:29:17,121 INFO:   | Train Device=CSX, Step=630, Loss=0.48491, Rate=2747.21 samples/sec, GlobalRate=1585.50 samples/sec, LoopTimeRemaining=0:19:37, TimeRemaining=0:19:37
+2026-09-19 12:29:41,018 INFO:   | Train Device=CSX, Step=640, Loss=0.54694, Rate=2996.78 samples/sec, GlobalRate=1587.35 samples/sec, LoopTimeRemaining=0:19:25, TimeRemaining=0:19:25
+2026-09-19 12:30:05,281 INFO:   | Train Device=CSX, Step=650, Loss=0.54445, Rate=1803.53 samples/sec, GlobalRate=1588.82 samples/sec, LoopTimeRemaining=0:19:13, TimeRemaining=0:19:13
+2026-09-19 12:30:25,772 INFO:   | Train Device=CSX, Step=660, Loss=0.55223, Rate=3148.17 samples/sec, GlobalRate=1593.77 samples/sec, LoopTimeRemaining=0:19:06, TimeRemaining=0:19:06
+2026-09-19 12:30:50,818 INFO:   | Train Device=CSX, Step=670, Loss=0.49424, Rate=1716.56 samples/sec, GlobalRate=1594.38 samples/sec, LoopTimeRemaining=0:19:02, TimeRemaining=0:19:02
+2026-09-19 12:31:11,181 INFO:   | Train Device=CSX, Step=680, Loss=0.50997, Rate=3278.93 samples/sec, GlobalRate=1599.25 samples/sec, LoopTimeRemaining=0:18:48, TimeRemaining=0:18:48
+2026-09-19 12:31:35,167 INFO:   | Train Device=CSX, Step=690, Loss=0.65326, Rate=3364.68 samples/sec, GlobalRate=1600.72 samples/sec, LoopTimeRemaining=0:18:39, TimeRemaining=0:18:39
+2026-09-19 12:31:59,884 INFO:   | Train Device=CSX, Step=700, Loss=0.61541, Rate=2869.50 samples/sec, GlobalRate=1601.50 samples/sec, LoopTimeRemaining=0:18:25, TimeRemaining=0:18:25
+2026-09-19 12:32:20,364 INFO:   | Train Device=CSX, Step=710, Loss=0.56165, Rate=3461.07 samples/sec, GlobalRate=1606.01 samples/sec, LoopTimeRemaining=0:18:14, TimeRemaining=0:18:14
+2026-09-19 12:32:45,366 INFO:   | Train Device=CSX, Step=720, Loss=0.49789, Rate=2859.44 samples/sec, GlobalRate=1606.45 samples/sec, LoopTimeRemaining=0:18:01, TimeRemaining=0:18:01
+2026-09-19 12:33:06,015 INFO:   | Train Device=CSX, Step=730, Loss=0.47967, Rate=3116.00 samples/sec, GlobalRate=1610.65 samples/sec, LoopTimeRemaining=0:17:46, TimeRemaining=0:17:46
+2026-09-19 12:33:33,779 INFO:   | Train Device=CSX, Step=740, Loss=0.54749, Rate=1707.75 samples/sec, GlobalRate=1608.65 samples/sec, LoopTimeRemaining=0:17:37, TimeRemaining=0:17:37
+2026-09-19 12:33:54,032 INFO:   | Train Device=CSX, Step=750, Loss=0.48983, Rate=3238.60 samples/sec, GlobalRate=1613.05 samples/sec, LoopTimeRemaining=0:17:22, TimeRemaining=0:17:22
+2026-09-19 12:34:18,705 INFO:   | Train Device=CSX, Step=760, Loss=0.49899, Rate=1772.06 samples/sec, GlobalRate=1613.65 samples/sec, LoopTimeRemaining=0:17:14, TimeRemaining=0:17:14
+2026-09-19 12:34:39,695 INFO:   | Train Device=CSX, Step=770, Loss=0.44842, Rate=3296.42 samples/sec, GlobalRate=1617.29 samples/sec, LoopTimeRemaining=0:17:06, TimeRemaining=0:17:06
+2026-09-19 12:35:04,495 INFO:   | Train Device=CSX, Step=780, Loss=0.52193, Rate=1834.93 samples/sec, GlobalRate=1617.72 samples/sec, LoopTimeRemaining=0:16:54, TimeRemaining=0:16:54
+2026-09-19 12:35:28,813 INFO:   | Train Device=CSX, Step=790, Loss=0.52802, Rate=2592.36 samples/sec, GlobalRate=1618.53 samples/sec, LoopTimeRemaining=0:16:35, TimeRemaining=0:16:35
+2026-09-19 12:35:49,063 INFO:   | Train Device=CSX, Step=800, Loss=0.50004, Rate=3391.76 samples/sec, GlobalRate=1622.58 samples/sec, LoopTimeRemaining=0:16:34, TimeRemaining=0:16:34
+2026-09-19 12:36:13,987 INFO:   | Train Device=CSX, Step=810, Loss=0.46267, Rate=2875.07 samples/sec, GlobalRate=1622.84 samples/sec, LoopTimeRemaining=0:16:22, TimeRemaining=0:16:22
+2026-09-19 12:36:34,210 INFO:   | Train Device=CSX, Step=820, Loss=0.52824, Rate=3356.52 samples/sec, GlobalRate=1626.78 samples/sec, LoopTimeRemaining=0:16:10, TimeRemaining=0:16:10
+2026-09-19 12:36:58,926 INFO:   | Train Device=CSX, Step=830, Loss=0.48050, Rate=2981.24 samples/sec, GlobalRate=1627.14 samples/sec, LoopTimeRemaining=0:15:55, TimeRemaining=0:15:55
+2026-09-19 12:37:23,290 INFO:   | Train Device=CSX, Step=840, Loss=0.52769, Rate=2995.61 samples/sec, GlobalRate=1627.76 samples/sec, LoopTimeRemaining=0:15:43, TimeRemaining=0:15:43
+2026-09-19 12:37:48,328 INFO:   | Train Device=CSX, Step=850, Loss=0.45973, Rate=1793.09 samples/sec, GlobalRate=1627.86 samples/sec, LoopTimeRemaining=0:15:32, TimeRemaining=0:15:32
+2026-09-19 12:38:08,744 INFO:   | Train Device=CSX, Step=860, Loss=0.49963, Rate=3285.64 samples/sec, GlobalRate=1631.44 samples/sec, LoopTimeRemaining=0:15:11, TimeRemaining=0:15:11
+2026-09-19 12:38:33,514 INFO:   | Train Device=CSX, Step=870, Loss=0.47504, Rate=1809.75 samples/sec, GlobalRate=1631.69 samples/sec, LoopTimeRemaining=0:14:57, TimeRemaining=0:14:57
+2026-09-19 12:38:53,709 INFO:   | Train Device=CSX, Step=880, Loss=0.47894, Rate=3442.78 samples/sec, GlobalRate=1635.32 samples/sec, LoopTimeRemaining=0:14:45, TimeRemaining=0:14:45
+2026-09-19 12:39:18,072 INFO:   | Train Device=CSX, Step=890, Loss=0.44165, Rate=3461.51 samples/sec, GlobalRate=1635.82 samples/sec, LoopTimeRemaining=0:14:34, TimeRemaining=0:14:34
+2026-09-19 12:39:42,996 INFO:   | Train Device=CSX, Step=900, Loss=0.47667, Rate=2805.74 samples/sec, GlobalRate=1635.91 samples/sec, LoopTimeRemaining=0:14:18, TimeRemaining=0:14:18
+2026-09-19 12:40:03,465 INFO:   | Train Device=CSX, Step=910, Loss=0.49759, Rate=3419.00 samples/sec, GlobalRate=1639.19 samples/sec, LoopTimeRemaining=0:14:08, TimeRemaining=0:14:08
+2026-09-19 12:40:28,317 INFO:   | Train Device=CSX, Step=920, Loss=0.50278, Rate=2871.37 samples/sec, GlobalRate=1639.29 samples/sec, LoopTimeRemaining=0:13:55, TimeRemaining=0:13:55
+2026-09-19 12:40:48,730 INFO:   | Train Device=CSX, Step=930, Loss=0.50568, Rate=3556.29 samples/sec, GlobalRate=1642.52 samples/sec, LoopTimeRemaining=0:13:43, TimeRemaining=0:13:43
+2026-09-19 12:41:17,608 INFO:   | Train Device=CSX, Step=940, Loss=0.49489, Rate=1787.28 samples/sec, GlobalRate=1639.77 samples/sec, LoopTimeRemaining=0:13:34, TimeRemaining=0:13:34
+2026-09-19 12:41:38,000 INFO:   | Train Device=CSX, Step=950, Loss=0.50581, Rate=3137.03 samples/sec, GlobalRate=1642.94 samples/sec, LoopTimeRemaining=0:13:23, TimeRemaining=0:13:23
+2026-09-19 12:42:02,575 INFO:   | Train Device=CSX, Step=960, Loss=0.47211, Rate=1831.41 samples/sec, GlobalRate=1643.19 samples/sec, LoopTimeRemaining=0:13:15, TimeRemaining=0:13:15
+2026-09-19 12:42:23,058 INFO:   | Train Device=CSX, Step=970, Loss=0.47018, Rate=3108.32 samples/sec, GlobalRate=1646.21 samples/sec, LoopTimeRemaining=0:13:05, TimeRemaining=0:13:05
+2026-09-19 12:42:43,023 INFO:   | Train Device=CSX, Step=980, Loss=0.04939, Rate=3683.15 samples/sec, GlobalRate=1649.54 samples/sec, LoopTimeRemaining=0:12:48, TimeRemaining=0:12:48
+2026-09-19 12:43:11,923 INFO:   | Train Device=CSX, Step=990, Loss=0.44912, Rate=2852.87 samples/sec, GlobalRate=1646.81 samples/sec, LoopTimeRemaining=0:12:37, TimeRemaining=0:12:37
+2026-09-19 12:43:32,461 INFO:   | Train Device=CSX, Step=1000, Loss=0.49032, Rate=3424.43 samples/sec, GlobalRate=1649.69 samples/sec, LoopTimeRemaining=0:12:25, TimeRemaining=0:12:25
+2026-09-19 12:43:57,276 INFO:   | Train Device=CSX, Step=1010, Loss=0.41706, Rate=2936.31 samples/sec, GlobalRate=1649.70 samples/sec, LoopTimeRemaining=0:12:12, TimeRemaining=0:12:12
+2026-09-19 12:44:17,801 INFO:   | Train Device=CSX, Step=1020, Loss=0.48603, Rate=3480.80 samples/sec, GlobalRate=1652.50 samples/sec, LoopTimeRemaining=0:11:56, TimeRemaining=0:11:56
+2026-09-19 12:44:46,290 INFO:   | Train Device=CSX, Step=1030, Loss=0.45411, Rate=1736.94 samples/sec, GlobalRate=1650.11 samples/sec, LoopTimeRemaining=0:11:48, TimeRemaining=0:11:48
+2026-09-19 12:45:06,723 INFO:   | Train Device=CSX, Step=1040, Loss=0.46804, Rate=3249.43 samples/sec, GlobalRate=1652.92 samples/sec, LoopTimeRemaining=0:11:32, TimeRemaining=0:11:32
+2026-09-19 12:45:31,714 INFO:   | Train Device=CSX, Step=1050, Loss=0.47130, Rate=1802.26 samples/sec, GlobalRate=1652.79 samples/sec, LoopTimeRemaining=0:11:21, TimeRemaining=0:11:21
+2026-09-19 12:45:51,748 INFO:   | Train Device=CSX, Step=1060, Loss=0.46220, Rate=3299.30 samples/sec, GlobalRate=1655.78 samples/sec, LoopTimeRemaining=0:11:08, TimeRemaining=0:11:08
+2026-09-19 12:46:16,607 INFO:   | Train Device=CSX, Step=1070, Loss=0.46008, Rate=1818.25 samples/sec, GlobalRate=1655.71 samples/sec, LoopTimeRemaining=0:10:55, TimeRemaining=0:10:55
+2026-09-19 12:46:40,536 INFO:   | Train Device=CSX, Step=1080, Loss=0.45617, Rate=2783.45 samples/sec, GlobalRate=1656.21 samples/sec, LoopTimeRemaining=0:10:44, TimeRemaining=0:10:44
+2026-09-19 12:47:00,836 INFO:   | Train Device=CSX, Step=1090, Loss=0.44542, Rate=3435.28 samples/sec, GlobalRate=1658.93 samples/sec, LoopTimeRemaining=0:10:32, TimeRemaining=0:10:32
+2026-09-19 12:47:25,658 INFO:   | Train Device=CSX, Step=1100, Loss=0.45942, Rate=2847.57 samples/sec, GlobalRate=1658.85 samples/sec, LoopTimeRemaining=0:10:20, TimeRemaining=0:10:20
+2026-09-19 12:47:47,911 INFO:   | Train Device=CSX, Step=1110, Loss=0.45118, Rate=2921.50 samples/sec, GlobalRate=1660.33 samples/sec, LoopTimeRemaining=0:10:08, TimeRemaining=0:10:08
+2026-09-19 12:48:10,890 INFO:   | Train Device=CSX, Step=1120, Loss=0.43034, Rate=2479.37 samples/sec, GlobalRate=1661.35 samples/sec, LoopTimeRemaining=0:09:59, TimeRemaining=0:09:59
+2026-09-19 12:48:34,932 INFO:   | Train Device=CSX, Step=1130, Loss=0.44616, Rate=3301.27 samples/sec, GlobalRate=1661.71 samples/sec, LoopTimeRemaining=0:09:48, TimeRemaining=0:09:48
+2026-09-19 12:48:59,579 INFO:   | Train Device=CSX, Step=1140, Loss=0.45181, Rate=1802.72 samples/sec, GlobalRate=1661.71 samples/sec, LoopTimeRemaining=0:09:38, TimeRemaining=0:09:38
+2026-09-19 12:49:19,962 INFO:   | Train Device=CSX, Step=1150, Loss=0.48663, Rate=3314.12 samples/sec, GlobalRate=1664.22 samples/sec, LoopTimeRemaining=0:09:28, TimeRemaining=0:09:28
+2026-09-19 12:49:44,883 INFO:   | Train Device=CSX, Step=1160, Loss=0.44142, Rate=1665.62 samples/sec, GlobalRate=1664.04 samples/sec, LoopTimeRemaining=0:09:19, TimeRemaining=0:09:19
+2026-09-19 12:50:05,517 INFO:   | Train Device=CSX, Step=1170, Loss=0.45575, Rate=3224.02 samples/sec, GlobalRate=1666.34 samples/sec, LoopTimeRemaining=0:09:08, TimeRemaining=0:09:08
+2026-09-19 12:50:29,378 INFO:   | Train Device=CSX, Step=1180, Loss=0.46698, Rate=3391.60 samples/sec, GlobalRate=1666.76 samples/sec, LoopTimeRemaining=0:08:57, TimeRemaining=0:08:57
+2026-09-19 12:50:54,256 INFO:   | Train Device=CSX, Step=1190, Loss=0.47360, Rate=2861.64 samples/sec, GlobalRate=1666.58 samples/sec, LoopTimeRemaining=0:08:49, TimeRemaining=0:08:49
+2026-09-19 12:51:14,825 INFO:   | Train Device=CSX, Step=1200, Loss=0.45514, Rate=3482.86 samples/sec, GlobalRate=1668.85 samples/sec, LoopTimeRemaining=0:08:41, TimeRemaining=0:08:41
+2026-09-19 12:51:39,501 INFO:   | Train Device=CSX, Step=1210, Loss=0.43531, Rate=2858.64 samples/sec, GlobalRate=1668.78 samples/sec, LoopTimeRemaining=0:08:29, TimeRemaining=0:08:29
+2026-09-19 12:51:59,736 INFO:   | Train Device=CSX, Step=1220, Loss=0.41852, Rate=3406.33 samples/sec, GlobalRate=1671.18 samples/sec, LoopTimeRemaining=0:08:10, TimeRemaining=0:08:10
+2026-09-19 12:52:28,027 INFO:   | Train Device=CSX, Step=1230, Loss=0.48478, Rate=1818.64 samples/sec, GlobalRate=1669.09 samples/sec, LoopTimeRemaining=0:08:02, TimeRemaining=0:08:02
+2026-09-19 12:52:48,582 INFO:   | Train Device=CSX, Step=1240, Loss=0.42985, Rate=3276.57 samples/sec, GlobalRate=1671.28 samples/sec, LoopTimeRemaining=0:07:46, TimeRemaining=0:07:46
+2026-09-19 12:53:13,157 INFO:   | Train Device=CSX, Step=1250, Loss=0.45082, Rate=1827.53 samples/sec, GlobalRate=1671.24 samples/sec, LoopTimeRemaining=0:07:35, TimeRemaining=0:07:35
+2026-09-19 12:53:33,506 INFO:   | Train Device=CSX, Step=1260, Loss=0.41662, Rate=3314.29 samples/sec, GlobalRate=1673.50 samples/sec, LoopTimeRemaining=0:07:22, TimeRemaining=0:07:22
+2026-09-19 12:53:58,308 INFO:   | Train Device=CSX, Step=1270, Loss=0.45589, Rate=1836.55 samples/sec, GlobalRate=1673.32 samples/sec, LoopTimeRemaining=0:07:10, TimeRemaining=0:07:10
+2026-09-19 12:54:22,428 INFO:   | Train Device=CSX, Step=1280, Loss=0.45356, Rate=2826.04 samples/sec, GlobalRate=1673.51 samples/sec, LoopTimeRemaining=0:06:58, TimeRemaining=0:06:58
+2026-09-19 12:54:42,909 INFO:   | Train Device=CSX, Step=1290, Loss=0.44450, Rate=3326.00 samples/sec, GlobalRate=1675.63 samples/sec, LoopTimeRemaining=0:06:46, TimeRemaining=0:06:46
+2026-09-19 12:55:07,885 INFO:   | Train Device=CSX, Step=1300, Loss=0.42830, Rate=2373.99 samples/sec, GlobalRate=1675.35 samples/sec, LoopTimeRemaining=0:06:34, TimeRemaining=0:06:34
+2026-09-19 12:55:28,105 INFO:   | Train Device=CSX, Step=1310, Loss=0.45185, Rate=3392.95 samples/sec, GlobalRate=1677.57 samples/sec, LoopTimeRemaining=0:06:23, TimeRemaining=0:06:23
+2026-09-19 12:55:52,197 INFO:   | Train Device=CSX, Step=1320, Loss=0.45406, Rate=2980.63 samples/sec, GlobalRate=1677.73 samples/sec, LoopTimeRemaining=0:06:11, TimeRemaining=0:06:11
+2026-09-19 12:56:16,496 INFO:   | Train Device=CSX, Step=1330, Loss=0.46269, Rate=3288.65 samples/sec, GlobalRate=1677.79 samples/sec, LoopTimeRemaining=0:06:00, TimeRemaining=0:06:00
+2026-09-19 12:56:41,376 INFO:   | Train Device=CSX, Step=1340, Loss=0.42356, Rate=1805.87 samples/sec, GlobalRate=1677.55 samples/sec, LoopTimeRemaining=0:05:48, TimeRemaining=0:05:48
+2026-09-19 12:57:01,771 INFO:   | Train Device=CSX, Step=1350, Loss=0.47163, Rate=3231.14 samples/sec, GlobalRate=1679.60 samples/sec, LoopTimeRemaining=0:05:37, TimeRemaining=0:05:37
+2026-09-19 12:57:26,735 INFO:   | Train Device=CSX, Step=1360, Loss=0.42288, Rate=1827.90 samples/sec, GlobalRate=1679.31 samples/sec, LoopTimeRemaining=0:05:26, TimeRemaining=0:05:26
+2026-09-19 12:57:46,811 INFO:   | Train Device=CSX, Step=1370, Loss=0.43944, Rate=3453.02 samples/sec, GlobalRate=1681.48 samples/sec, LoopTimeRemaining=0:05:14, TimeRemaining=0:05:14
+2026-09-19 12:58:11,646 INFO:   | Train Device=CSX, Step=1380, Loss=0.43234, Rate=3481.29 samples/sec, GlobalRate=1681.25 samples/sec, LoopTimeRemaining=0:05:02, TimeRemaining=0:05:02
+2026-09-19 12:58:36,579 INFO:   | Train Device=CSX, Step=1390, Loss=0.45175, Rate=2922.74 samples/sec, GlobalRate=1680.96 samples/sec, LoopTimeRemaining=0:04:50, TimeRemaining=0:04:50
+2026-09-19 12:58:57,027 INFO:   | Train Device=CSX, Step=1400, Loss=0.46874, Rate=3429.46 samples/sec, GlobalRate=1682.90 samples/sec, LoopTimeRemaining=0:04:37, TimeRemaining=0:04:37
+2026-09-19 12:59:21,916 INFO:   | Train Device=CSX, Step=1410, Loss=0.48211, Rate=2894.04 samples/sec, GlobalRate=1682.63 samples/sec, LoopTimeRemaining=0:04:24, TimeRemaining=0:04:24
+2026-09-19 12:59:42,095 INFO:   | Train Device=CSX, Step=1420, Loss=0.46341, Rate=3535.62 samples/sec, GlobalRate=1684.66 samples/sec, LoopTimeRemaining=0:04:13, TimeRemaining=0:04:13
+2026-09-19 13:00:10,750 INFO:   | Train Device=CSX, Step=1430, Loss=0.49384, Rate=1835.84 samples/sec, GlobalRate=1682.55 samples/sec, LoopTimeRemaining=0:04:01, TimeRemaining=0:04:01
+2026-09-19 13:00:31,084 INFO:   | Train Device=CSX, Step=1440, Loss=0.48779, Rate=3243.54 samples/sec, GlobalRate=1684.48 samples/sec, LoopTimeRemaining=0:03:50, TimeRemaining=0:03:50
+2026-09-19 13:00:56,138 INFO:   | Train Device=CSX, Step=1450, Loss=0.45575, Rate=1782.36 samples/sec, GlobalRate=1684.13 samples/sec, LoopTimeRemaining=0:03:38, TimeRemaining=0:03:38
+2026-09-19 13:01:16,624 INFO:   | Train Device=CSX, Step=1460, Loss=0.43921, Rate=3216.96 samples/sec, GlobalRate=1685.95 samples/sec, LoopTimeRemaining=0:03:27, TimeRemaining=0:03:27
+2026-09-19 13:01:36,834 INFO:   | Train Device=CSX, Step=1470, Loss=0.03139, Rate=3649.51 samples/sec, GlobalRate=1687.88 samples/sec, LoopTimeRemaining=0:03:16, TimeRemaining=0:03:16
+2026-09-19 13:02:05,923 INFO:   | Train Device=CSX, Step=1480, Loss=0.41979, Rate=2597.55 samples/sec, GlobalRate=1685.62 samples/sec, LoopTimeRemaining=0:03:04, TimeRemaining=0:03:04
+2026-09-19 13:02:26,343 INFO:   | Train Device=CSX, Step=1490, Loss=0.44598, Rate=3373.22 samples/sec, GlobalRate=1687.43 samples/sec, LoopTimeRemaining=0:02:54, TimeRemaining=0:02:54
+2026-09-19 13:02:51,330 INFO:   | Train Device=CSX, Step=1500, Loss=0.41097, Rate=2738.44 samples/sec, GlobalRate=1687.09 samples/sec, LoopTimeRemaining=0:02:44, TimeRemaining=0:02:44
+2026-09-19 13:03:11,741 INFO:   | Train Device=CSX, Step=1510, Loss=0.47101, Rate=3412.33 samples/sec, GlobalRate=1688.88 samples/sec, LoopTimeRemaining=0:02:32, TimeRemaining=0:02:32
+2026-09-19 13:03:40,194 INFO:   | Train Device=CSX, Step=1520, Loss=0.45175, Rate=1725.43 samples/sec, GlobalRate=1686.95 samples/sec, LoopTimeRemaining=0:02:21, TimeRemaining=0:02:21
+2026-09-19 13:04:00,570 INFO:   | Train Device=CSX, Step=1530, Loss=0.45063, Rate=3380.20 samples/sec, GlobalRate=1688.73 samples/sec, LoopTimeRemaining=0:02:08, TimeRemaining=0:02:08
+2026-09-19 13:04:25,038 INFO:   | Train Device=CSX, Step=1540, Loss=0.44203, Rate=1711.89 samples/sec, GlobalRate=1688.63 samples/sec, LoopTimeRemaining=0:01:57, TimeRemaining=0:01:57
+2026-09-19 13:04:45,457 INFO:   | Train Device=CSX, Step=1550, Loss=0.41987, Rate=3230.11 samples/sec, GlobalRate=1690.36 samples/sec, LoopTimeRemaining=0:01:45, TimeRemaining=0:01:45
+2026-09-19 13:05:10,277 INFO:   | Train Device=CSX, Step=1560, Loss=0.45743, Rate=1804.30 samples/sec, GlobalRate=1690.09 samples/sec, LoopTimeRemaining=0:01:33, TimeRemaining=0:01:33
+2026-09-19 13:05:34,476 INFO:   | Train Device=CSX, Step=1570, Loss=0.43551, Rate=2743.76 samples/sec, GlobalRate=1690.11 samples/sec, LoopTimeRemaining=0:01:21, TimeRemaining=0:01:21
+2026-09-19 13:05:54,823 INFO:   | Train Device=CSX, Step=1580, Loss=0.42705, Rate=3479.76 samples/sec, GlobalRate=1691.83 samples/sec, LoopTimeRemaining=0:01:10, TimeRemaining=0:01:10
+2026-09-19 13:06:19,579 INFO:   | Train Device=CSX, Step=1590, Loss=0.45024, Rate=2834.68 samples/sec, GlobalRate=1691.59 samples/sec, LoopTimeRemaining=0:00:58, TimeRemaining=0:00:58
+2026-09-19 13:06:39,854 INFO:   | Train Device=CSX, Step=1600, Loss=0.44827, Rate=3369.37 samples/sec, GlobalRate=1693.31 samples/sec, LoopTimeRemaining=0:00:46, TimeRemaining=0:00:46
+2026-09-19 13:07:05,387 INFO:   | Train Device=CSX, Step=1610, Loss=0.40489, Rate=2351.70 samples/sec, GlobalRate=1692.73 samples/sec, LoopTimeRemaining=0:00:35, TimeRemaining=0:00:35
+2026-09-19 13:07:28,778 INFO:   | Train Device=CSX, Step=1620, Loss=0.44838, Rate=3247.72 samples/sec, GlobalRate=1693.08 samples/sec, LoopTimeRemaining=0:00:23, TimeRemaining=0:00:23
+2026-09-19 13:07:53,956 INFO:   | Train Device=CSX, Step=1630, Loss=0.42710, Rate=1807.46 samples/sec, GlobalRate=1692.65 samples/sec, LoopTimeRemaining=0:00:12, TimeRemaining=0:00:12
+2026-09-19 13:08:14,314 INFO:   | Train Device=CSX, Step=1640, Loss=0.46630, Rate=3314.93 samples/sec, GlobalRate=1694.29 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:00:00
+2026-09-19 13:08:14,423 INFO:   Training completed successfully!
+2026-09-19 13:08:14,430 INFO:   Processed 6717440 training sample(s) in 3971.653642642 seconds.

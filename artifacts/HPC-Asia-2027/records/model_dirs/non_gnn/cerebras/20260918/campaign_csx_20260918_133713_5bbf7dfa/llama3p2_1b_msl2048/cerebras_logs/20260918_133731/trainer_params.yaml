@@ -1,0 +1,331 @@
+trainer:
+  init:
+    model:
+      name: llama
+      vocab_size: 128256
+      num_extra_input_vocab_tokens: 0
+      max_position_embeddings: 2048
+      embd_pdrop: 0.0
+      position_embedding_type: rotary
+      constant_pos_embedding: null
+      position_embedding_offset: 0
+      hidden_size: 2048
+      share_embedding_weights: true
+      embedding_layer_norm: false
+      num_relative_attention_buckets: 32
+      rotary_dim: 64
+      rope_theta: 500000.0
+      fold_rope_consts: false
+      num_hidden_layers: 16
+      dropout_rate: 0.0
+      norm_type: rmsnorm
+      layer_norm_epsilon: 1.0e-05
+      num_heads: 32
+      attention_type: scaled_dot_product
+      attention_module: multiquery_attention
+      attention_sliding_window_length: null
+      sliding_window_every_other_decoder_layer: false
+      sliding_window_every_other_decoder_layer_pattern: full_attention_first
+      attention_sink_tokens: null
+      attention_vertical_column_spacing: null
+      attention_vertical_column_width: null
+      attention_chunk_size: null
+      attention_qk_norm_layer: null
+      attention_qk_norm_eps: 1.0e-05
+      extra_attention_params:
+        num_kv_groups: 8
+      extra_ffn_params: {}
+      attention_inner_dim: null
+      use_projection_bias_in_attention: false
+      use_ffn_bias_in_attention: false
+      attention_dropout_rate: 0.0
+      attention_softmax_fp32: true
+      attention_kernel: null
+      attention_logit_softcapping: null
+      fixed_sparse_attention: null
+      memory_tokens_config:
+        attn_memory_chunk_size: null
+        num_memory_tokens_per_chunk: null
+        add_qkv_memory_weights: false
+        add_extra_embedding: false
+        add_chunked_attn_mask: false
+        memory_token_id: 0
+      use_experimental_flex_api: false
+      filter_size: 8192
+      nonlinearity: swiglu
+      use_ffn_bias: false
+      use_sink_token: false
+      use_bias_in_output: false
+      initializer_range: 0.02
+      embedding_initializer: null
+      initializer: null
+      output_layer_initializer: null
+      ffn_initializer: null
+      ffn_output_layer_initializer: null
+      lr_adjustment_groups:
+        embedding:
+          param_filter_patterns: '*embedding*weight'
+          scale: 1.0
+        decoder_kernel:
+          param_filter_patterns:
+          - '*decoder*dense*weight'
+          - '*decoder*linear*weight'
+          - '*decoder*linear*expert_weights'
+          scale: 1.0
+        decoder_attention:
+          param_filter_patterns: '*decoder*attn*dense*weight'
+          scale: 1.0
+        decoder_input_ffn:
+          param_filter_patterns:
+          - '*decoder*ffn.ffn.[!1]*weight'
+          - '*decoder*ffn.ffn.[!1]*expert_weights'
+          scale: 1.0
+        decoder_output_ffn:
+          param_filter_patterns:
+          - '*decoder*ffn.ffn.[1]*weight'
+          - '*decoder*ffn.ffn.[1]*expert_weights'
+          scale: 1.0
+      mup_base_hidden_size: null
+      mup_base_filter_size: null
+      embeddings_scale: 1.0
+      scale_qk_dot_by_d: null
+      attention_logits_alpha: 1.0
+      scale_output_logits_by_d: true
+      output_logits_alpha: null
+      alibi_trainable_slopes: false
+      pos_scaling_factor: 32.0
+      pos_scaling_type: llama3
+      pos_scaling_extra_args:
+        high_freq_factor: 4.0
+        low_freq_factor: 1.0
+        original_max_position_embeddings: 8192
+      cross_attention_layers: []
+      rel_distance_mode: default
+      rel_distance_extra_args: null
+      scale_qk_dot_by_layer_idx: false
+      norm_first_sandwich: false
+      output_logits_scale: null
+      final_logit_softcapping: null
+      moe_params:
+        num_experts: 0
+        num_shared_experts: null
+        top_k: 1
+        load_balancing_loss_coef: 0.0
+        null_expert_bias: 0.0
+        moe_implementation: experimental
+        router_use_bias: false
+        router_fp32: true
+        routing_algorithm: learned
+        router_selection_nonlinearity: softmax
+        expert_weighting_nonlinearity: softmax
+        expert_weighting_normalization: true
+        sinkhorn_n_iters: 1
+        gate_initializer: null
+        probability_before_ffn: false
+      dtype: null
+      boundary_casting: false
+      loss_scaling: num_tokens
+      loss_weight: 1.0
+      start_token: null
+      loop_dim: 1
+      stop_sequences: null
+      max_tokens: null
+      temperature: null
+      top_k: null
+      top_p: null
+      compute_eval_metrics: true
+    device: null
+    backend:
+      backend_type: CSX
+      cluster_config:
+        num_csx: 1
+        mount_dirs:
+        - $REPO_ROOT
+        python_paths:
+        - $REPO_ROOT/src
+    model_dir: $REPO_ROOT/model_dirs/non_gnn/campaign_csx_20260918_133713_5bbf7dfa/llama3p2_1b_msl2048
+    optimizer:
+      AdamW:
+        params: []
+        lr: 0.0003
+        betas:
+        - 0.9
+        - 0.95
+        eps: 1.0e-06
+        weight_decay: 0.1
+        correct_bias: true
+        amsgrad: false
+    schedulers: null
+    precision:
+      enabled: true
+      fp16_type: bfloat16
+      precision_opt_level: null
+      loss_scaling_factor: 1.0
+      initial_loss_scale: null
+      steps_per_increase: 2000
+      min_loss_scale: null
+      max_loss_scale: null
+      max_gradient_norm: 1.0
+      max_gradient_value: null
+      log_loss_scale: null
+    sparsity: null
+    loop:
+      num_steps: null
+      max_steps: 200
+      num_epochs: null
+      steps_per_epoch: null
+      eval_frequency: null
+      eval_steps: null
+      grad_accum_steps: 1
+    checkpoint:
+      steps: null
+      autoload_last_checkpoint: false
+      disable_strict_checkpoint_loading: false
+      save_initial_checkpoint: false
+      checkpoint_root: null
+      checkpoint_name: checkpoint_{step}.mdl
+      strict_version: true
+    logging:
+      log_steps: 1
+      log_level: INFO
+      wsc_log_level: null
+      enable_act_frequency: false
+    callbacks:
+    - ScopedTrainFlags:
+        csx.performance.micro_batch_size: auto
+    - CheckLoss: {}
+    - LogOptimizerParamGroup:
+        keys: lr
+    - ComputeNorm: {}
+    - ModelEvalMetrics: {}
+    - RateProfiler: {}
+    - DurationProfiler: {}
+    - FlopUtilization: {}
+    - SavePerformanceData: {}
+    - DumpAvailableTensorNames: {}
+    - ModelZooParamsMetadata:
+        params:
+          trainer:
+            init:
+              backend:
+                backend_type: CSX
+                cluster_config:
+                  num_csx: 1
+                  mount_dirs:
+                  - $REPO_ROOT
+                  python_paths:
+                  - $REPO_ROOT/src
+              callbacks:
+              - ScopedTrainFlags:
+                  csx.performance.micro_batch_size: auto
+              checkpoint:
+                steps: null
+                save_initial_checkpoint: false
+                autoload_last_checkpoint: false
+              logging:
+                log_steps: 1
+              loop:
+                max_steps: 200
+                eval_frequency: null
+                grad_accum_steps: 1
+              model:
+                attention_dropout_rate: 0.0
+                attention_module: multiquery_attention
+                attention_type: scaled_dot_product
+                dropout_rate: 0.0
+                embedding_dropout_rate: 0.0
+                embedding_layer_norm: false
+                extra_attention_params:
+                  num_kv_groups: 8
+                filter_size: 8192
+                hidden_size: 2048
+                initializer_range: 0.02
+                layer_norm_epsilon: 1.0e-05
+                loss_scaling: num_tokens
+                loss_weight: 1.0
+                max_position_embeddings: 2048
+                name: llama
+                nonlinearity: swiglu
+                norm_type: rmsnorm
+                num_heads: 32
+                num_hidden_layers: 16
+                pos_scaling_extra_args:
+                  high_freq_factor: 4.0
+                  low_freq_factor: 1.0
+                  original_max_position_embeddings: 8192
+                pos_scaling_factor: 32.0
+                pos_scaling_type: llama3
+                position_embedding_type: rotary
+                rope_theta: 500000.0
+                rotary_dim: 64
+                share_embedding_weights: true
+                use_bias_in_output: false
+                use_ffn_bias: false
+                use_ffn_bias_in_attention: false
+                use_projection_bias_in_attention: false
+                vocab_size: 128256
+              optimizer:
+                AdamW:
+                  betas:
+                  - 0.9
+                  - 0.95
+                  correct_bias: true
+                  weight_decay: 0.1
+                  lr: 0.0003
+                  params: []
+              precision:
+                enabled: true
+                fp16_type: bfloat16
+                loss_scaling_factor: 1.0
+                max_gradient_norm: 1.0
+              seed: 42
+              model_dir: $REPO_ROOT/model_dirs/non_gnn/campaign_csx_20260918_133713_5bbf7dfa/llama3p2_1b_msl2048
+              loggers: []
+            fit:
+              train_dataloader:
+                batch_size: 16
+                data_dir: $REPO_ROOT/model_dirs/non_gnn/data/cb5fd0a104d8ce684db7/llama_corpus
+                data_processor: GptHDF5MapDataProcessor
+                num_workers: 2
+                persistent_workers: true
+                prefetch_factor: 2
+                shuffle: true
+                shuffle_seed: 42
+                max_sequence_length: 2048
+    - SamplesStreamedInfo: {}
+    loggers:
+    - ProgressLogger: {}
+    - TensorBoardLogger:
+        summary_dir: null
+        legacy_event_dirs: false
+    - TelemetryLogger:
+        max_buffer_size: 128
+        max_buffer_seconds: 150
+    seed: 42
+    autorestart: null
+  fit:
+    train_dataloader:
+      data_dir: $REPO_ROOT/model_dirs/non_gnn/data/cb5fd0a104d8ce684db7/llama_corpus
+      batch_size: 16
+      shuffle: true
+      shuffle_seed: 42
+      use_worker_cache: false
+      max_sequence_length: 2048
+      data_subset: null
+      mixture: null
+      drop_last: true
+      num_samples: null
+      sort_files: true
+      use_vsl: false
+      pad_last: false
+      data_processor: GptHDF5MapDataProcessor
+      dataset_map_fn: null
+      data_transforms: null
+      num_workers: 2
+      prefetch_factor: 2
+      persistent_workers: true
+      vocab_size: null
+      repeat: null
+    val_dataloader: null
+  validate: null
+  validate_all: null

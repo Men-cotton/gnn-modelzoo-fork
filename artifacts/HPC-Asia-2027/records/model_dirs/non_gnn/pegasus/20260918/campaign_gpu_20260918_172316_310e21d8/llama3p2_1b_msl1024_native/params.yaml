@@ -1,0 +1,78 @@
+trainer:
+  init:
+    backend:
+      backend_type: GPU
+    callbacks: []
+    checkpoint:
+      steps: null
+      save_initial_checkpoint: false
+      autoload_last_checkpoint: false
+    logging:
+      log_steps: 1
+    loop:
+      max_steps: 200
+      eval_frequency: null
+      grad_accum_steps: 32
+    model:
+      attention_dropout_rate: 0.0
+      attention_module: multiquery_attention
+      attention_type: scaled_dot_product
+      dropout_rate: 0.0
+      embedding_dropout_rate: 0.0
+      embedding_layer_norm: false
+      extra_attention_params:
+        num_kv_groups: 8
+      filter_size: 8192
+      hidden_size: 2048
+      initializer_range: 0.02
+      layer_norm_epsilon: 1.0e-05
+      loss_scaling: num_tokens
+      loss_weight: 1.0
+      max_position_embeddings: 1024
+      name: llama
+      nonlinearity: swiglu
+      norm_type: rmsnorm
+      num_heads: 32
+      num_hidden_layers: 16
+      pos_scaling_extra_args:
+        high_freq_factor: 4.0
+        low_freq_factor: 1.0
+        original_max_position_embeddings: 8192
+      pos_scaling_factor: 32.0
+      pos_scaling_type: llama3
+      position_embedding_type: rotary
+      rope_theta: 500000.0
+      rotary_dim: 64
+      share_embedding_weights: true
+      use_bias_in_output: false
+      use_ffn_bias: false
+      use_ffn_bias_in_attention: false
+      use_projection_bias_in_attention: false
+      vocab_size: 128256
+    optimizer:
+      AdamW:
+        betas:
+        - 0.9
+        - 0.95
+        correct_bias: true
+        weight_decay: 0.1
+        lr: 0.0003
+        params: []
+    precision:
+      enabled: true
+      fp16_type: bfloat16
+      loss_scaling_factor: 1.0
+      max_gradient_norm: 1.0
+    seed: 42
+    model_dir: $REPO_ROOT/model_dirs/non_gnn/campaign_gpu_20260918_172316_310e21d8/llama3p2_1b_msl1024_native
+  fit:
+    train_dataloader:
+      batch_size: 1
+      data_dir: $REPO_ROOT/model_dirs/non_gnn/data/cb5fd0a104d8ce684db7/llama_corpus
+      data_processor: GptHDF5MapDataProcessor
+      num_workers: 2
+      persistent_workers: true
+      prefetch_factor: 2
+      shuffle: true
+      shuffle_seed: 42
+      max_sequence_length: 1024

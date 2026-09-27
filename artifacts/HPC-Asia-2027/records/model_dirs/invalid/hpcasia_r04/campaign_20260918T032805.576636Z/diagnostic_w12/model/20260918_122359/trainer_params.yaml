@@ -1,0 +1,105 @@
+trainer:
+  init:
+    model:
+      name: gnn
+      architecture:
+        type: graphsage
+        n_feat: 128
+        n_class: 40
+        hidden_dim: 1024
+        num_layers: 3
+        dropout: 0.5
+        aggregator: mean
+      task:
+        to_float16: true
+        disable_log_softmax: false
+        compute_eval_metrics: false
+    backend:
+      backend_type: CSX
+      cluster_config:
+        num_csx: 1
+        job_time_sec: 7200
+        num_workers_per_csx: 1
+        python_paths:
+        - $REPO_ROOT/src/cerebras/modelzoo/../..
+    model_dir: $REPO_ROOT/model_dirs/hpcasia_r04/campaign_20260918T032805.576636Z/diagnostic_w12/model
+    optimizer:
+      AdamW:
+        params: []
+        lr: 0.003
+        weight_decay: 0.0005
+    precision:
+      enabled: true
+      fp16_type: float16
+      loss_scaling_factor: dynamic
+    loop:
+      num_steps: null
+      max_steps: 80
+      num_epochs: null
+      steps_per_epoch: null
+      eval_frequency: null
+    checkpoint:
+      steps: null
+      autoload_last_checkpoint: false
+      save_initial_checkpoint: false
+    logging:
+      log_steps: 10
+    callbacks:
+    - CheckLoss: {}
+    - LogOptimizerParamGroup:
+        keys: lr
+    - ComputeNorm: {}
+    - ModelEvalMetrics: {}
+    - RateProfiler: {}
+    - DurationProfiler: {}
+    - FlopUtilization: {}
+    - SavePerformanceData: {}
+    - DumpAvailableTensorNames: {}
+    - ModelZooParamsMetadata: {}
+    - SamplesStreamedInfo: {}
+    loggers:
+    - ProgressLogger: {}
+    - TensorBoardLogger: {}
+    - TelemetryLogger: {}
+    seed: 42
+  fit:
+    train_dataloader:
+      data_processor: GNNDataProcessor
+      dataset_name: ogbn-arxiv
+      dataset: ogbn_arxiv
+      dataset_profiles:
+        ogbn_arxiv:
+          dataset_name: ogbn-arxiv
+          data_dir: $MODELZOO_ROOT/models/gnn/data/datasets
+          pad_node_id: 0
+      data_dir: $REPO_ROOT/src/cerebras/modelzoo/models/gnn/data/datasets
+      sampling_mode: neighbor
+      fanouts:
+      - 15
+      - 10
+      - 5
+      cache_fraction: null
+      sampler_seed: 42
+      batch_size: 4096
+      drop_last: false
+      num_workers: 12
+      shuffle: true
+      prefetch_factor: 2
+      persistent_workers: true
+      pin_memory: true
+      static_batch_cache_size: 0
+      worker_diagnostics:
+        enabled: true
+        output_dir: $REPO_ROOT/model_dirs/hpcasia_r04/campaign_20260918T032805.576636Z/diagnostic_w12/worker_diagnostics
+        max_batches: 80
+        snapshot_interval_seconds: 5.0
+        max_snapshots: 120
+        resource_monitor: true
+        resource_monitor_pss: true
+      split: train
+      use_fake_data: false
+      pad_node_id: 0
+    val_dataloader: null
+    ckpt_path: null
+  validate: null
+  validate_all: null

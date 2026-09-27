@@ -1,0 +1,1293 @@
+$REPO_ROOT/.venv/lib/python3.11/site-packages/outdated/__init__.py:36: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import parse_version
+2026-09-19 03:31:37,707 INFO:   Connectivity check: running command: ping -c 1 -W 3 10.125.8.2
+2026-09-19 03:31:37,712 INFO:   Connectivity check succeeded.
+2026-09-19 03:31:37,732 INFO:   Appliance client semantic version: 1.14.0, cluster server semantic version: 1.20.2, job operator semantic version: 1.20.2
+2026-09-19 03:31:37,734 INFO:   Successfully initialized workflow with id: wflow-fvz3qqvjetcg2heueuc7wr
+2026-09-19 03:31:37,740 WARNING:   The trainer configuration for train_and_eval does not configure checkpointing. In the event of a failure, the run will be restarted from the beginning. If this is not intentional, please specifiy a checkpoint callback with a checkpointing frequency to enable auto-restarting from previously saved checkpoints.
+2026-09-19 03:31:37,740 INFO:   Spawning child process for the fit run ...
+2026-09-19 03:31:37,744 INFO:   Child process started with pid: 2615835
+$REPO_ROOT/.venv/lib/python3.11/site-packages/outdated/__init__.py:36: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import parse_version
+2026-09-19 03:31:44,352 INFO:   Current Working Directory: $REPO_ROOT/src/cerebras/modelzoo/models/gnn
+2026-09-19 03:31:44,352 INFO:   Running command: $REPO_ROOT/src/cerebras/modelzoo/cli/main.py fit $REPO_ROOT/model_dirs/hpcasia_final/arxiv_20260919T033125.784128Z/seed_42/learning_r1/params.yaml --target_device CSX --model_dir $REPO_ROOT/model_dirs/hpcasia_final/arxiv_20260919T033125.784128Z/seed_42/learning_r1/model
+2026-09-19 03:31:44,868 INFO:   No checkpoint was provided. Using randomly initialized model parameters.
+2026-09-19 03:31:44,868 INFO:   Ordinal 0: Initializing GNNDataProcessor for dataset 'ogbn-arxiv' (split=train, mode=neighbor).
+$REPO_ROOT/.venv/lib/python3.11/site-packages/ogb/nodeproppred/dataset_pyg.py:69: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  self.data, self.slices = torch.load(self.processed_paths[0])
+GNN_INPUT_CONTRACT {"batch_index_origin": 0, "batch_size": 4096, "count_basis": "deterministic loader schedule; not device counters", "dataset_name": "ogbn-arxiv", "drop_last": false, "event": "gnn_input_contract", "num_streamers": 1, "ordered_targets_and_labels_sha256": "cb189ecb3f75e653df7daacc08ead8c3b14bd353d302209c179a41e2b2b47d07", "restartable": false, "sampler_seed": 42, "seed_nodes_by_batch": [4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 829], "seed_nodes_per_epoch": 90941, "shuffle": true, "source_seed_nodes": 90941, "split": "train", "static_batch_cache_size": 0, "supervised_targets_by_batch": [4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 829], "traversal": "continuous_sequential_batches", "traversal_scope": "single_data_executor", "version": 1}
+2026-09-19 03:31:45,212 INFO:   Connectivity check: running command: ping -c 1 -W 3 10.125.8.2
+2026-09-19 03:31:45,218 INFO:   Connectivity check succeeded.
+2026-09-19 03:31:45,238 INFO:   Appliance client semantic version: 1.14.0, cluster server semantic version: 1.20.2, job operator semantic version: 1.20.2
+2026-09-19 03:31:45,239 INFO:   ===========================================================================
+2026-09-19 03:31:45,239 INFO:   Trainer Fit Summary
+2026-09-19 03:31:45,239 INFO:   ---------------------------------------------------------------------------
+2026-09-19 03:31:45,239 INFO:   Trainer will run 25 train loops, interleaving validation as follows:
+2026-09-19 03:31:45,239 INFO:   * val_dataloader_2 after every train loop
+2026-09-19 03:31:45,239 INFO:   
+2026-09-19 03:31:45,239 INFO:   Train steps per train loop:
+2026-09-19 03:31:45,239 INFO:   * 25 loops of 20 steps
+2026-09-19 03:31:45,239 INFO:   for a total of 500 train steps.
+2026-09-19 03:31:45,239 INFO:   
+2026-09-19 03:31:45,239 INFO:   Progress will be logged every 10 steps.
+2026-09-19 03:31:45,239 INFO:   ===========================================================================
+2026-09-19 03:31:45,239 INFO:   ---------------------------------------------------------------------------
+2026-09-19 03:31:45,239 INFO:   Starting train loop 1 of 25, from global step 1 to 20 (20 steps)
+2026-09-19 03:31:45,239 INFO:   ---------------------------------------------------------------------------
+2026-09-19 03:31:50,172 INFO:   Compiling the model. This may take a few minutes.
+2026-09-19 03:31:50,173 INFO:   Connectivity check: running command: ping -c 1 -W 3 10.125.8.2
+2026-09-19 03:31:50,178 INFO:   Connectivity check succeeded.
+2026-09-19 03:31:50,193 INFO:   Appliance client semantic version: 1.14.0, cluster server semantic version: 1.20.2, job operator semantic version: 1.20.2
+2026-09-19 03:31:51,963 INFO:   Initiating a new image build job against the cluster server.
+2026-09-19 03:31:51,981 INFO:   Job id: imgjob-42280d4f85d91291dacb2ef766350f15, workflow id: wflow-fvz3qqvjetcg2heueuc7wr, namespace: job-operator, remote log path: /n1/wsjob/workdir/job-operator/imgjob-42280d4f85d91291dacb2ef766350f15
+2026-09-19 03:31:51,984 INFO:   Connectivity check: running command: ping -c 1 -W 3 10.125.8.2
+2026-09-19 03:31:51,989 INFO:   Connectivity check succeeded.
+2026-09-19 03:31:52,006 INFO:   Appliance client semantic version: 1.14.0, cluster server semantic version: 1.20.2, job operator semantic version: 1.20.2
+2026-09-19 03:31:52,035 INFO:   Initiating a new compile wsjob against the cluster server.
+2026-09-19 03:31:52,060 INFO:   Job id: wsjob-fgmjxnggzuwvpxuxkzxfgk, workflow id: wflow-fvz3qqvjetcg2heueuc7wr, namespace: job-operator, remote log path: /n1/wsjob/workdir/job-operator/wsjob-fgmjxnggzuwvpxuxkzxfgk
+2026-09-19 03:32:12,061 INFO:   Poll ingress status: Waiting for all Coordinator pods to be running, current running: 0/1.
+2026-09-19 03:32:12,064 INFO:   Recording the timestamp when jobs is scheduled.
+2026-09-19 03:32:12,074 WARNING:   Event 2026-09-19 03:31:53 +0000 UTC reason=InconsistentVersion wsjob=wsjob-fgmjxnggzuwvpxuxkzxfgk message='Warning: client semantic version 1.14.0 is inconsistent with cluster server semantic version 1.20.2, there's a risk job could fail due to inconsistent setup.'
+2026-09-19 03:32:22,074 INFO:   Poll ingress status: Waiting for job ingress readiness.
+2026-09-19 03:32:52,082 INFO:   Poll ingress status: Job ingress ready, dashboard: <internal-dashboard-url>
+2026-09-19 03:32:52,092 INFO:   Poll ingress success: Job ingress ready, dashboard: <internal-dashboard-url>
+2026-09-19 03:32:52,102 INFO:   Finalizing out-of-cluster job handle with ingress service url: 
+2026-09-19 03:32:52,102 WARNING:   Empty ingress service url. Falling back to default server: 10.125.8.2:443
+2026-09-19 03:32:52,170 INFO:   Found existing cached compile with hash: "cs_3310013607597699701"
+2026-09-19 03:32:54,013 INFO:   Using power profile none
+
+2026-09-19 03:32:54,026 INFO:   Compile artifacts successfully written to remote compile directory. Compile hash is: cs_3310013607597699701
+2026-09-19 03:33:02,104 ERROR:   Image build job imgjob-42280d4f85d91291dacb2ef766350f15 failed. Please check the error log in $REPO_ROOT/model_dirs/hpcasia_final/arxiv_20260919T033125.784128Z/seed_42/learning_r1/model/cerebras_logs/20260919_033144/executors/000001/custom_worker_build.out. 
+2026-09-19 03:33:02,105 INFO:   Falling back to venv mounting.
+2026-09-19 03:33:02,108 INFO:   Compile was successful!
+2026-09-19 03:33:02,108 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+2026-09-19 03:33:04,117 INFO:   Connectivity check: running command: ping -c 1 -W 3 10.125.8.2
+2026-09-19 03:33:04,124 INFO:   Connectivity check succeeded.
+2026-09-19 03:33:04,141 INFO:   Appliance client semantic version: 1.14.0, cluster server semantic version: 1.20.2, job operator semantic version: 1.20.2
+2026-09-19 03:33:04,144 INFO:   Initiating a new execute wsjob against the cluster server.
+2026-09-19 03:33:04,189 INFO:   Job id: wsjob-mcmszhnpnaxvwzyzgrvmpi, workflow id: wflow-fvz3qqvjetcg2heueuc7wr, namespace: job-operator, remote log path: /n1/wsjob/workdir/job-operator/wsjob-mcmszhnpnaxvwzyzgrvmpi
+2026-09-19 03:33:24,190 INFO:   Poll ingress status: Waiting for all Weight pods to be running, current running: 0/2.
+2026-09-19 03:33:24,194 INFO:   Recording the timestamp when jobs is scheduled.
+2026-09-19 03:33:24,205 WARNING:   Event 2026-09-19 03:33:11 +0000 UTC reason=InconsistentVersion wsjob=wsjob-mcmszhnpnaxvwzyzgrvmpi message='Warning: client semantic version 1.14.0 is inconsistent with cluster server semantic version 1.20.2, there's a risk job could fail due to inconsistent setup.'
+2026-09-19 03:33:24,205 INFO:   Infrastructure setup started for job wsjob-mcmszhnpnaxvwzyzgrvmpi
+2026-09-19 03:33:34,205 INFO:   Poll ingress status: Waiting for all Activation pods to be running, current running: 0/21.
+2026-09-19 03:33:44,221 INFO:   Poll ingress status: Waiting for all Command pods to be running, current running: 0/1.
+2026-09-19 03:33:44,229 INFO:   Infrastructure setup completed successfully for job wsjob-mcmszhnpnaxvwzyzgrvmpi
+2026-09-19 03:33:54,229 INFO:   Poll ingress status: Waiting for all Worker pods to be running, current running: 0/1.
+2026-09-19 03:33:54,244 INFO:   Infrastructure setup completed successfully for job wsjob-mcmszhnpnaxvwzyzgrvmpi
+2026-09-19 03:34:04,244 INFO:   Poll ingress status: Waiting for all Weight pods to be running, current running: 0/2.
+2026-09-19 03:34:04,252 INFO:   Infrastructure setup completed successfully for job wsjob-mcmszhnpnaxvwzyzgrvmpi
+2026-09-19 03:34:14,252 INFO:   Infrastructure setup completed successfully for job wsjob-mcmszhnpnaxvwzyzgrvmpi
+2026-09-19 03:34:24,252 INFO:   Poll ingress status: Waiting for all Activation pods to be running, current running: 0/21.
+2026-09-19 03:34:24,260 INFO:   Infrastructure setup completed successfully for job wsjob-mcmszhnpnaxvwzyzgrvmpi
+2026-09-19 03:34:34,260 INFO:   Poll ingress status: Waiting for all Command pods to be running, current running: 0/1.
+2026-09-19 03:34:34,268 INFO:   Infrastructure setup completed successfully for job wsjob-mcmszhnpnaxvwzyzgrvmpi
+2026-09-19 03:34:44,268 INFO:   Poll ingress status: Waiting for all Chief pods to be running, current running: 0/1.
+2026-09-19 03:34:44,276 INFO:   Infrastructure setup completed successfully for job wsjob-mcmszhnpnaxvwzyzgrvmpi
+2026-09-19 03:34:54,276 INFO:   Poll ingress status: Waiting for all Weight pods to be running, current running: 0/2.
+2026-09-19 03:34:54,285 INFO:   Infrastructure setup completed successfully for job wsjob-mcmszhnpnaxvwzyzgrvmpi
+2026-09-19 03:35:04,285 INFO:   Poll ingress status: Waiting for all Command pods to be running, current running: 0/1.
+2026-09-19 03:35:04,373 INFO:   Infrastructure setup completed successfully for job wsjob-mcmszhnpnaxvwzyzgrvmpi
+2026-09-19 03:35:14,373 INFO:   Infrastructure setup completed successfully for job wsjob-mcmszhnpnaxvwzyzgrvmpi
+2026-09-19 03:35:24,373 INFO:   Poll ingress status: Waiting for all Activation pods to be running, current running: 0/21.
+2026-09-19 03:35:24,382 INFO:   Infrastructure setup completed successfully for job wsjob-mcmszhnpnaxvwzyzgrvmpi
+2026-09-19 03:35:34,382 INFO:   Poll ingress status: Waiting for all Weight pods to be running, current running: 0/2.
+2026-09-19 03:35:34,391 INFO:   Infrastructure setup completed successfully for job wsjob-mcmszhnpnaxvwzyzgrvmpi
+2026-09-19 03:35:44,391 INFO:   Infrastructure setup completed successfully for job wsjob-mcmszhnpnaxvwzyzgrvmpi
+2026-09-19 03:35:54,392 INFO:   Poll ingress status: Waiting for all Activation pods to be running, current running: 0/21.
+2026-09-19 03:35:54,401 INFO:   Infrastructure setup completed successfully for job wsjob-mcmszhnpnaxvwzyzgrvmpi
+2026-09-19 03:36:04,401 INFO:   Infrastructure setup completed successfully for job wsjob-mcmszhnpnaxvwzyzgrvmpi
+2026-09-19 03:36:14,401 INFO:   Infrastructure setup completed successfully for job wsjob-mcmszhnpnaxvwzyzgrvmpi
+2026-09-19 03:36:24,401 INFO:   Infrastructure setup completed successfully for job wsjob-mcmszhnpnaxvwzyzgrvmpi
+2026-09-19 03:36:34,402 INFO:   Poll ingress status: Job ingress ready, dashboard: <internal-dashboard-url>
+2026-09-19 03:36:34,411 INFO:   Infrastructure setup completed successfully for job wsjob-mcmszhnpnaxvwzyzgrvmpi
+2026-09-19 03:36:34,411 INFO:   Poll ingress success: Job ingress ready, dashboard: <internal-dashboard-url>
+2026-09-19 03:36:34,425 INFO:   Finalizing out-of-cluster job handle with ingress service url: 
+2026-09-19 03:36:34,425 WARNING:   Empty ingress service url. Falling back to default server: 10.125.8.2:443
+2026-09-19 03:36:34,503 INFO:   Preparing to execute using 1 CSX
+2026-09-19 03:36:51,919 INFO:   About to send initial weights
+2026-09-19 03:36:52,117 INFO:   Finished sending initial weights
+2026-09-19 03:36:52,117 INFO:   Finalizing appliance staging for the run
+2026-09-19 03:36:58,741 INFO:   Waiting for device programming to complete
+2026-09-19 03:37:12,814 INFO:   Device programming is complete
+2026-09-19 03:37:13,152 INFO:   Using network type: ROCE
+2026-09-19 03:37:13,153 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+2026-09-19 03:37:13,165 INFO:   Input workers have begun streaming input data
+2026-09-19 03:37:13,320 INFO:   Appliance staging is complete
+2026-09-19 03:37:13,320 INFO:   Beginning appliance run
+2026-09-19 03:37:24,060 INFO:   | Train Device=CSX, Step=10, Loss=3.37719, Rate=2589.83 samples/sec, GlobalRate=121.90 samples/sec, LoopTimeRemaining=0:00:15, TimeRemaining>2:23:16
+2026-09-19 03:37:38,940 INFO:   | Train Device=CSX, Step=20, Loss=2.83006, Rate=2635.26 samples/sec, GlobalRate=233.45 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining>2:23:03
+2026-09-19 03:37:39,059 INFO:   Training completed successfully!
+2026-09-19 03:37:39,073 INFO:   Ordinal 0: Initializing GNNDataProcessor for dataset 'ogbn-arxiv' (split=valid, mode=neighbor).
+$REPO_ROOT/.venv/lib/python3.11/site-packages/ogb/nodeproppred/dataset_pyg.py:69: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  self.data, self.slices = torch.load(self.processed_paths[0])
+2026-09-19 03:37:39,298 INFO:   Ordinal 0: Initializing GNNDataProcessor for dataset 'ogbn-arxiv' (split=valid, mode=neighbor).
+$REPO_ROOT/.venv/lib/python3.11/site-packages/ogb/nodeproppred/dataset_pyg.py:69: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  self.data, self.slices = torch.load(self.processed_paths[0])
+2026-09-19 03:37:42,920 INFO:   ---------------------------------------------------------------------------
+2026-09-19 03:37:42,920 INFO:   Starting val_dataloader_2 loop 1 of 25, with 8 steps
+2026-09-19 03:37:42,920 INFO:   ---------------------------------------------------------------------------
+2026-09-19 03:37:45,064 INFO:   Compiling the model. This may take a few minutes.
+2026-09-19 03:37:45,066 INFO:   Connectivity check: running command: ping -c 1 -W 3 10.125.8.2
+2026-09-19 03:37:45,071 INFO:   Connectivity check succeeded.
+2026-09-19 03:37:45,089 INFO:   Appliance client semantic version: 1.14.0, cluster server semantic version: 1.20.2, job operator semantic version: 1.20.2
+2026-09-19 03:37:45,114 INFO:   Initiating a new compile wsjob against the cluster server.
+2026-09-19 03:37:45,145 INFO:   Job id: wsjob-rxaghvojy5shc3odyexwvz, workflow id: wflow-fvz3qqvjetcg2heueuc7wr, namespace: job-operator, remote log path: /n1/wsjob/workdir/job-operator/wsjob-rxaghvojy5shc3odyexwvz
+2026-09-19 03:38:05,146 INFO:   Poll ingress status: Waiting for all Coordinator pods to be running, current running: 0/1.
+2026-09-19 03:38:05,148 INFO:   Recording the timestamp when jobs is scheduled.
+2026-09-19 03:38:05,165 WARNING:   Event 2026-09-19 03:37:46 +0000 UTC reason=InconsistentVersion wsjob=wsjob-rxaghvojy5shc3odyexwvz message='Warning: client semantic version 1.14.0 is inconsistent with cluster server semantic version 1.20.2, there's a risk job could fail due to inconsistent setup.'
+2026-09-19 03:38:15,165 INFO:   Poll ingress status: Job ingress ready, dashboard: <internal-dashboard-url>
+2026-09-19 03:38:15,173 INFO:   Poll ingress success: Job ingress ready, dashboard: <internal-dashboard-url>
+2026-09-19 03:38:15,183 INFO:   Finalizing out-of-cluster job handle with ingress service url: 
+2026-09-19 03:38:15,183 WARNING:   Empty ingress service url. Falling back to default server: 10.125.8.2:443
+2026-09-19 03:38:15,249 INFO:   Found existing cached compile with hash: "cs_7542123265948658600"
+2026-09-19 03:38:17,227 INFO:   Using power profile none
+
+2026-09-19 03:38:17,244 INFO:   Compile artifacts successfully written to remote compile directory. Compile hash is: cs_7542123265948658600
+2026-09-19 03:38:25,157 INFO:   Compile was successful!
+2026-09-19 03:38:25,166 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+2026-09-19 03:38:25,166 INFO:   Preparing to execute using 1 CSX
+2026-09-19 03:38:44,791 INFO:   About to send initial weights
+2026-09-19 03:38:44,806 INFO:   Finished sending initial weights
+2026-09-19 03:38:44,806 INFO:   Finalizing appliance staging for the run
+2026-09-19 03:38:48,600 INFO:   Waiting for device programming to complete
+2026-09-19 03:39:00,960 INFO:   Device programming is complete
+2026-09-19 03:39:01,253 INFO:   Using network type: ROCE
+2026-09-19 03:39:01,253 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+2026-09-19 03:39:01,270 INFO:   Input workers have begun streaming input data
+2026-09-19 03:39:01,392 INFO:   Appliance staging is complete
+2026-09-19 03:39:01,392 INFO:   Beginning appliance run
+2026-09-19 03:39:04,539 INFO:   | Eval Device=CSX, GlobalStep=20, Batch=8, Loss=2.55766, Rate=7297.09 samples/sec, GlobalRate=401.48 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining>2:57:12
+2026-09-19 03:39:04,589 INFO:   Avg Eval Loss: 2.5576586425304413
+2026-09-19 03:39:04,592 INFO:   Evaluation metrics:
+2026-09-19 03:39:04,592 INFO:     - eval/masked_accuracy = 0.30192288756370544
+2026-09-19 03:39:04,592 INFO:   Evaluation completed successfully!
+2026-09-19 03:39:04,596 INFO:   ---------------------------------------------------------------------------
+2026-09-19 03:39:04,596 INFO:   Starting train loop 2 of 25, from global step 21 to 40 (20 steps)
+2026-09-19 03:39:04,596 INFO:   ---------------------------------------------------------------------------
+2026-09-19 03:39:09,650 INFO:   Compiling the model. This may take a few minutes.
+2026-09-19 03:39:09,651 INFO:   Found existing cached compile.
+2026-09-19 03:39:09,651 INFO:   Compile was successful!
+2026-09-19 03:39:09,652 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+2026-09-19 03:39:09,652 INFO:   Preparing to execute using 1 CSX
+2026-09-19 03:39:36,774 INFO:   About to send initial weights
+2026-09-19 03:39:36,836 INFO:   Finished sending initial weights
+2026-09-19 03:39:36,837 INFO:   Finalizing appliance staging for the run
+2026-09-19 03:39:37,550 INFO:   Waiting for device programming to complete
+2026-09-19 03:39:46,535 INFO:   Device programming is complete
+2026-09-19 03:39:46,889 INFO:   Using network type: ROCE
+2026-09-19 03:39:46,889 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+2026-09-19 03:39:46,901 INFO:   Input workers have begun streaming input data
+2026-09-19 03:39:47,031 INFO:   Appliance staging is complete
+2026-09-19 03:39:47,032 INFO:   Beginning appliance run
+2026-09-19 03:40:01,906 INFO:   | Train Device=CSX, Step=30, Loss=2.48321, Rate=2544.37 samples/sec, GlobalRate=750.96 samples/sec, LoopTimeRemaining=0:00:15, TimeRemaining=1:02:35
+2026-09-19 03:40:16,355 INFO:   | Train Device=CSX, Step=40, Loss=2.17466, Rate=2887.03 samples/sec, GlobalRate=1187.36 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=1:02:07
+2026-09-19 03:40:16,453 INFO:   Training completed successfully!
+2026-09-19 03:40:16,476 INFO:   Ordinal 0: Initializing GNNDataProcessor for dataset 'ogbn-arxiv' (split=valid, mode=neighbor).
+$REPO_ROOT/.venv/lib/python3.11/site-packages/ogb/nodeproppred/dataset_pyg.py:69: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  self.data, self.slices = torch.load(self.processed_paths[0])
+2026-09-19 03:40:20,111 INFO:   ---------------------------------------------------------------------------
+2026-09-19 03:40:20,111 INFO:   Starting val_dataloader_2 loop 2 of 25, with 8 steps
+2026-09-19 03:40:20,111 INFO:   ---------------------------------------------------------------------------
+2026-09-19 03:40:22,239 INFO:   Compiling the model. This may take a few minutes.
+2026-09-19 03:40:22,240 INFO:   Found existing cached compile.
+2026-09-19 03:40:22,240 INFO:   Compile was successful!
+2026-09-19 03:40:22,241 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+2026-09-19 03:40:22,241 INFO:   Preparing to execute using 1 CSX
+2026-09-19 03:40:39,830 INFO:   About to send initial weights
+2026-09-19 03:40:39,843 INFO:   Finished sending initial weights
+2026-09-19 03:40:39,843 INFO:   Finalizing appliance staging for the run
+2026-09-19 03:40:41,210 INFO:   Waiting for device programming to complete
+2026-09-19 03:40:57,692 INFO:   Device programming is complete
+2026-09-19 03:40:58,006 INFO:   Using network type: ROCE
+2026-09-19 03:40:58,007 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+2026-09-19 03:40:58,020 INFO:   Input workers have begun streaming input data
+2026-09-19 03:40:58,127 INFO:   Appliance staging is complete
+2026-09-19 03:40:58,127 INFO:   Beginning appliance run
+2026-09-19 03:41:01,291 INFO:   | Eval Device=CSX, GlobalStep=40, Batch=8, Loss=1.91254, Rate=6882.14 samples/sec, GlobalRate=795.77 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:45:01
+2026-09-19 03:41:01,341 INFO:   Avg Eval Loss: 1.9125364124774933
+2026-09-19 03:41:01,344 INFO:   Evaluation metrics:
+2026-09-19 03:41:01,344 INFO:     - eval/masked_accuracy = 0.4869626462459564
+2026-09-19 03:41:01,344 INFO:   Evaluation completed successfully!
+2026-09-19 03:41:01,347 INFO:   ---------------------------------------------------------------------------
+2026-09-19 03:41:01,348 INFO:   Starting train loop 3 of 25, from global step 41 to 60 (20 steps)
+2026-09-19 03:41:01,348 INFO:   ---------------------------------------------------------------------------
+2026-09-19 03:41:06,115 INFO:   Compiling the model. This may take a few minutes.
+2026-09-19 03:41:06,116 INFO:   Found existing cached compile.
+2026-09-19 03:41:06,116 INFO:   Compile was successful!
+2026-09-19 03:41:06,117 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+2026-09-19 03:41:06,118 INFO:   Preparing to execute using 1 CSX
+2026-09-19 03:41:16,195 INFO:   About to send initial weights
+2026-09-19 03:41:16,237 INFO:   Finished sending initial weights
+2026-09-19 03:41:16,237 INFO:   Finalizing appliance staging for the run
+2026-09-19 03:41:17,326 INFO:   Waiting for device programming to complete
+2026-09-19 03:41:43,107 INFO:   Device programming is complete
+2026-09-19 03:41:43,424 INFO:   Using network type: ROCE
+2026-09-19 03:41:43,425 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+2026-09-19 03:41:43,432 INFO:   Input workers have begun streaming input data
+2026-09-19 03:41:43,568 INFO:   Appliance staging is complete
+2026-09-19 03:41:43,568 INFO:   Beginning appliance run
+2026-09-19 03:41:57,761 INFO:   | Train Device=CSX, Step=50, Loss=1.85241, Rate=2736.56 samples/sec, GlobalRate=763.55 samples/sec, LoopTimeRemaining=0:00:14, TimeRemaining=0:43:29
+2026-09-19 03:42:12,490 INFO:   | Train Device=CSX, Step=60, Loss=1.63806, Rate=2803.40 samples/sec, GlobalRate=1198.12 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:43:45
+2026-09-19 03:42:12,581 INFO:   Training completed successfully!
+2026-09-19 03:42:12,606 INFO:   Ordinal 0: Initializing GNNDataProcessor for dataset 'ogbn-arxiv' (split=valid, mode=neighbor).
+$REPO_ROOT/.venv/lib/python3.11/site-packages/ogb/nodeproppred/dataset_pyg.py:69: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  self.data, self.slices = torch.load(self.processed_paths[0])
+2026-09-19 03:42:16,283 INFO:   ---------------------------------------------------------------------------
+2026-09-19 03:42:16,283 INFO:   Starting val_dataloader_2 loop 3 of 25, with 8 steps
+2026-09-19 03:42:16,283 INFO:   ---------------------------------------------------------------------------
+2026-09-19 03:42:18,458 INFO:   Compiling the model. This may take a few minutes.
+2026-09-19 03:42:18,459 INFO:   Found existing cached compile.
+2026-09-19 03:42:18,459 INFO:   Compile was successful!
+2026-09-19 03:42:18,460 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+2026-09-19 03:42:18,460 INFO:   Preparing to execute using 1 CSX
+2026-09-19 03:42:28,355 INFO:   About to send initial weights
+2026-09-19 03:42:28,366 INFO:   Finished sending initial weights
+2026-09-19 03:42:28,366 INFO:   Finalizing appliance staging for the run
+2026-09-19 03:42:29,170 INFO:   Waiting for device programming to complete
+2026-09-19 03:42:54,002 INFO:   Device programming is complete
+2026-09-19 03:42:54,278 INFO:   Using network type: ROCE
+2026-09-19 03:42:54,279 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+2026-09-19 03:42:54,287 INFO:   Input workers have begun streaming input data
+2026-09-19 03:42:54,378 INFO:   Appliance staging is complete
+2026-09-19 03:42:54,378 INFO:   Beginning appliance run
+2026-09-19 03:42:57,557 INFO:   | Eval Device=CSX, GlobalStep=60, Batch=8, Loss=1.49254, Rate=7273.83 samples/sec, GlobalRate=793.93 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:43:06
+2026-09-19 03:42:57,598 INFO:   Avg Eval Loss: 1.4925385564565659
+2026-09-19 03:42:57,601 INFO:   Evaluation metrics:
+2026-09-19 03:42:57,601 INFO:     - eval/masked_accuracy = 0.5753548741340637
+2026-09-19 03:42:57,601 INFO:   Evaluation completed successfully!
+2026-09-19 03:42:57,605 INFO:   ---------------------------------------------------------------------------
+2026-09-19 03:42:57,605 INFO:   Starting train loop 4 of 25, from global step 61 to 80 (20 steps)
+2026-09-19 03:42:57,605 INFO:   ---------------------------------------------------------------------------
+2026-09-19 03:43:02,455 INFO:   Compiling the model. This may take a few minutes.
+2026-09-19 03:43:02,455 INFO:   Found existing cached compile.
+2026-09-19 03:43:02,455 INFO:   Compile was successful!
+2026-09-19 03:43:02,457 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+2026-09-19 03:43:02,457 INFO:   Preparing to execute using 1 CSX
+2026-09-19 03:43:12,416 INFO:   About to send initial weights
+2026-09-19 03:43:12,461 INFO:   Finished sending initial weights
+2026-09-19 03:43:12,461 INFO:   Finalizing appliance staging for the run
+2026-09-19 03:43:12,830 INFO:   Waiting for device programming to complete
+2026-09-19 03:43:39,334 INFO:   Device programming is complete
+2026-09-19 03:43:39,657 INFO:   Using network type: ROCE
+2026-09-19 03:43:39,659 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+2026-09-19 03:43:39,667 INFO:   Input workers have begun streaming input data
+2026-09-19 03:43:39,764 INFO:   Appliance staging is complete
+2026-09-19 03:43:39,764 INFO:   Beginning appliance run
+2026-09-19 03:43:53,733 INFO:   | Train Device=CSX, Step=70, Loss=1.52059, Rate=1675.38 samples/sec, GlobalRate=767.75 samples/sec, LoopTimeRemaining=0:00:14, TimeRemaining=0:41:30
+2026-09-19 03:44:08,646 INFO:   | Train Device=CSX, Step=80, Loss=1.42359, Rate=2790.93 samples/sec, GlobalRate=1200.04 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:41:42
+2026-09-19 03:44:08,749 INFO:   Training completed successfully!
+2026-09-19 03:44:08,771 INFO:   Ordinal 0: Initializing GNNDataProcessor for dataset 'ogbn-arxiv' (split=valid, mode=neighbor).
+$REPO_ROOT/.venv/lib/python3.11/site-packages/ogb/nodeproppred/dataset_pyg.py:69: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  self.data, self.slices = torch.load(self.processed_paths[0])
+2026-09-19 03:44:12,422 INFO:   ---------------------------------------------------------------------------
+2026-09-19 03:44:12,422 INFO:   Starting val_dataloader_2 loop 4 of 25, with 8 steps
+2026-09-19 03:44:12,422 INFO:   ---------------------------------------------------------------------------
+2026-09-19 03:44:14,595 INFO:   Compiling the model. This may take a few minutes.
+2026-09-19 03:44:14,596 INFO:   Found existing cached compile.
+2026-09-19 03:44:14,596 INFO:   Compile was successful!
+2026-09-19 03:44:14,597 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+2026-09-19 03:44:14,597 INFO:   Preparing to execute using 1 CSX
+2026-09-19 03:44:24,536 INFO:   About to send initial weights
+2026-09-19 03:44:24,548 INFO:   Finished sending initial weights
+2026-09-19 03:44:24,548 INFO:   Finalizing appliance staging for the run
+2026-09-19 03:44:25,922 INFO:   Waiting for device programming to complete
+2026-09-19 03:44:49,772 INFO:   Device programming is complete
+2026-09-19 03:44:50,112 INFO:   Using network type: ROCE
+2026-09-19 03:44:50,112 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+2026-09-19 03:44:50,122 INFO:   Input workers have begun streaming input data
+2026-09-19 03:44:50,208 INFO:   Appliance staging is complete
+2026-09-19 03:44:50,208 INFO:   Beginning appliance run
+2026-09-19 03:44:53,367 INFO:   | Eval Device=CSX, GlobalStep=80, Batch=8, Loss=1.28321, Rate=7919.66 samples/sec, GlobalRate=800.29 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:40:44
+2026-09-19 03:44:53,410 INFO:   Avg Eval Loss: 1.2832121551036835
+2026-09-19 03:44:53,412 INFO:   Evaluation metrics:
+2026-09-19 03:44:53,413 INFO:     - eval/masked_accuracy = 0.6272022724151611
+2026-09-19 03:44:53,413 INFO:   Evaluation completed successfully!
+2026-09-19 03:44:53,416 INFO:   ---------------------------------------------------------------------------
+2026-09-19 03:44:53,417 INFO:   Starting train loop 5 of 25, from global step 81 to 100 (20 steps)
+2026-09-19 03:44:53,417 INFO:   ---------------------------------------------------------------------------
+2026-09-19 03:44:58,228 INFO:   Compiling the model. This may take a few minutes.
+2026-09-19 03:44:58,229 INFO:   Found existing cached compile.
+2026-09-19 03:44:58,229 INFO:   Compile was successful!
+2026-09-19 03:44:58,230 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+2026-09-19 03:44:58,230 INFO:   Preparing to execute using 1 CSX
+2026-09-19 03:45:17,902 INFO:   About to send initial weights
+2026-09-19 03:45:17,975 INFO:   Finished sending initial weights
+2026-09-19 03:45:17,976 INFO:   Finalizing appliance staging for the run
+2026-09-19 03:45:18,390 INFO:   Waiting for device programming to complete
+2026-09-19 03:45:35,570 INFO:   Device programming is complete
+2026-09-19 03:45:35,902 INFO:   Using network type: ROCE
+2026-09-19 03:45:35,903 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+2026-09-19 03:45:35,911 INFO:   Input workers have begun streaming input data
+2026-09-19 03:45:36,050 INFO:   Appliance staging is complete
+2026-09-19 03:45:36,050 INFO:   Beginning appliance run
+2026-09-19 03:45:47,499 INFO:   | Train Device=CSX, Step=90, Loss=1.41382, Rate=2497.74 samples/sec, GlobalRate=798.01 samples/sec, LoopTimeRemaining=0:00:14, TimeRemaining=0:39:33
+2026-09-19 03:46:06,205 INFO:   | Train Device=CSX, Step=100, Loss=1.31883, Rate=2685.84 samples/sec, GlobalRate=1169.73 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:39:56
+2026-09-19 03:46:06,313 INFO:   Training completed successfully!
+2026-09-19 03:46:06,338 INFO:   Ordinal 0: Initializing GNNDataProcessor for dataset 'ogbn-arxiv' (split=valid, mode=neighbor).
+$REPO_ROOT/.venv/lib/python3.11/site-packages/ogb/nodeproppred/dataset_pyg.py:69: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  self.data, self.slices = torch.load(self.processed_paths[0])
+2026-09-19 03:46:09,988 INFO:   ---------------------------------------------------------------------------
+2026-09-19 03:46:09,988 INFO:   Starting val_dataloader_2 loop 5 of 25, with 8 steps
+2026-09-19 03:46:09,988 INFO:   ---------------------------------------------------------------------------
+2026-09-19 03:46:12,218 INFO:   Compiling the model. This may take a few minutes.
+2026-09-19 03:46:12,218 INFO:   Found existing cached compile.
+2026-09-19 03:46:12,219 INFO:   Compile was successful!
+2026-09-19 03:46:12,220 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+2026-09-19 03:46:12,220 INFO:   Preparing to execute using 1 CSX
+2026-09-19 03:46:21,844 INFO:   About to send initial weights
+2026-09-19 03:46:21,855 INFO:   Finished sending initial weights
+2026-09-19 03:46:21,855 INFO:   Finalizing appliance staging for the run
+2026-09-19 03:46:23,211 INFO:   Waiting for device programming to complete
+2026-09-19 03:46:47,797 INFO:   Device programming is complete
+2026-09-19 03:46:48,076 INFO:   Using network type: ROCE
+2026-09-19 03:46:48,077 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+2026-09-19 03:46:48,085 INFO:   Input workers have begun streaming input data
+2026-09-19 03:46:48,230 INFO:   Appliance staging is complete
+2026-09-19 03:46:48,230 INFO:   Beginning appliance run
+2026-09-19 03:46:51,387 INFO:   | Eval Device=CSX, GlobalStep=100, Batch=8, Loss=1.18800, Rate=7041.91 samples/sec, GlobalRate=791.56 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:39:25
+2026-09-19 03:46:51,428 INFO:   Avg Eval Loss: 1.1880047768354416
+2026-09-19 03:46:51,431 INFO:   Evaluation metrics:
+2026-09-19 03:46:51,431 INFO:     - eval/masked_accuracy = 0.6507265567779541
+2026-09-19 03:46:51,431 INFO:   Evaluation completed successfully!
+2026-09-19 03:46:51,435 INFO:   ---------------------------------------------------------------------------
+2026-09-19 03:46:51,435 INFO:   Starting train loop 6 of 25, from global step 101 to 120 (20 steps)
+2026-09-19 03:46:51,435 INFO:   ---------------------------------------------------------------------------
+2026-09-19 03:46:56,281 INFO:   Compiling the model. This may take a few minutes.
+2026-09-19 03:46:56,281 INFO:   Found existing cached compile.
+2026-09-19 03:46:56,282 INFO:   Compile was successful!
+2026-09-19 03:46:56,283 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+2026-09-19 03:46:56,283 INFO:   Preparing to execute using 1 CSX
+2026-09-19 03:47:06,260 INFO:   About to send initial weights
+2026-09-19 03:47:06,308 INFO:   Finished sending initial weights
+2026-09-19 03:47:06,308 INFO:   Finalizing appliance staging for the run
+2026-09-19 03:47:07,412 INFO:   Waiting for device programming to complete
+2026-09-19 03:47:33,410 INFO:   Device programming is complete
+2026-09-19 03:47:33,722 INFO:   Using network type: ROCE
+2026-09-19 03:47:33,723 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+2026-09-19 03:47:33,731 INFO:   Input workers have begun streaming input data
+2026-09-19 03:47:33,860 INFO:   Appliance staging is complete
+2026-09-19 03:47:33,861 INFO:   Beginning appliance run
+2026-09-19 03:47:44,496 INFO:   | Train Device=CSX, Step=110, Loss=1.27947, Rate=2679.59 samples/sec, GlobalRate=814.54 samples/sec, LoopTimeRemaining=0:00:14, TimeRemaining=0:37:54
+2026-09-19 03:48:02,722 INFO:   | Train Device=CSX, Step=120, Loss=1.21283, Rate=2693.44 samples/sec, GlobalRate=1195.69 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:37:50
+2026-09-19 03:48:02,821 INFO:   Training completed successfully!
+2026-09-19 03:48:02,845 INFO:   Ordinal 0: Initializing GNNDataProcessor for dataset 'ogbn-arxiv' (split=valid, mode=neighbor).
+$REPO_ROOT/.venv/lib/python3.11/site-packages/ogb/nodeproppred/dataset_pyg.py:69: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  self.data, self.slices = torch.load(self.processed_paths[0])
+2026-09-19 03:48:06,519 INFO:   ---------------------------------------------------------------------------
+2026-09-19 03:48:06,520 INFO:   Starting val_dataloader_2 loop 6 of 25, with 8 steps
+2026-09-19 03:48:06,520 INFO:   ---------------------------------------------------------------------------
+2026-09-19 03:48:08,713 INFO:   Compiling the model. This may take a few minutes.
+2026-09-19 03:48:08,714 INFO:   Found existing cached compile.
+2026-09-19 03:48:08,714 INFO:   Compile was successful!
+2026-09-19 03:48:08,715 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+2026-09-19 03:48:08,715 INFO:   Preparing to execute using 1 CSX
+2026-09-19 03:48:25,680 INFO:   About to send initial weights
+2026-09-19 03:48:25,692 INFO:   Finished sending initial weights
+2026-09-19 03:48:25,693 INFO:   Finalizing appliance staging for the run
+2026-09-19 03:48:27,071 INFO:   Waiting for device programming to complete
+2026-09-19 03:48:43,931 INFO:   Device programming is complete
+2026-09-19 03:48:44,241 INFO:   Using network type: ROCE
+2026-09-19 03:48:44,242 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+2026-09-19 03:48:44,254 INFO:   Input workers have begun streaming input data
+2026-09-19 03:48:44,346 INFO:   Appliance staging is complete
+2026-09-19 03:48:44,346 INFO:   Beginning appliance run
+2026-09-19 03:48:47,543 INFO:   | Eval Device=CSX, GlobalStep=120, Batch=8, Loss=1.15114, Rate=6900.28 samples/sec, GlobalRate=798.77 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:36:59
+2026-09-19 03:48:47,582 INFO:   Avg Eval Loss: 1.1511372774839401
+2026-09-19 03:48:47,584 INFO:   Evaluation metrics:
+2026-09-19 03:48:47,584 INFO:     - eval/masked_accuracy = 0.663277268409729
+2026-09-19 03:48:47,585 INFO:   Evaluation completed successfully!
+2026-09-19 03:48:47,589 INFO:   ---------------------------------------------------------------------------
+2026-09-19 03:48:47,589 INFO:   Starting train loop 7 of 25, from global step 121 to 140 (20 steps)
+2026-09-19 03:48:47,589 INFO:   ---------------------------------------------------------------------------
+2026-09-19 03:48:52,477 INFO:   Compiling the model. This may take a few minutes.
+2026-09-19 03:48:52,478 INFO:   Found existing cached compile.
+2026-09-19 03:48:52,478 INFO:   Compile was successful!
+2026-09-19 03:48:52,479 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+2026-09-19 03:48:52,479 INFO:   Preparing to execute using 1 CSX
+2026-09-19 03:49:19,681 INFO:   About to send initial weights
+2026-09-19 03:49:19,740 INFO:   Finished sending initial weights
+2026-09-19 03:49:19,740 INFO:   Finalizing appliance staging for the run
+2026-09-19 03:49:20,561 INFO:   Waiting for device programming to complete
+2026-09-19 03:49:29,628 INFO:   Device programming is complete
+2026-09-19 03:49:29,998 INFO:   Using network type: ROCE
+2026-09-19 03:49:29,999 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+2026-09-19 03:49:30,007 INFO:   Input workers have begun streaming input data
+2026-09-19 03:49:30,110 INFO:   Appliance staging is complete
+2026-09-19 03:49:30,110 INFO:   Beginning appliance run
+2026-09-19 03:49:40,841 INFO:   | Train Device=CSX, Step=130, Loss=1.25431, Rate=2594.00 samples/sec, GlobalRate=811.33 samples/sec, LoopTimeRemaining=0:00:14, TimeRemaining=0:36:05
+2026-09-19 03:49:58,976 INFO:   | Train Device=CSX, Step=140, Loss=1.17677, Rate=2181.67 samples/sec, GlobalRate=1193.82 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:35:46
+2026-09-19 03:49:59,083 INFO:   Training completed successfully!
+2026-09-19 03:49:59,108 INFO:   Ordinal 0: Initializing GNNDataProcessor for dataset 'ogbn-arxiv' (split=valid, mode=neighbor).
+$REPO_ROOT/.venv/lib/python3.11/site-packages/ogb/nodeproppred/dataset_pyg.py:69: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  self.data, self.slices = torch.load(self.processed_paths[0])
+2026-09-19 03:50:02,748 INFO:   ---------------------------------------------------------------------------
+2026-09-19 03:50:02,748 INFO:   Starting val_dataloader_2 loop 7 of 25, with 8 steps
+2026-09-19 03:50:02,748 INFO:   ---------------------------------------------------------------------------
+2026-09-19 03:50:04,955 INFO:   Compiling the model. This may take a few minutes.
+2026-09-19 03:50:04,955 INFO:   Found existing cached compile.
+2026-09-19 03:50:04,955 INFO:   Compile was successful!
+2026-09-19 03:50:04,956 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+2026-09-19 03:50:04,956 INFO:   Preparing to execute using 1 CSX
+2026-09-19 03:50:38,892 INFO:   About to send initial weights
+2026-09-19 03:50:38,902 INFO:   Finished sending initial weights
+2026-09-19 03:50:38,902 INFO:   Finalizing appliance staging for the run
+2026-09-19 03:50:40,279 INFO:   Waiting for device programming to complete
+2026-09-19 03:50:40,279 INFO:   Device programming is complete
+2026-09-19 03:50:40,508 INFO:   Using network type: ROCE
+2026-09-19 03:50:40,509 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+2026-09-19 03:50:43,661 INFO:   Input workers have begun streaming input data
+2026-09-19 03:50:43,735 INFO:   Appliance staging is complete
+2026-09-19 03:50:43,735 INFO:   Beginning appliance run
+2026-09-19 03:50:55,579 INFO:   | Eval Device=CSX, GlobalStep=140, Batch=8, Loss=1.11666, Rate=2802.72 samples/sec, GlobalRate=620.26 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:39:03
+2026-09-19 03:50:55,619 INFO:   Avg Eval Loss: 1.1166599243879318
+2026-09-19 03:50:55,621 INFO:   Evaluation metrics:
+2026-09-19 03:50:55,621 INFO:     - eval/masked_accuracy = 0.666633129119873
+2026-09-19 03:50:55,621 INFO:   Evaluation completed successfully!
+2026-09-19 03:50:55,625 INFO:   ---------------------------------------------------------------------------
+2026-09-19 03:50:55,625 INFO:   Starting train loop 8 of 25, from global step 141 to 160 (20 steps)
+2026-09-19 03:50:55,625 INFO:   ---------------------------------------------------------------------------
+2026-09-19 03:51:00,495 INFO:   Compiling the model. This may take a few minutes.
+2026-09-19 03:51:00,496 INFO:   Found existing cached compile.
+2026-09-19 03:51:00,496 INFO:   Compile was successful!
+2026-09-19 03:51:00,497 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+2026-09-19 03:51:00,497 INFO:   Preparing to execute using 1 CSX
+2026-09-19 03:51:09,949 INFO:   About to send initial weights
+2026-09-19 03:51:09,989 INFO:   Finished sending initial weights
+2026-09-19 03:51:09,989 INFO:   Finalizing appliance staging for the run
+2026-09-19 03:51:10,927 INFO:   Waiting for device programming to complete
+2026-09-19 03:51:37,642 INFO:   Device programming is complete
+2026-09-19 03:51:37,934 INFO:   Using network type: ROCE
+2026-09-19 03:51:37,935 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+2026-09-19 03:51:37,943 INFO:   Input workers have begun streaming input data
+2026-09-19 03:51:38,084 INFO:   Appliance staging is complete
+2026-09-19 03:51:38,084 INFO:   Beginning appliance run
+2026-09-19 03:51:48,930 INFO:   | Train Device=CSX, Step=150, Loss=1.18961, Rate=2795.70 samples/sec, GlobalRate=810.85 samples/sec, LoopTimeRemaining=0:00:14, TimeRemaining=0:38:09
+2026-09-19 03:52:03,112 INFO:   | Train Device=CSX, Step=160, Loss=1.17591, Rate=2937.43 samples/sec, GlobalRate=1266.22 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:37:51
+2026-09-19 03:52:03,207 INFO:   Training completed successfully!
+2026-09-19 03:52:03,233 INFO:   Ordinal 0: Initializing GNNDataProcessor for dataset 'ogbn-arxiv' (split=valid, mode=neighbor).
+$REPO_ROOT/.venv/lib/python3.11/site-packages/ogb/nodeproppred/dataset_pyg.py:69: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  self.data, self.slices = torch.load(self.processed_paths[0])
+2026-09-19 03:52:06,833 INFO:   ---------------------------------------------------------------------------
+2026-09-19 03:52:06,834 INFO:   Starting val_dataloader_2 loop 8 of 25, with 8 steps
+2026-09-19 03:52:06,834 INFO:   ---------------------------------------------------------------------------
+2026-09-19 03:52:08,961 INFO:   Compiling the model. This may take a few minutes.
+2026-09-19 03:52:08,961 INFO:   Found existing cached compile.
+2026-09-19 03:52:08,961 INFO:   Compile was successful!
+2026-09-19 03:52:08,969 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+2026-09-19 03:52:08,969 INFO:   Preparing to execute using 1 CSX
+2026-09-19 03:52:18,886 INFO:   About to send initial weights
+2026-09-19 03:52:18,898 INFO:   Finished sending initial weights
+2026-09-19 03:52:18,898 INFO:   Finalizing appliance staging for the run
+2026-09-19 03:52:19,272 INFO:   Waiting for device programming to complete
+2026-09-19 03:52:44,291 INFO:   Device programming is complete
+2026-09-19 03:52:44,609 INFO:   Using network type: ROCE
+2026-09-19 03:52:44,610 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+2026-09-19 03:52:44,618 INFO:   Input workers have begun streaming input data
+2026-09-19 03:52:44,704 INFO:   Appliance staging is complete
+2026-09-19 03:52:44,704 INFO:   Beginning appliance run
+2026-09-19 03:52:48,353 INFO:   | Eval Device=CSX, GlobalStep=160, Batch=8, Loss=1.08639, Rate=7257.24 samples/sec, GlobalRate=789.22 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:32:57
+2026-09-19 03:52:48,401 INFO:   Avg Eval Loss: 1.0863869041204453
+2026-09-19 03:52:48,403 INFO:   Evaluation metrics:
+2026-09-19 03:52:48,403 INFO:     - eval/masked_accuracy = 0.6775395274162292
+2026-09-19 03:52:48,403 INFO:   Evaluation completed successfully!
+2026-09-19 03:52:48,407 INFO:   ---------------------------------------------------------------------------
+2026-09-19 03:52:48,407 INFO:   Starting train loop 9 of 25, from global step 161 to 180 (20 steps)
+2026-09-19 03:52:48,407 INFO:   ---------------------------------------------------------------------------
+2026-09-19 03:52:53,302 INFO:   Compiling the model. This may take a few minutes.
+2026-09-19 03:52:53,302 INFO:   Found existing cached compile.
+2026-09-19 03:52:53,302 INFO:   Compile was successful!
+2026-09-19 03:52:53,303 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+2026-09-19 03:52:53,304 INFO:   Preparing to execute using 1 CSX
+2026-09-19 03:53:02,829 INFO:   About to send initial weights
+2026-09-19 03:53:02,882 INFO:   Finished sending initial weights
+2026-09-19 03:53:02,883 INFO:   Finalizing appliance staging for the run
+2026-09-19 03:53:03,884 INFO:   Waiting for device programming to complete
+2026-09-19 03:53:30,458 INFO:   Device programming is complete
+2026-09-19 03:53:30,742 INFO:   Using network type: ROCE
+2026-09-19 03:53:30,743 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+2026-09-19 03:53:30,751 INFO:   Input workers have begun streaming input data
+2026-09-19 03:53:30,841 INFO:   Appliance staging is complete
+2026-09-19 03:53:30,841 INFO:   Beginning appliance run
+2026-09-19 03:53:41,297 INFO:   | Train Device=CSX, Step=170, Loss=1.11490, Rate=2858.17 samples/sec, GlobalRate=816.96 samples/sec, LoopTimeRemaining=0:00:14, TimeRemaining=0:32:05
+2026-09-19 03:53:55,675 INFO:   | Train Device=CSX, Step=180, Loss=1.16431, Rate=2913.48 samples/sec, GlobalRate=1269.78 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:31:53
+2026-09-19 03:53:55,761 INFO:   Training completed successfully!
+2026-09-19 03:53:55,783 INFO:   Ordinal 0: Initializing GNNDataProcessor for dataset 'ogbn-arxiv' (split=valid, mode=neighbor).
+$REPO_ROOT/.venv/lib/python3.11/site-packages/ogb/nodeproppred/dataset_pyg.py:69: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  self.data, self.slices = torch.load(self.processed_paths[0])
+2026-09-19 03:53:59,401 INFO:   ---------------------------------------------------------------------------
+2026-09-19 03:53:59,401 INFO:   Starting val_dataloader_2 loop 9 of 25, with 8 steps
+2026-09-19 03:53:59,401 INFO:   ---------------------------------------------------------------------------
+2026-09-19 03:54:01,533 INFO:   Compiling the model. This may take a few minutes.
+2026-09-19 03:54:01,533 INFO:   Found existing cached compile.
+2026-09-19 03:54:01,533 INFO:   Compile was successful!
+2026-09-19 03:54:01,534 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+2026-09-19 03:54:01,534 INFO:   Preparing to execute using 1 CSX
+2026-09-19 03:54:28,267 INFO:   About to send initial weights
+2026-09-19 03:54:28,278 INFO:   Finished sending initial weights
+2026-09-19 03:54:28,278 INFO:   Finalizing appliance staging for the run
+2026-09-19 03:54:30,005 INFO:   Waiting for device programming to complete
+2026-09-19 03:54:36,640 INFO:   Device programming is complete
+2026-09-19 03:54:36,949 INFO:   Using network type: ROCE
+2026-09-19 03:54:36,949 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+2026-09-19 03:54:36,956 INFO:   Input workers have begun streaming input data
+2026-09-19 03:54:37,054 INFO:   Appliance staging is complete
+2026-09-19 03:54:37,054 INFO:   Beginning appliance run
+2026-09-19 03:54:45,135 INFO:   | Eval Device=CSX, GlobalStep=180, Batch=8, Loss=1.06561, Rate=2868.37 samples/sec, GlobalRate=716.51 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:33:54
+2026-09-19 03:54:45,183 INFO:   Avg Eval Loss: 1.06560517847538
+2026-09-19 03:54:45,185 INFO:   Evaluation metrics:
+2026-09-19 03:54:45,185 INFO:     - eval/masked_accuracy = 0.6765327453613281
+2026-09-19 03:54:45,185 INFO:   Evaluation completed successfully!
+2026-09-19 03:54:45,189 INFO:   ---------------------------------------------------------------------------
+2026-09-19 03:54:45,189 INFO:   Starting train loop 10 of 25, from global step 181 to 200 (20 steps)
+2026-09-19 03:54:45,189 INFO:   ---------------------------------------------------------------------------
+2026-09-19 03:54:49,993 INFO:   Compiling the model. This may take a few minutes.
+2026-09-19 03:54:49,993 INFO:   Found existing cached compile.
+2026-09-19 03:54:49,993 INFO:   Compile was successful!
+2026-09-19 03:54:49,995 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+2026-09-19 03:54:49,995 INFO:   Preparing to execute using 1 CSX
+2026-09-19 03:55:08,113 INFO:   About to send initial weights
+2026-09-19 03:55:08,155 INFO:   Finished sending initial weights
+2026-09-19 03:55:08,155 INFO:   Finalizing appliance staging for the run
+2026-09-19 03:55:09,236 INFO:   Waiting for device programming to complete
+2026-09-19 03:55:27,352 INFO:   Device programming is complete
+2026-09-19 03:55:27,669 INFO:   Using network type: ROCE
+2026-09-19 03:55:27,670 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+2026-09-19 03:55:27,679 INFO:   Input workers have begun streaming input data
+2026-09-19 03:55:27,762 INFO:   Appliance staging is complete
+2026-09-19 03:55:27,762 INFO:   Beginning appliance run
+2026-09-19 03:55:42,536 INFO:   | Train Device=CSX, Step=190, Loss=1.17256, Rate=2536.70 samples/sec, GlobalRate=750.31 samples/sec, LoopTimeRemaining=0:00:15, TimeRemaining=0:33:04
+2026-09-19 03:55:57,648 INFO:   | Train Device=CSX, Step=200, Loss=1.15904, Rate=2819.89 samples/sec, GlobalRate=1175.29 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:32:49
+2026-09-19 03:55:57,740 INFO:   Training completed successfully!
+2026-09-19 03:55:57,760 INFO:   Ordinal 0: Initializing GNNDataProcessor for dataset 'ogbn-arxiv' (split=valid, mode=neighbor).
+$REPO_ROOT/.venv/lib/python3.11/site-packages/ogb/nodeproppred/dataset_pyg.py:69: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  self.data, self.slices = torch.load(self.processed_paths[0])
+2026-09-19 03:56:01,361 INFO:   ---------------------------------------------------------------------------
+2026-09-19 03:56:01,361 INFO:   Starting val_dataloader_2 loop 10 of 25, with 8 steps
+2026-09-19 03:56:01,361 INFO:   ---------------------------------------------------------------------------
+2026-09-19 03:56:03,454 INFO:   Compiling the model. This may take a few minutes.
+2026-09-19 03:56:03,455 INFO:   Found existing cached compile.
+2026-09-19 03:56:03,455 INFO:   Compile was successful!
+2026-09-19 03:56:03,456 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+2026-09-19 03:56:03,456 INFO:   Preparing to execute using 1 CSX
+2026-09-19 03:56:28,630 INFO:   About to send initial weights
+2026-09-19 03:56:28,643 INFO:   Finished sending initial weights
+2026-09-19 03:56:28,643 INFO:   Finalizing appliance staging for the run
+2026-09-19 03:56:29,933 INFO:   Waiting for device programming to complete
+2026-09-19 03:56:38,574 INFO:   Device programming is complete
+2026-09-19 03:56:38,841 INFO:   Using network type: ROCE
+2026-09-19 03:56:38,842 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+2026-09-19 03:56:38,851 INFO:   Input workers have begun streaming input data
+2026-09-19 03:56:38,930 INFO:   Appliance staging is complete
+2026-09-19 03:56:38,931 INFO:   Beginning appliance run
+2026-09-19 03:56:45,342 INFO:   | Eval Device=CSX, GlobalStep=200, Batch=8, Loss=1.04995, Rate=3499.56 samples/sec, GlobalRate=745.05 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:30:34
+2026-09-19 03:56:45,383 INFO:   Avg Eval Loss: 1.0499513149261475
+2026-09-19 03:56:45,385 INFO:   Evaluation metrics:
+2026-09-19 03:56:45,385 INFO:     - eval/masked_accuracy = 0.6839155554771423
+2026-09-19 03:56:45,385 INFO:   Evaluation completed successfully!
+2026-09-19 03:56:45,393 INFO:   ---------------------------------------------------------------------------
+2026-09-19 03:56:45,393 INFO:   Starting train loop 11 of 25, from global step 201 to 220 (20 steps)
+2026-09-19 03:56:45,393 INFO:   ---------------------------------------------------------------------------
+2026-09-19 03:56:50,249 INFO:   Compiling the model. This may take a few minutes.
+2026-09-19 03:56:50,250 INFO:   Found existing cached compile.
+2026-09-19 03:56:50,250 INFO:   Compile was successful!
+2026-09-19 03:56:50,251 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+2026-09-19 03:56:50,251 INFO:   Preparing to execute using 1 CSX
+2026-09-19 03:57:07,980 INFO:   About to send initial weights
+2026-09-19 03:57:08,030 INFO:   Finished sending initial weights
+2026-09-19 03:57:08,030 INFO:   Finalizing appliance staging for the run
+2026-09-19 03:57:09,182 INFO:   Waiting for device programming to complete
+2026-09-19 03:57:27,373 INFO:   Device programming is complete
+2026-09-19 03:57:27,726 INFO:   Using network type: ROCE
+2026-09-19 03:57:27,727 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+2026-09-19 03:57:27,737 INFO:   Input workers have begun streaming input data
+2026-09-19 03:57:27,859 INFO:   Appliance staging is complete
+2026-09-19 03:57:27,859 INFO:   Beginning appliance run
+2026-09-19 03:57:42,125 INFO:   | Train Device=CSX, Step=210, Loss=1.11809, Rate=2294.51 samples/sec, GlobalRate=758.94 samples/sec, LoopTimeRemaining=0:00:14, TimeRemaining=0:29:11
+2026-09-19 03:57:56,740 INFO:   | Train Device=CSX, Step=220, Loss=1.11506, Rate=2746.65 samples/sec, GlobalRate=1194.42 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:29:15
+2026-09-19 03:57:56,832 INFO:   Training completed successfully!
+2026-09-19 03:57:56,913 INFO:   Ordinal 0: Initializing GNNDataProcessor for dataset 'ogbn-arxiv' (split=valid, mode=neighbor).
+$REPO_ROOT/.venv/lib/python3.11/site-packages/ogb/nodeproppred/dataset_pyg.py:69: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  self.data, self.slices = torch.load(self.processed_paths[0])
+2026-09-19 03:58:00,561 INFO:   ---------------------------------------------------------------------------
+2026-09-19 03:58:00,561 INFO:   Starting val_dataloader_2 loop 11 of 25, with 8 steps
+2026-09-19 03:58:00,561 INFO:   ---------------------------------------------------------------------------
+2026-09-19 03:58:02,700 INFO:   Compiling the model. This may take a few minutes.
+2026-09-19 03:58:02,700 INFO:   Found existing cached compile.
+2026-09-19 03:58:02,700 INFO:   Compile was successful!
+2026-09-19 03:58:02,702 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+2026-09-19 03:58:02,702 INFO:   Preparing to execute using 1 CSX
+2026-09-19 03:58:12,656 INFO:   About to send initial weights
+2026-09-19 03:58:12,668 INFO:   Finished sending initial weights
+2026-09-19 03:58:12,668 INFO:   Finalizing appliance staging for the run
+2026-09-19 03:58:14,032 INFO:   Waiting for device programming to complete
+2026-09-19 03:58:37,901 INFO:   Device programming is complete
+2026-09-19 03:58:38,165 INFO:   Using network type: ROCE
+2026-09-19 03:58:38,165 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+2026-09-19 03:58:38,174 INFO:   Input workers have begun streaming input data
+2026-09-19 03:58:38,265 INFO:   Appliance staging is complete
+2026-09-19 03:58:38,265 INFO:   Beginning appliance run
+2026-09-19 03:58:41,443 INFO:   | Eval Device=CSX, GlobalStep=220, Batch=8, Loss=1.03213, Rate=7075.10 samples/sec, GlobalRate=801.53 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:27:14
+2026-09-19 03:58:41,483 INFO:   Avg Eval Loss: 1.0321285724639893
+2026-09-19 03:58:41,485 INFO:   Evaluation metrics:
+2026-09-19 03:58:41,485 INFO:     - eval/masked_accuracy = 0.6872042417526245
+2026-09-19 03:58:41,485 INFO:   Evaluation completed successfully!
+2026-09-19 03:58:41,488 INFO:   ---------------------------------------------------------------------------
+2026-09-19 03:58:41,488 INFO:   Starting train loop 12 of 25, from global step 221 to 240 (20 steps)
+2026-09-19 03:58:41,488 INFO:   ---------------------------------------------------------------------------
+2026-09-19 03:58:46,284 INFO:   Compiling the model. This may take a few minutes.
+2026-09-19 03:58:46,284 INFO:   Found existing cached compile.
+2026-09-19 03:58:46,284 INFO:   Compile was successful!
+2026-09-19 03:58:46,286 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+2026-09-19 03:58:46,286 INFO:   Preparing to execute using 1 CSX
+2026-09-19 03:59:04,325 INFO:   About to send initial weights
+2026-09-19 03:59:04,376 INFO:   Finished sending initial weights
+2026-09-19 03:59:04,376 INFO:   Finalizing appliance staging for the run
+2026-09-19 03:59:04,456 INFO:   Waiting for device programming to complete
+2026-09-19 03:59:23,471 INFO:   Device programming is complete
+2026-09-19 03:59:23,785 INFO:   Using network type: ROCE
+2026-09-19 03:59:23,785 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+2026-09-19 03:59:23,794 INFO:   Input workers have begun streaming input data
+2026-09-19 03:59:23,884 INFO:   Appliance staging is complete
+2026-09-19 03:59:23,884 INFO:   Beginning appliance run
+2026-09-19 03:59:34,201 INFO:   | Train Device=CSX, Step=230, Loss=1.00655, Rate=2707.10 samples/sec, GlobalRate=820.05 samples/sec, LoopTimeRemaining=0:00:14, TimeRemaining=0:26:03
+2026-09-19 03:59:52,955 INFO:   | Train Device=CSX, Step=240, Loss=1.11497, Rate=2807.98 samples/sec, GlobalRate=1192.40 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:25:58
+2026-09-19 03:59:53,067 INFO:   Training completed successfully!
+2026-09-19 03:59:53,090 INFO:   Ordinal 0: Initializing GNNDataProcessor for dataset 'ogbn-arxiv' (split=valid, mode=neighbor).
+$REPO_ROOT/.venv/lib/python3.11/site-packages/ogb/nodeproppred/dataset_pyg.py:69: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  self.data, self.slices = torch.load(self.processed_paths[0])
+2026-09-19 03:59:56,736 INFO:   ---------------------------------------------------------------------------
+2026-09-19 03:59:56,737 INFO:   Starting val_dataloader_2 loop 12 of 25, with 8 steps
+2026-09-19 03:59:56,737 INFO:   ---------------------------------------------------------------------------
+2026-09-19 03:59:58,904 INFO:   Compiling the model. This may take a few minutes.
+2026-09-19 03:59:58,904 INFO:   Found existing cached compile.
+2026-09-19 03:59:58,904 INFO:   Compile was successful!
+2026-09-19 03:59:58,905 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+2026-09-19 03:59:58,905 INFO:   Preparing to execute using 1 CSX
+2026-09-19 04:00:17,841 INFO:   About to send initial weights
+2026-09-19 04:00:17,854 INFO:   Finished sending initial weights
+2026-09-19 04:00:17,855 INFO:   Finalizing appliance staging for the run
+2026-09-19 04:00:19,049 INFO:   Waiting for device programming to complete
+2026-09-19 04:00:34,295 INFO:   Device programming is complete
+2026-09-19 04:00:34,589 INFO:   Using network type: ROCE
+2026-09-19 04:00:34,590 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+2026-09-19 04:00:34,599 INFO:   Input workers have begun streaming input data
+2026-09-19 04:00:34,692 INFO:   Appliance staging is complete
+2026-09-19 04:00:34,692 INFO:   Beginning appliance run
+2026-09-19 04:00:37,926 INFO:   | Eval Device=CSX, GlobalStep=240, Batch=8, Loss=1.03844, Rate=7995.80 samples/sec, GlobalRate=795.58 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:25:20
+2026-09-19 04:00:37,966 INFO:   Avg Eval Loss: 1.0384427905082703
+2026-09-19 04:00:37,969 INFO:   Evaluation metrics:
+2026-09-19 04:00:37,969 INFO:     - eval/masked_accuracy = 0.6838484406471252
+2026-09-19 04:00:37,969 INFO:   Evaluation completed successfully!
+2026-09-19 04:00:37,973 INFO:   ---------------------------------------------------------------------------
+2026-09-19 04:00:37,973 INFO:   Starting train loop 13 of 25, from global step 241 to 260 (20 steps)
+2026-09-19 04:00:37,973 INFO:   ---------------------------------------------------------------------------
+2026-09-19 04:00:42,826 INFO:   Compiling the model. This may take a few minutes.
+2026-09-19 04:00:42,827 INFO:   Found existing cached compile.
+2026-09-19 04:00:42,827 INFO:   Compile was successful!
+2026-09-19 04:00:42,828 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+2026-09-19 04:00:42,828 INFO:   Preparing to execute using 1 CSX
+2026-09-19 04:00:52,735 INFO:   About to send initial weights
+2026-09-19 04:00:52,799 INFO:   Finished sending initial weights
+2026-09-19 04:00:52,799 INFO:   Finalizing appliance staging for the run
+2026-09-19 04:00:53,868 INFO:   Waiting for device programming to complete
+2026-09-19 04:01:19,944 INFO:   Device programming is complete
+2026-09-19 04:01:20,256 INFO:   Using network type: ROCE
+2026-09-19 04:01:20,257 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+2026-09-19 04:01:20,267 INFO:   Input workers have begun streaming input data
+2026-09-19 04:01:20,820 INFO:   Appliance staging is complete
+2026-09-19 04:01:20,820 INFO:   Beginning appliance run
+2026-09-19 04:01:31,646 INFO:   | Train Device=CSX, Step=250, Loss=1.07827, Rate=2830.26 samples/sec, GlobalRate=804.57 samples/sec, LoopTimeRemaining=0:00:14, TimeRemaining=0:24:17
+2026-09-19 04:01:50,446 INFO:   | Train Device=CSX, Step=260, Loss=1.07885, Rate=2722.22 samples/sec, GlobalRate=1175.17 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:24:22
+2026-09-19 04:01:50,547 INFO:   Training completed successfully!
+2026-09-19 04:01:50,575 INFO:   Ordinal 0: Initializing GNNDataProcessor for dataset 'ogbn-arxiv' (split=valid, mode=neighbor).
+$REPO_ROOT/.venv/lib/python3.11/site-packages/ogb/nodeproppred/dataset_pyg.py:69: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  self.data, self.slices = torch.load(self.processed_paths[0])
+2026-09-19 04:01:54,238 INFO:   ---------------------------------------------------------------------------
+2026-09-19 04:01:54,238 INFO:   Starting val_dataloader_2 loop 13 of 25, with 8 steps
+2026-09-19 04:01:54,238 INFO:   ---------------------------------------------------------------------------
+2026-09-19 04:01:56,487 INFO:   Compiling the model. This may take a few minutes.
+2026-09-19 04:01:56,487 INFO:   Found existing cached compile.
+2026-09-19 04:01:56,487 INFO:   Compile was successful!
+2026-09-19 04:01:56,488 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+2026-09-19 04:01:56,488 INFO:   Preparing to execute using 1 CSX
+2026-09-19 04:02:06,176 INFO:   About to send initial weights
+2026-09-19 04:02:06,192 INFO:   Finished sending initial weights
+2026-09-19 04:02:06,192 INFO:   Finalizing appliance staging for the run
+2026-09-19 04:02:07,531 INFO:   Waiting for device programming to complete
+2026-09-19 04:02:31,802 INFO:   Device programming is complete
+2026-09-19 04:02:32,135 INFO:   Using network type: ROCE
+2026-09-19 04:02:32,136 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+2026-09-19 04:02:32,145 INFO:   Input workers have begun streaming input data
+2026-09-19 04:02:32,221 INFO:   Appliance staging is complete
+2026-09-19 04:02:32,221 INFO:   Beginning appliance run
+2026-09-19 04:02:35,404 INFO:   | Eval Device=CSX, GlobalStep=260, Batch=8, Loss=1.02873, Rate=6687.53 samples/sec, GlobalRate=796.00 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:23:41
+2026-09-19 04:02:35,445 INFO:   Avg Eval Loss: 1.028730221092701
+2026-09-19 04:02:35,447 INFO:   Evaluation metrics:
+2026-09-19 04:02:35,448 INFO:     - eval/masked_accuracy = 0.6858955025672913
+2026-09-19 04:02:35,448 INFO:   Evaluation completed successfully!
+2026-09-19 04:02:35,452 INFO:   ---------------------------------------------------------------------------
+2026-09-19 04:02:35,453 INFO:   Starting train loop 14 of 25, from global step 261 to 280 (20 steps)
+2026-09-19 04:02:35,453 INFO:   ---------------------------------------------------------------------------
+2026-09-19 04:02:40,280 INFO:   Compiling the model. This may take a few minutes.
+2026-09-19 04:02:40,280 INFO:   Found existing cached compile.
+2026-09-19 04:02:40,280 INFO:   Compile was successful!
+2026-09-19 04:02:40,282 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+2026-09-19 04:02:40,282 INFO:   Preparing to execute using 1 CSX
+2026-09-19 04:02:50,317 INFO:   About to send initial weights
+2026-09-19 04:02:50,378 INFO:   Finished sending initial weights
+2026-09-19 04:02:50,378 INFO:   Finalizing appliance staging for the run
+2026-09-19 04:02:51,415 INFO:   Waiting for device programming to complete
+2026-09-19 04:03:17,355 INFO:   Device programming is complete
+2026-09-19 04:03:17,692 INFO:   Using network type: ROCE
+2026-09-19 04:03:17,693 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+2026-09-19 04:03:17,700 INFO:   Input workers have begun streaming input data
+2026-09-19 04:03:17,833 INFO:   Appliance staging is complete
+2026-09-19 04:03:17,833 INFO:   Beginning appliance run
+2026-09-19 04:03:28,462 INFO:   | Train Device=CSX, Step=270, Loss=1.08083, Rate=2617.16 samples/sec, GlobalRate=815.12 samples/sec, LoopTimeRemaining=0:00:14, TimeRemaining=0:22:28
+2026-09-19 04:03:46,978 INFO:   | Train Device=CSX, Step=280, Loss=1.11849, Rate=2584.20 samples/sec, GlobalRate=1191.28 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:22:13
+2026-09-19 04:03:47,075 INFO:   Training completed successfully!
+2026-09-19 04:03:47,097 INFO:   Ordinal 0: Initializing GNNDataProcessor for dataset 'ogbn-arxiv' (split=valid, mode=neighbor).
+$REPO_ROOT/.venv/lib/python3.11/site-packages/ogb/nodeproppred/dataset_pyg.py:69: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  self.data, self.slices = torch.load(self.processed_paths[0])
+2026-09-19 04:03:50,737 INFO:   ---------------------------------------------------------------------------
+2026-09-19 04:03:50,737 INFO:   Starting val_dataloader_2 loop 14 of 25, with 8 steps
+2026-09-19 04:03:50,737 INFO:   ---------------------------------------------------------------------------
+2026-09-19 04:03:52,942 INFO:   Compiling the model. This may take a few minutes.
+2026-09-19 04:03:52,943 INFO:   Found existing cached compile.
+2026-09-19 04:03:52,943 INFO:   Compile was successful!
+2026-09-19 04:03:52,944 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+2026-09-19 04:03:52,944 INFO:   Preparing to execute using 1 CSX
+2026-09-19 04:04:19,969 INFO:   About to send initial weights
+2026-09-19 04:04:19,980 INFO:   Finished sending initial weights
+2026-09-19 04:04:19,980 INFO:   Finalizing appliance staging for the run
+2026-09-19 04:04:20,996 INFO:   Waiting for device programming to complete
+2026-09-19 04:04:28,397 INFO:   Device programming is complete
+2026-09-19 04:04:28,687 INFO:   Using network type: ROCE
+2026-09-19 04:04:28,687 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+2026-09-19 04:04:28,722 INFO:   Input workers have begun streaming input data
+2026-09-19 04:04:28,872 INFO:   Appliance staging is complete
+2026-09-19 04:04:28,872 INFO:   Beginning appliance run
+2026-09-19 04:04:36,745 INFO:   | Eval Device=CSX, GlobalStep=280, Batch=8, Loss=1.01556, Rate=2968.21 samples/sec, GlobalRate=712.24 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:23:20
+2026-09-19 04:04:36,788 INFO:   Avg Eval Loss: 1.0155607536435127
+2026-09-19 04:04:36,791 INFO:   Evaluation metrics:
+2026-09-19 04:04:36,791 INFO:     - eval/masked_accuracy = 0.6944528222084045
+2026-09-19 04:04:36,791 INFO:   Evaluation completed successfully!
+2026-09-19 04:04:36,795 INFO:   ---------------------------------------------------------------------------
+2026-09-19 04:04:36,795 INFO:   Starting train loop 15 of 25, from global step 281 to 300 (20 steps)
+2026-09-19 04:04:36,796 INFO:   ---------------------------------------------------------------------------
+2026-09-19 04:04:41,621 INFO:   Compiling the model. This may take a few minutes.
+2026-09-19 04:04:41,621 INFO:   Found existing cached compile.
+2026-09-19 04:04:41,621 INFO:   Compile was successful!
+2026-09-19 04:04:41,622 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+2026-09-19 04:04:41,622 INFO:   Preparing to execute using 1 CSX
+2026-09-19 04:04:59,130 INFO:   About to send initial weights
+2026-09-19 04:04:59,192 INFO:   Finished sending initial weights
+2026-09-19 04:04:59,192 INFO:   Finalizing appliance staging for the run
+2026-09-19 04:05:00,073 INFO:   Waiting for device programming to complete
+2026-09-19 04:05:18,784 INFO:   Device programming is complete
+2026-09-19 04:05:19,110 INFO:   Using network type: ROCE
+2026-09-19 04:05:19,111 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+2026-09-19 04:05:19,119 INFO:   Input workers have begun streaming input data
+2026-09-19 04:05:19,208 INFO:   Appliance staging is complete
+2026-09-19 04:05:19,208 INFO:   Beginning appliance run
+2026-09-19 04:05:29,818 INFO:   | Train Device=CSX, Step=290, Loss=1.06843, Rate=2603.57 samples/sec, GlobalRate=814.77 samples/sec, LoopTimeRemaining=0:00:14, TimeRemaining=0:22:21
+2026-09-19 04:05:48,059 INFO:   | Train Device=CSX, Step=300, Loss=1.02315, Rate=1622.26 samples/sec, GlobalRate=1195.69 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:22:06
+2026-09-19 04:05:48,150 INFO:   Training completed successfully!
+2026-09-19 04:05:48,171 INFO:   Ordinal 0: Initializing GNNDataProcessor for dataset 'ogbn-arxiv' (split=valid, mode=neighbor).
+$REPO_ROOT/.venv/lib/python3.11/site-packages/ogb/nodeproppred/dataset_pyg.py:69: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  self.data, self.slices = torch.load(self.processed_paths[0])
+2026-09-19 04:05:51,815 INFO:   ---------------------------------------------------------------------------
+2026-09-19 04:05:51,816 INFO:   Starting val_dataloader_2 loop 15 of 25, with 8 steps
+2026-09-19 04:05:51,816 INFO:   ---------------------------------------------------------------------------
+2026-09-19 04:05:53,917 INFO:   Compiling the model. This may take a few minutes.
+2026-09-19 04:05:53,917 INFO:   Found existing cached compile.
+2026-09-19 04:05:53,917 INFO:   Compile was successful!
+2026-09-19 04:05:53,919 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+2026-09-19 04:05:53,919 INFO:   Preparing to execute using 1 CSX
+2026-09-19 04:06:12,757 INFO:   About to send initial weights
+2026-09-19 04:06:12,768 INFO:   Finished sending initial weights
+2026-09-19 04:06:12,768 INFO:   Finalizing appliance staging for the run
+2026-09-19 04:06:13,390 INFO:   Waiting for device programming to complete
+2026-09-19 04:06:29,269 INFO:   Device programming is complete
+2026-09-19 04:06:29,572 INFO:   Using network type: ROCE
+2026-09-19 04:06:29,572 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+2026-09-19 04:06:29,581 INFO:   Input workers have begun streaming input data
+2026-09-19 04:06:29,683 INFO:   Appliance staging is complete
+2026-09-19 04:06:29,683 INFO:   Beginning appliance run
+2026-09-19 04:06:32,891 INFO:   | Eval Device=CSX, GlobalStep=300, Batch=8, Loss=1.01587, Rate=7396.85 samples/sec, GlobalRate=797.76 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:20:04
+2026-09-19 04:06:32,933 INFO:   Avg Eval Loss: 1.0158721953630447
+2026-09-19 04:06:32,935 INFO:   Evaluation metrics:
+2026-09-19 04:06:32,935 INFO:     - eval/masked_accuracy = 0.6913319230079651
+2026-09-19 04:06:32,936 INFO:   Evaluation completed successfully!
+2026-09-19 04:06:32,939 INFO:   ---------------------------------------------------------------------------
+2026-09-19 04:06:32,939 INFO:   Starting train loop 16 of 25, from global step 301 to 320 (20 steps)
+2026-09-19 04:06:32,939 INFO:   ---------------------------------------------------------------------------
+2026-09-19 04:06:37,739 INFO:   Compiling the model. This may take a few minutes.
+2026-09-19 04:06:37,739 INFO:   Found existing cached compile.
+2026-09-19 04:06:37,739 INFO:   Compile was successful!
+2026-09-19 04:06:37,741 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+2026-09-19 04:06:37,741 INFO:   Preparing to execute using 1 CSX
+2026-09-19 04:06:55,765 INFO:   About to send initial weights
+2026-09-19 04:06:55,816 INFO:   Finished sending initial weights
+2026-09-19 04:06:55,816 INFO:   Finalizing appliance staging for the run
+2026-09-19 04:06:55,872 INFO:   Waiting for device programming to complete
+2026-09-19 04:07:14,732 INFO:   Device programming is complete
+2026-09-19 04:07:15,034 INFO:   Using network type: ROCE
+2026-09-19 04:07:15,034 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+2026-09-19 04:07:15,046 INFO:   Input workers have begun streaming input data
+2026-09-19 04:07:15,162 INFO:   Appliance staging is complete
+2026-09-19 04:07:15,162 INFO:   Beginning appliance run
+2026-09-19 04:07:25,542 INFO:   | Train Device=CSX, Step=310, Loss=1.04774, Rate=2848.40 samples/sec, GlobalRate=821.75 samples/sec, LoopTimeRemaining=0:00:14, TimeRemaining=0:19:04
+2026-09-19 04:07:39,849 INFO:   | Train Device=CSX, Step=320, Loss=1.09656, Rate=2902.73 samples/sec, GlobalRate=1276.97 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:18:50
+2026-09-19 04:07:39,948 INFO:   Training completed successfully!
+2026-09-19 04:07:39,971 INFO:   Ordinal 0: Initializing GNNDataProcessor for dataset 'ogbn-arxiv' (split=valid, mode=neighbor).
+$REPO_ROOT/.venv/lib/python3.11/site-packages/ogb/nodeproppred/dataset_pyg.py:69: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  self.data, self.slices = torch.load(self.processed_paths[0])
+2026-09-19 04:07:43,606 INFO:   ---------------------------------------------------------------------------
+2026-09-19 04:07:43,606 INFO:   Starting val_dataloader_2 loop 16 of 25, with 8 steps
+2026-09-19 04:07:43,606 INFO:   ---------------------------------------------------------------------------
+2026-09-19 04:07:45,808 INFO:   Compiling the model. This may take a few minutes.
+2026-09-19 04:07:45,808 INFO:   Found existing cached compile.
+2026-09-19 04:07:45,808 INFO:   Compile was successful!
+2026-09-19 04:07:45,810 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+2026-09-19 04:07:45,810 INFO:   Preparing to execute using 1 CSX
+2026-09-19 04:08:04,586 INFO:   About to send initial weights
+2026-09-19 04:08:04,597 INFO:   Finished sending initial weights
+2026-09-19 04:08:04,597 INFO:   Finalizing appliance staging for the run
+2026-09-19 04:08:05,327 INFO:   Waiting for device programming to complete
+2026-09-19 04:08:20,984 INFO:   Device programming is complete
+2026-09-19 04:08:21,314 INFO:   Using network type: ROCE
+2026-09-19 04:08:21,315 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+2026-09-19 04:08:21,325 INFO:   Input workers have begun streaming input data
+2026-09-19 04:08:21,412 INFO:   Appliance staging is complete
+2026-09-19 04:08:21,413 INFO:   Beginning appliance run
+2026-09-19 04:08:24,629 INFO:   | Eval Device=CSX, GlobalStep=320, Batch=8, Loss=1.00069, Rate=8090.92 samples/sec, GlobalRate=798.78 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:17:27
+2026-09-19 04:08:24,679 INFO:   Avg Eval Loss: 1.0006927326321602
+2026-09-19 04:08:24,681 INFO:   Evaluation metrics:
+2026-09-19 04:08:24,681 INFO:     - eval/masked_accuracy = 0.6955602765083313
+2026-09-19 04:08:24,682 INFO:   Evaluation completed successfully!
+2026-09-19 04:08:24,686 INFO:   ---------------------------------------------------------------------------
+2026-09-19 04:08:24,686 INFO:   Starting train loop 17 of 25, from global step 321 to 340 (20 steps)
+2026-09-19 04:08:24,686 INFO:   ---------------------------------------------------------------------------
+2026-09-19 04:08:29,483 INFO:   Compiling the model. This may take a few minutes.
+2026-09-19 04:08:29,484 INFO:   Found existing cached compile.
+2026-09-19 04:08:29,484 INFO:   Compile was successful!
+2026-09-19 04:08:29,485 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+2026-09-19 04:08:29,485 INFO:   Preparing to execute using 1 CSX
+2026-09-19 04:08:47,482 INFO:   About to send initial weights
+2026-09-19 04:08:47,525 INFO:   Finished sending initial weights
+2026-09-19 04:08:47,525 INFO:   Finalizing appliance staging for the run
+2026-09-19 04:08:47,591 INFO:   Waiting for device programming to complete
+2026-09-19 04:09:06,627 INFO:   Device programming is complete
+2026-09-19 04:09:06,984 INFO:   Using network type: ROCE
+2026-09-19 04:09:06,985 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+2026-09-19 04:09:06,995 INFO:   Input workers have begun streaming input data
+2026-09-19 04:09:07,132 INFO:   Appliance staging is complete
+2026-09-19 04:09:07,133 INFO:   Beginning appliance run
+2026-09-19 04:09:17,704 INFO:   | Train Device=CSX, Step=330, Loss=1.02357, Rate=2628.56 samples/sec, GlobalRate=815.05 samples/sec, LoopTimeRemaining=0:00:14, TimeRemaining=0:16:33
+2026-09-19 04:09:32,750 INFO:   | Train Device=CSX, Step=340, Loss=1.03504, Rate=2765.95 samples/sec, GlobalRate=1254.52 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:16:21
+2026-09-19 04:09:32,840 INFO:   Training completed successfully!
+2026-09-19 04:09:32,861 INFO:   Ordinal 0: Initializing GNNDataProcessor for dataset 'ogbn-arxiv' (split=valid, mode=neighbor).
+$REPO_ROOT/.venv/lib/python3.11/site-packages/ogb/nodeproppred/dataset_pyg.py:69: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  self.data, self.slices = torch.load(self.processed_paths[0])
+2026-09-19 04:09:36,490 INFO:   ---------------------------------------------------------------------------
+2026-09-19 04:09:36,490 INFO:   Starting val_dataloader_2 loop 17 of 25, with 8 steps
+2026-09-19 04:09:36,490 INFO:   ---------------------------------------------------------------------------
+2026-09-19 04:09:38,690 INFO:   Compiling the model. This may take a few minutes.
+2026-09-19 04:09:38,690 INFO:   Found existing cached compile.
+2026-09-19 04:09:38,691 INFO:   Compile was successful!
+2026-09-19 04:09:38,692 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+2026-09-19 04:09:38,692 INFO:   Preparing to execute using 1 CSX
+2026-09-19 04:09:55,925 INFO:   About to send initial weights
+2026-09-19 04:09:55,936 INFO:   Finished sending initial weights
+2026-09-19 04:09:55,936 INFO:   Finalizing appliance staging for the run
+2026-09-19 04:09:57,317 INFO:   Waiting for device programming to complete
+2026-09-19 04:10:13,847 INFO:   Device programming is complete
+2026-09-19 04:10:14,188 INFO:   Using network type: ROCE
+2026-09-19 04:10:14,189 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+2026-09-19 04:10:14,197 INFO:   Input workers have begun streaming input data
+2026-09-19 04:10:14,318 INFO:   Appliance staging is complete
+2026-09-19 04:10:14,318 INFO:   Beginning appliance run
+2026-09-19 04:10:17,530 INFO:   | Eval Device=CSX, GlobalStep=340, Batch=8, Loss=0.98968, Rate=8053.13 samples/sec, GlobalRate=798.45 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:15:37
+2026-09-19 04:10:17,578 INFO:   Avg Eval Loss: 0.9896804168820381
+2026-09-19 04:10:17,580 INFO:   Evaluation metrics:
+2026-09-19 04:10:17,580 INFO:     - eval/masked_accuracy = 0.6971374750137329
+2026-09-19 04:10:17,580 INFO:   Evaluation completed successfully!
+2026-09-19 04:10:17,584 INFO:   ---------------------------------------------------------------------------
+2026-09-19 04:10:17,584 INFO:   Starting train loop 18 of 25, from global step 341 to 360 (20 steps)
+2026-09-19 04:10:17,584 INFO:   ---------------------------------------------------------------------------
+2026-09-19 04:10:22,397 INFO:   Compiling the model. This may take a few minutes.
+2026-09-19 04:10:22,397 INFO:   Found existing cached compile.
+2026-09-19 04:10:22,397 INFO:   Compile was successful!
+2026-09-19 04:10:22,398 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+2026-09-19 04:10:22,399 INFO:   Preparing to execute using 1 CSX
+2026-09-19 04:10:40,404 INFO:   About to send initial weights
+2026-09-19 04:10:40,452 INFO:   Finished sending initial weights
+2026-09-19 04:10:40,452 INFO:   Finalizing appliance staging for the run
+2026-09-19 04:10:41,527 INFO:   Waiting for device programming to complete
+2026-09-19 04:10:59,713 INFO:   Device programming is complete
+2026-09-19 04:11:00,070 INFO:   Using network type: ROCE
+2026-09-19 04:11:00,071 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+2026-09-19 04:11:00,079 INFO:   Input workers have begun streaming input data
+2026-09-19 04:11:00,180 INFO:   Appliance staging is complete
+2026-09-19 04:11:00,180 INFO:   Beginning appliance run
+2026-09-19 04:11:14,799 INFO:   | Train Device=CSX, Step=350, Loss=0.99137, Rate=2504.90 samples/sec, GlobalRate=751.99 samples/sec, LoopTimeRemaining=0:00:14, TimeRemaining=0:14:37
+2026-09-19 04:11:29,899 INFO:   | Train Device=CSX, Step=360, Loss=1.03419, Rate=2795.30 samples/sec, GlobalRate=1177.54 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:14:29
+2026-09-19 04:11:29,990 INFO:   Training completed successfully!
+2026-09-19 04:11:30,016 INFO:   Ordinal 0: Initializing GNNDataProcessor for dataset 'ogbn-arxiv' (split=valid, mode=neighbor).
+$REPO_ROOT/.venv/lib/python3.11/site-packages/ogb/nodeproppred/dataset_pyg.py:69: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  self.data, self.slices = torch.load(self.processed_paths[0])
+2026-09-19 04:11:33,644 INFO:   ---------------------------------------------------------------------------
+2026-09-19 04:11:33,645 INFO:   Starting val_dataloader_2 loop 18 of 25, with 8 steps
+2026-09-19 04:11:33,645 INFO:   ---------------------------------------------------------------------------
+2026-09-19 04:11:35,762 INFO:   Compiling the model. This may take a few minutes.
+2026-09-19 04:11:35,762 INFO:   Found existing cached compile.
+2026-09-19 04:11:35,762 INFO:   Compile was successful!
+2026-09-19 04:11:35,763 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+2026-09-19 04:11:35,764 INFO:   Preparing to execute using 1 CSX
+2026-09-19 04:12:08,962 INFO:   About to send initial weights
+2026-09-19 04:12:08,973 INFO:   Finished sending initial weights
+2026-09-19 04:12:08,973 INFO:   Finalizing appliance staging for the run
+2026-09-19 04:12:10,340 INFO:   Waiting for device programming to complete
+2026-09-19 04:12:10,817 INFO:   Device programming is complete
+2026-09-19 04:12:11,110 INFO:   Using network type: ROCE
+2026-09-19 04:12:11,110 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+2026-09-19 04:12:13,703 INFO:   Input workers have begun streaming input data
+2026-09-19 04:12:13,774 INFO:   Appliance staging is complete
+2026-09-19 04:12:13,775 INFO:   Beginning appliance run
+2026-09-19 04:12:25,610 INFO:   | Eval Device=CSX, GlobalStep=360, Batch=8, Loss=0.98500, Rate=2773.38 samples/sec, GlobalRate=630.58 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:15:14
+2026-09-19 04:12:25,651 INFO:   Avg Eval Loss: 0.984996072947979
+2026-09-19 04:12:25,653 INFO:   Evaluation metrics:
+2026-09-19 04:12:25,653 INFO:     - eval/masked_accuracy = 0.6989831924438477
+2026-09-19 04:12:25,654 INFO:   Evaluation completed successfully!
+2026-09-19 04:12:25,658 INFO:   ---------------------------------------------------------------------------
+2026-09-19 04:12:25,658 INFO:   Starting train loop 19 of 25, from global step 361 to 380 (20 steps)
+2026-09-19 04:12:25,658 INFO:   ---------------------------------------------------------------------------
+2026-09-19 04:12:30,529 INFO:   Compiling the model. This may take a few minutes.
+2026-09-19 04:12:30,529 INFO:   Found existing cached compile.
+2026-09-19 04:12:30,529 INFO:   Compile was successful!
+2026-09-19 04:12:30,531 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+2026-09-19 04:12:30,531 INFO:   Preparing to execute using 1 CSX
+2026-09-19 04:12:47,986 INFO:   About to send initial weights
+2026-09-19 04:12:48,032 INFO:   Finished sending initial weights
+2026-09-19 04:12:48,032 INFO:   Finalizing appliance staging for the run
+2026-09-19 04:12:48,972 INFO:   Waiting for device programming to complete
+2026-09-19 04:13:07,435 INFO:   Device programming is complete
+2026-09-19 04:13:07,745 INFO:   Using network type: ROCE
+2026-09-19 04:13:07,746 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+2026-09-19 04:13:07,755 INFO:   Input workers have begun streaming input data
+2026-09-19 04:13:07,849 INFO:   Appliance staging is complete
+2026-09-19 04:13:07,849 INFO:   Beginning appliance run
+2026-09-19 04:13:21,602 INFO:   | Train Device=CSX, Step=370, Loss=1.01350, Rate=2396.58 samples/sec, GlobalRate=769.97 samples/sec, LoopTimeRemaining=0:00:14, TimeRemaining=0:13:59
+2026-09-19 04:13:36,445 INFO:   | Train Device=CSX, Step=380, Loss=1.02233, Rate=2817.53 samples/sec, GlobalRate=1204.00 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:13:55
+2026-09-19 04:13:36,539 INFO:   Training completed successfully!
+2026-09-19 04:13:36,560 INFO:   Ordinal 0: Initializing GNNDataProcessor for dataset 'ogbn-arxiv' (split=valid, mode=neighbor).
+$REPO_ROOT/.venv/lib/python3.11/site-packages/ogb/nodeproppred/dataset_pyg.py:69: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  self.data, self.slices = torch.load(self.processed_paths[0])
+2026-09-19 04:13:40,209 INFO:   ---------------------------------------------------------------------------
+2026-09-19 04:13:40,209 INFO:   Starting val_dataloader_2 loop 19 of 25, with 8 steps
+2026-09-19 04:13:40,209 INFO:   ---------------------------------------------------------------------------
+2026-09-19 04:13:42,535 INFO:   Compiling the model. This may take a few minutes.
+2026-09-19 04:13:42,535 INFO:   Found existing cached compile.
+2026-09-19 04:13:42,536 INFO:   Compile was successful!
+2026-09-19 04:13:42,537 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+2026-09-19 04:13:42,537 INFO:   Preparing to execute using 1 CSX
+2026-09-19 04:14:01,472 INFO:   About to send initial weights
+2026-09-19 04:14:01,484 INFO:   Finished sending initial weights
+2026-09-19 04:14:01,484 INFO:   Finalizing appliance staging for the run
+2026-09-19 04:14:03,032 INFO:   Waiting for device programming to complete
+2026-09-19 04:14:18,027 INFO:   Device programming is complete
+2026-09-19 04:14:18,353 INFO:   Using network type: ROCE
+2026-09-19 04:14:18,354 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+2026-09-19 04:14:18,362 INFO:   Input workers have begun streaming input data
+2026-09-19 04:14:18,463 INFO:   Appliance staging is complete
+2026-09-19 04:14:18,463 INFO:   Beginning appliance run
+2026-09-19 04:14:21,617 INFO:   | Eval Device=CSX, GlobalStep=380, Batch=8, Loss=0.97729, Rate=7308.47 samples/sec, GlobalRate=791.36 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:11:44
+2026-09-19 04:14:21,659 INFO:   Avg Eval Loss: 0.9772869944572449
+2026-09-19 04:14:21,661 INFO:   Evaluation metrics:
+2026-09-19 04:14:21,661 INFO:     - eval/masked_accuracy = 0.7025403380393982
+2026-09-19 04:14:21,661 INFO:   Evaluation completed successfully!
+2026-09-19 04:14:21,665 INFO:   ---------------------------------------------------------------------------
+2026-09-19 04:14:21,665 INFO:   Starting train loop 20 of 25, from global step 381 to 400 (20 steps)
+2026-09-19 04:14:21,665 INFO:   ---------------------------------------------------------------------------
+2026-09-19 04:14:26,583 INFO:   Compiling the model. This may take a few minutes.
+2026-09-19 04:14:26,583 INFO:   Found existing cached compile.
+2026-09-19 04:14:26,583 INFO:   Compile was successful!
+2026-09-19 04:14:26,585 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+2026-09-19 04:14:26,585 INFO:   Preparing to execute using 1 CSX
+2026-09-19 04:14:44,503 INFO:   About to send initial weights
+2026-09-19 04:14:44,542 INFO:   Finished sending initial weights
+2026-09-19 04:14:44,542 INFO:   Finalizing appliance staging for the run
+2026-09-19 04:14:45,635 INFO:   Waiting for device programming to complete
+2026-09-19 04:15:03,449 INFO:   Device programming is complete
+2026-09-19 04:15:03,783 INFO:   Using network type: ROCE
+2026-09-19 04:15:03,783 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+2026-09-19 04:15:03,793 INFO:   Input workers have begun streaming input data
+2026-09-19 04:15:03,894 INFO:   Appliance staging is complete
+2026-09-19 04:15:03,895 INFO:   Beginning appliance run
+2026-09-19 04:15:14,154 INFO:   | Train Device=CSX, Step=390, Loss=1.02352, Rate=2735.79 samples/sec, GlobalRate=824.36 samples/sec, LoopTimeRemaining=0:00:14, TimeRemaining=0:10:37
+2026-09-19 04:15:32,329 INFO:   | Train Device=CSX, Step=400, Loss=0.95176, Rate=2791.08 samples/sec, GlobalRate=1206.55 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:10:30
+2026-09-19 04:15:32,443 INFO:   Training completed successfully!
+2026-09-19 04:15:32,463 INFO:   Ordinal 0: Initializing GNNDataProcessor for dataset 'ogbn-arxiv' (split=valid, mode=neighbor).
+$REPO_ROOT/.venv/lib/python3.11/site-packages/ogb/nodeproppred/dataset_pyg.py:69: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  self.data, self.slices = torch.load(self.processed_paths[0])
+2026-09-19 04:15:36,059 INFO:   ---------------------------------------------------------------------------
+2026-09-19 04:15:36,059 INFO:   Starting val_dataloader_2 loop 20 of 25, with 8 steps
+2026-09-19 04:15:36,059 INFO:   ---------------------------------------------------------------------------
+2026-09-19 04:15:38,134 INFO:   Compiling the model. This may take a few minutes.
+2026-09-19 04:15:38,134 INFO:   Found existing cached compile.
+2026-09-19 04:15:38,135 INFO:   Compile was successful!
+2026-09-19 04:15:38,136 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+2026-09-19 04:15:38,136 INFO:   Preparing to execute using 1 CSX
+2026-09-19 04:16:05,118 INFO:   About to send initial weights
+2026-09-19 04:16:05,131 INFO:   Finished sending initial weights
+2026-09-19 04:16:05,131 INFO:   Finalizing appliance staging for the run
+2026-09-19 04:16:06,058 INFO:   Waiting for device programming to complete
+2026-09-19 04:16:13,406 INFO:   Device programming is complete
+2026-09-19 04:16:13,722 INFO:   Using network type: ROCE
+2026-09-19 04:16:13,723 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+2026-09-19 04:16:13,732 INFO:   Input workers have begun streaming input data
+2026-09-19 04:16:13,832 INFO:   Appliance staging is complete
+2026-09-19 04:16:13,833 INFO:   Beginning appliance run
+2026-09-19 04:16:21,887 INFO:   | Eval Device=CSX, GlobalStep=400, Batch=8, Loss=0.97941, Rate=2911.22 samples/sec, GlobalRate=715.03 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:10:34
+2026-09-19 04:16:21,928 INFO:   Avg Eval Loss: 0.9794090911746025
+2026-09-19 04:16:21,930 INFO:   Evaluation metrics:
+2026-09-19 04:16:21,930 INFO:     - eval/masked_accuracy = 0.6997885704040527
+2026-09-19 04:16:21,930 INFO:   Evaluation completed successfully!
+2026-09-19 04:16:21,934 INFO:   ---------------------------------------------------------------------------
+2026-09-19 04:16:21,934 INFO:   Starting train loop 21 of 25, from global step 401 to 420 (20 steps)
+2026-09-19 04:16:21,934 INFO:   ---------------------------------------------------------------------------
+2026-09-19 04:16:26,643 INFO:   Compiling the model. This may take a few minutes.
+2026-09-19 04:16:26,643 INFO:   Found existing cached compile.
+2026-09-19 04:16:26,643 INFO:   Compile was successful!
+2026-09-19 04:16:26,644 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+2026-09-19 04:16:26,644 INFO:   Preparing to execute using 1 CSX
+2026-09-19 04:16:44,875 INFO:   About to send initial weights
+2026-09-19 04:16:44,931 INFO:   Finished sending initial weights
+2026-09-19 04:16:44,931 INFO:   Finalizing appliance staging for the run
+2026-09-19 04:16:45,999 INFO:   Waiting for device programming to complete
+2026-09-19 04:17:04,067 INFO:   Device programming is complete
+2026-09-19 04:17:04,356 INFO:   Using network type: ROCE
+2026-09-19 04:17:04,357 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+2026-09-19 04:17:04,366 INFO:   Input workers have begun streaming input data
+2026-09-19 04:17:04,447 INFO:   Appliance staging is complete
+2026-09-19 04:17:04,447 INFO:   Beginning appliance run
+2026-09-19 04:17:14,679 INFO:   | Train Device=CSX, Step=410, Loss=1.01225, Rate=2942.98 samples/sec, GlobalRate=819.33 samples/sec, LoopTimeRemaining=0:00:14, TimeRemaining=0:09:34
+2026-09-19 04:17:32,747 INFO:   | Train Device=CSX, Step=420, Loss=1.01939, Rate=2724.58 samples/sec, GlobalRate=1203.63 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:09:22
+2026-09-19 04:17:32,838 INFO:   Training completed successfully!
+2026-09-19 04:17:32,859 INFO:   Ordinal 0: Initializing GNNDataProcessor for dataset 'ogbn-arxiv' (split=valid, mode=neighbor).
+$REPO_ROOT/.venv/lib/python3.11/site-packages/ogb/nodeproppred/dataset_pyg.py:69: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  self.data, self.slices = torch.load(self.processed_paths[0])
+2026-09-19 04:17:36,491 INFO:   ---------------------------------------------------------------------------
+2026-09-19 04:17:36,491 INFO:   Starting val_dataloader_2 loop 21 of 25, with 8 steps
+2026-09-19 04:17:36,491 INFO:   ---------------------------------------------------------------------------
+2026-09-19 04:17:38,628 INFO:   Compiling the model. This may take a few minutes.
+2026-09-19 04:17:38,628 INFO:   Found existing cached compile.
+2026-09-19 04:17:38,628 INFO:   Compile was successful!
+2026-09-19 04:17:38,630 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+2026-09-19 04:17:38,630 INFO:   Preparing to execute using 1 CSX
+2026-09-19 04:17:48,254 INFO:   About to send initial weights
+2026-09-19 04:17:48,272 INFO:   Finished sending initial weights
+2026-09-19 04:17:48,272 INFO:   Finalizing appliance staging for the run
+2026-09-19 04:17:49,625 INFO:   Waiting for device programming to complete
+2026-09-19 04:18:14,090 INFO:   Device programming is complete
+2026-09-19 04:18:14,385 INFO:   Using network type: ROCE
+2026-09-19 04:18:14,386 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+2026-09-19 04:18:14,394 INFO:   Input workers have begun streaming input data
+2026-09-19 04:18:14,482 INFO:   Appliance staging is complete
+2026-09-19 04:18:14,482 INFO:   Beginning appliance run
+2026-09-19 04:18:17,652 INFO:   | Eval Device=CSX, GlobalStep=420, Batch=8, Loss=0.96874, Rate=6718.51 samples/sec, GlobalRate=796.10 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:07:47
+2026-09-19 04:18:17,693 INFO:   Avg Eval Loss: 0.9687424674630165
+2026-09-19 04:18:17,695 INFO:   Evaluation metrics:
+2026-09-19 04:18:17,696 INFO:     - eval/masked_accuracy = 0.7016007304191589
+2026-09-19 04:18:17,696 INFO:   Evaluation completed successfully!
+2026-09-19 04:18:17,700 INFO:   ---------------------------------------------------------------------------
+2026-09-19 04:18:17,700 INFO:   Starting train loop 22 of 25, from global step 421 to 440 (20 steps)
+2026-09-19 04:18:17,700 INFO:   ---------------------------------------------------------------------------
+2026-09-19 04:18:22,503 INFO:   Compiling the model. This may take a few minutes.
+2026-09-19 04:18:22,503 INFO:   Found existing cached compile.
+2026-09-19 04:18:22,504 INFO:   Compile was successful!
+2026-09-19 04:18:22,505 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+2026-09-19 04:18:22,505 INFO:   Preparing to execute using 1 CSX
+2026-09-19 04:18:32,538 INFO:   About to send initial weights
+2026-09-19 04:18:32,589 INFO:   Finished sending initial weights
+2026-09-19 04:18:32,589 INFO:   Finalizing appliance staging for the run
+2026-09-19 04:18:33,662 INFO:   Waiting for device programming to complete
+2026-09-19 04:18:59,490 INFO:   Device programming is complete
+2026-09-19 04:18:59,826 INFO:   Using network type: ROCE
+2026-09-19 04:18:59,826 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+2026-09-19 04:18:59,835 INFO:   Input workers have begun streaming input data
+2026-09-19 04:18:59,924 INFO:   Appliance staging is complete
+2026-09-19 04:18:59,924 INFO:   Beginning appliance run
+2026-09-19 04:19:10,597 INFO:   | Train Device=CSX, Step=430, Loss=1.00939, Rate=2608.75 samples/sec, GlobalRate=817.18 samples/sec, LoopTimeRemaining=0:00:14, TimeRemaining=0:06:51
+2026-09-19 04:19:28,544 INFO:   | Train Device=CSX, Step=440, Loss=0.98283, Rate=2531.73 samples/sec, GlobalRate=1203.47 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:06:34
+2026-09-19 04:19:28,632 INFO:   Training completed successfully!
+2026-09-19 04:19:28,654 INFO:   Ordinal 0: Initializing GNNDataProcessor for dataset 'ogbn-arxiv' (split=valid, mode=neighbor).
+$REPO_ROOT/.venv/lib/python3.11/site-packages/ogb/nodeproppred/dataset_pyg.py:69: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  self.data, self.slices = torch.load(self.processed_paths[0])
+2026-09-19 04:19:32,257 INFO:   ---------------------------------------------------------------------------
+2026-09-19 04:19:32,257 INFO:   Starting val_dataloader_2 loop 22 of 25, with 8 steps
+2026-09-19 04:19:32,257 INFO:   ---------------------------------------------------------------------------
+2026-09-19 04:19:34,295 INFO:   Compiling the model. This may take a few minutes.
+2026-09-19 04:19:34,296 INFO:   Found existing cached compile.
+2026-09-19 04:19:34,296 INFO:   Compile was successful!
+2026-09-19 04:19:34,297 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+2026-09-19 04:19:34,297 INFO:   Preparing to execute using 1 CSX
+2026-09-19 04:20:01,171 INFO:   About to send initial weights
+2026-09-19 04:20:01,182 INFO:   Finished sending initial weights
+2026-09-19 04:20:01,182 INFO:   Finalizing appliance staging for the run
+2026-09-19 04:20:02,098 INFO:   Waiting for device programming to complete
+2026-09-19 04:20:09,482 INFO:   Device programming is complete
+2026-09-19 04:20:09,789 INFO:   Using network type: ROCE
+2026-09-19 04:20:09,790 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+2026-09-19 04:20:09,799 INFO:   Input workers have begun streaming input data
+2026-09-19 04:20:09,882 INFO:   Appliance staging is complete
+2026-09-19 04:20:09,882 INFO:   Beginning appliance run
+2026-09-19 04:20:17,822 INFO:   | Eval Device=CSX, GlobalStep=440, Batch=8, Loss=0.97278, Rate=2929.87 samples/sec, GlobalRate=719.15 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:06:19
+2026-09-19 04:20:17,861 INFO:   Avg Eval Loss: 0.972777284681797
+2026-09-19 04:20:17,863 INFO:   Evaluation metrics:
+2026-09-19 04:20:17,863 INFO:     - eval/masked_accuracy = 0.7009966969490051
+2026-09-19 04:20:17,864 INFO:   Evaluation completed successfully!
+2026-09-19 04:20:17,867 INFO:   ---------------------------------------------------------------------------
+2026-09-19 04:20:17,867 INFO:   Starting train loop 23 of 25, from global step 441 to 460 (20 steps)
+2026-09-19 04:20:17,867 INFO:   ---------------------------------------------------------------------------
+2026-09-19 04:20:22,765 INFO:   Compiling the model. This may take a few minutes.
+2026-09-19 04:20:22,765 INFO:   Found existing cached compile.
+2026-09-19 04:20:22,765 INFO:   Compile was successful!
+2026-09-19 04:20:22,766 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+2026-09-19 04:20:22,766 INFO:   Preparing to execute using 1 CSX
+2026-09-19 04:20:40,936 INFO:   About to send initial weights
+2026-09-19 04:20:40,977 INFO:   Finished sending initial weights
+2026-09-19 04:20:40,977 INFO:   Finalizing appliance staging for the run
+2026-09-19 04:20:42,064 INFO:   Waiting for device programming to complete
+2026-09-19 04:20:59,888 INFO:   Device programming is complete
+2026-09-19 04:21:00,206 INFO:   Using network type: ROCE
+2026-09-19 04:21:00,207 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+2026-09-19 04:21:00,216 INFO:   Input workers have begun streaming input data
+2026-09-19 04:21:00,355 INFO:   Appliance staging is complete
+2026-09-19 04:21:00,355 INFO:   Beginning appliance run
+2026-09-19 04:21:10,742 INFO:   | Train Device=CSX, Step=450, Loss=0.99011, Rate=2837.45 samples/sec, GlobalRate=817.22 samples/sec, LoopTimeRemaining=0:00:14, TimeRemaining=0:05:23
+2026-09-19 04:21:25,119 INFO:   | Train Device=CSX, Step=460, Loss=0.83134, Rate=2920.07 samples/sec, GlobalRate=1270.10 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:05:08
+2026-09-19 04:21:25,217 INFO:   Training completed successfully!
+2026-09-19 04:21:25,242 INFO:   Ordinal 0: Initializing GNNDataProcessor for dataset 'ogbn-arxiv' (split=valid, mode=neighbor).
+$REPO_ROOT/.venv/lib/python3.11/site-packages/ogb/nodeproppred/dataset_pyg.py:69: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  self.data, self.slices = torch.load(self.processed_paths[0])
+2026-09-19 04:21:28,870 INFO:   ---------------------------------------------------------------------------
+2026-09-19 04:21:28,870 INFO:   Starting val_dataloader_2 loop 23 of 25, with 8 steps
+2026-09-19 04:21:28,870 INFO:   ---------------------------------------------------------------------------
+2026-09-19 04:21:31,163 INFO:   Compiling the model. This may take a few minutes.
+2026-09-19 04:21:31,163 INFO:   Found existing cached compile.
+2026-09-19 04:21:31,163 INFO:   Compile was successful!
+2026-09-19 04:21:31,165 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+2026-09-19 04:21:31,165 INFO:   Preparing to execute using 1 CSX
+2026-09-19 04:21:41,163 INFO:   About to send initial weights
+2026-09-19 04:21:41,177 INFO:   Finished sending initial weights
+2026-09-19 04:21:41,177 INFO:   Finalizing appliance staging for the run
+2026-09-19 04:21:41,546 INFO:   Waiting for device programming to complete
+2026-09-19 04:22:06,714 INFO:   Device programming is complete
+2026-09-19 04:22:07,007 INFO:   Using network type: ROCE
+2026-09-19 04:22:07,007 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+2026-09-19 04:22:07,015 INFO:   Input workers have begun streaming input data
+2026-09-19 04:22:07,149 INFO:   Appliance staging is complete
+2026-09-19 04:22:07,149 INFO:   Beginning appliance run
+2026-09-19 04:22:10,326 INFO:   | Eval Device=CSX, GlobalStep=460, Batch=8, Loss=0.97377, Rate=6904.00 samples/sec, GlobalRate=790.45 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:03:55
+2026-09-19 04:22:10,374 INFO:   Avg Eval Loss: 0.9737746939063072
+2026-09-19 04:22:10,376 INFO:   Evaluation metrics:
+2026-09-19 04:22:10,376 INFO:     - eval/masked_accuracy = 0.7026074528694153
+2026-09-19 04:22:10,377 INFO:   Evaluation completed successfully!
+2026-09-19 04:22:10,381 INFO:   ---------------------------------------------------------------------------
+2026-09-19 04:22:10,381 INFO:   Starting train loop 24 of 25, from global step 461 to 480 (20 steps)
+2026-09-19 04:22:10,381 INFO:   ---------------------------------------------------------------------------
+2026-09-19 04:22:15,234 INFO:   Compiling the model. This may take a few minutes.
+2026-09-19 04:22:15,234 INFO:   Found existing cached compile.
+2026-09-19 04:22:15,234 INFO:   Compile was successful!
+2026-09-19 04:22:15,235 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+2026-09-19 04:22:15,236 INFO:   Preparing to execute using 1 CSX
+2026-09-19 04:22:25,246 INFO:   About to send initial weights
+2026-09-19 04:22:25,295 INFO:   Finished sending initial weights
+2026-09-19 04:22:25,295 INFO:   Finalizing appliance staging for the run
+2026-09-19 04:22:26,339 INFO:   Waiting for device programming to complete
+2026-09-19 04:22:52,512 INFO:   Device programming is complete
+2026-09-19 04:22:52,827 INFO:   Using network type: ROCE
+2026-09-19 04:22:52,828 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+2026-09-19 04:22:52,841 INFO:   Input workers have begun streaming input data
+2026-09-19 04:22:52,951 INFO:   Appliance staging is complete
+2026-09-19 04:22:52,951 INFO:   Beginning appliance run
+2026-09-19 04:23:03,652 INFO:   | Train Device=CSX, Step=470, Loss=1.00034, Rate=2599.35 samples/sec, GlobalRate=810.97 samples/sec, LoopTimeRemaining=0:00:14, TimeRemaining=0:02:58
+2026-09-19 04:23:18,412 INFO:   | Train Device=CSX, Step=480, Loss=0.98702, Rate=2764.39 samples/sec, GlobalRate=1255.14 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:02:44
+2026-09-19 04:23:18,511 INFO:   Training completed successfully!
+2026-09-19 04:23:18,535 INFO:   Ordinal 0: Initializing GNNDataProcessor for dataset 'ogbn-arxiv' (split=valid, mode=neighbor).
+$REPO_ROOT/.venv/lib/python3.11/site-packages/ogb/nodeproppred/dataset_pyg.py:69: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  self.data, self.slices = torch.load(self.processed_paths[0])
+2026-09-19 04:23:22,192 INFO:   ---------------------------------------------------------------------------
+2026-09-19 04:23:22,192 INFO:   Starting val_dataloader_2 loop 24 of 25, with 8 steps
+2026-09-19 04:23:22,192 INFO:   ---------------------------------------------------------------------------
+2026-09-19 04:23:24,416 INFO:   Compiling the model. This may take a few minutes.
+2026-09-19 04:23:24,416 INFO:   Found existing cached compile.
+2026-09-19 04:23:24,416 INFO:   Compile was successful!
+2026-09-19 04:23:24,418 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+2026-09-19 04:23:24,418 INFO:   Preparing to execute using 1 CSX
+2026-09-19 04:23:49,726 INFO:   About to send initial weights
+2026-09-19 04:23:49,739 INFO:   Finished sending initial weights
+2026-09-19 04:23:49,739 INFO:   Finalizing appliance staging for the run
+2026-09-19 04:23:51,106 INFO:   Waiting for device programming to complete
+2026-09-19 04:23:59,801 INFO:   Device programming is complete
+2026-09-19 04:24:00,087 INFO:   Using network type: ROCE
+2026-09-19 04:24:00,088 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+2026-09-19 04:24:00,097 INFO:   Input workers have begun streaming input data
+2026-09-19 04:24:00,178 INFO:   Appliance staging is complete
+2026-09-19 04:24:00,178 INFO:   Beginning appliance run
+2026-09-19 04:24:06,711 INFO:   | Eval Device=CSX, GlobalStep=480, Batch=8, Loss=0.94808, Rate=3303.91 samples/sec, GlobalRate=736.06 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:02:04
+2026-09-19 04:24:06,760 INFO:   Avg Eval Loss: 0.9480814784765244
+2026-09-19 04:24:06,762 INFO:   Evaluation metrics:
+2026-09-19 04:24:06,762 INFO:     - eval/masked_accuracy = 0.7078089714050293
+2026-09-19 04:24:06,762 INFO:   Evaluation completed successfully!
+2026-09-19 04:24:06,766 INFO:   ---------------------------------------------------------------------------
+2026-09-19 04:24:06,766 INFO:   Starting train loop 25 of 25, from global step 481 to 500 (20 steps)
+2026-09-19 04:24:06,766 INFO:   ---------------------------------------------------------------------------
+2026-09-19 04:24:11,535 INFO:   Compiling the model. This may take a few minutes.
+2026-09-19 04:24:11,536 INFO:   Found existing cached compile.
+2026-09-19 04:24:11,536 INFO:   Compile was successful!
+2026-09-19 04:24:11,537 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+2026-09-19 04:24:11,537 INFO:   Preparing to execute using 1 CSX
+2026-09-19 04:24:38,740 INFO:   About to send initial weights
+2026-09-19 04:24:38,778 INFO:   Finished sending initial weights
+2026-09-19 04:24:38,778 INFO:   Finalizing appliance staging for the run
+2026-09-19 04:24:39,369 INFO:   Waiting for device programming to complete
+2026-09-19 04:24:48,569 INFO:   Device programming is complete
+2026-09-19 04:24:48,914 INFO:   Using network type: ROCE
+2026-09-19 04:24:48,915 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+2026-09-19 04:24:48,927 INFO:   Input workers have begun streaming input data
+2026-09-19 04:24:49,008 INFO:   Appliance staging is complete
+2026-09-19 04:24:49,008 INFO:   Beginning appliance run
+2026-09-19 04:25:03,457 INFO:   | Train Device=CSX, Step=490, Loss=0.97330, Rate=2587.24 samples/sec, GlobalRate=760.13 samples/sec, LoopTimeRemaining=0:00:15, TimeRemaining=0:01:06
+2026-09-19 04:25:18,055 INFO:   | Train Device=CSX, Step=500, Loss=1.00344, Rate=2875.27 samples/sec, GlobalRate=1196.20 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:00:51
+2026-09-19 04:25:18,147 INFO:   Training completed successfully!
+2026-09-19 04:25:18,169 INFO:   Ordinal 0: Initializing GNNDataProcessor for dataset 'ogbn-arxiv' (split=valid, mode=neighbor).
+$REPO_ROOT/.venv/lib/python3.11/site-packages/ogb/nodeproppred/dataset_pyg.py:69: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  self.data, self.slices = torch.load(self.processed_paths[0])
+2026-09-19 04:25:21,777 INFO:   ---------------------------------------------------------------------------
+2026-09-19 04:25:21,778 INFO:   Starting val_dataloader_2 loop 25 of 25, with 8 steps
+2026-09-19 04:25:21,778 INFO:   ---------------------------------------------------------------------------
+2026-09-19 04:25:23,861 INFO:   Compiling the model. This may take a few minutes.
+2026-09-19 04:25:23,862 INFO:   Found existing cached compile.
+2026-09-19 04:25:23,862 INFO:   Compile was successful!
+2026-09-19 04:25:23,863 INFO:   Programming Cerebras Wafer Scale Cluster for execution. This may take a few minutes.
+2026-09-19 04:25:23,863 INFO:   Preparing to execute using 1 CSX
+2026-09-19 04:25:41,798 INFO:   About to send initial weights
+2026-09-19 04:25:41,809 INFO:   Finished sending initial weights
+2026-09-19 04:25:41,809 INFO:   Finalizing appliance staging for the run
+2026-09-19 04:25:43,185 INFO:   Waiting for device programming to complete
+2026-09-19 04:25:59,164 INFO:   Device programming is complete
+2026-09-19 04:25:59,448 INFO:   Using network type: ROCE
+2026-09-19 04:25:59,449 INFO:   Waiting for input workers to prime the data pipeline and begin streaming ...
+2026-09-19 04:25:59,456 INFO:   Input workers have begun streaming input data
+2026-09-19 04:25:59,557 INFO:   Appliance staging is complete
+2026-09-19 04:25:59,557 INFO:   Beginning appliance run
+2026-09-19 04:26:02,739 INFO:   | Eval Device=CSX, GlobalStep=500, Batch=8, Loss=0.96944, Rate=7541.14 samples/sec, GlobalRate=799.97 samples/sec, LoopTimeRemaining=0:00:00, TimeRemaining=0:00:01
+2026-09-19 04:26:02,787 INFO:   Avg Eval Loss: 0.9694399014115334
+2026-09-19 04:26:02,789 INFO:   Evaluation metrics:
+2026-09-19 04:26:02,789 INFO:     - eval/masked_accuracy = 0.6989831924438477
+2026-09-19 04:26:02,790 INFO:   Evaluation completed successfully!
+2026-09-19 04:26:02,793 INFO:   Processed 2048000 training sample(s) in 3257.581672914 seconds.
