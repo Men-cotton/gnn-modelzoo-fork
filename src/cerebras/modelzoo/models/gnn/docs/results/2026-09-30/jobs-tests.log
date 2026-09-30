@@ -1,0 +1,40 @@
+test_pbs_passes_one_worker_to_runner (test_gpu_input_sweep.InputSweepSubmissionTest.test_pbs_passes_one_worker_to_runner) ... ok
+test_reject_ambiguous_output_paths (test_gpu_input_sweep.InputSweepSubmissionTest.test_reject_ambiguous_output_paths) ... ok
+test_reject_inconsistent_time_limits_before_submission (test_gpu_input_sweep.InputSweepSubmissionTest.test_reject_inconsistent_time_limits_before_submission) ... ok
+test_retry_limits_reach_payload_and_preserve_failure_status (test_gpu_input_sweep.InputSweepSubmissionTest.test_retry_limits_reach_payload_and_preserve_failure_status) ... ok
+test_submits_one_job_per_dataset_backend_and_worker (test_gpu_input_sweep.InputSweepSubmissionTest.test_submits_one_job_per_dataset_backend_and_worker) ... ok
+test_bad_output_and_hours_are_rejected (test_hpcasia_submission.HPCAsiaSubmissionTests.test_bad_output_and_hours_are_rejected) ... ok
+test_pbs_passes_single_run_and_timeout (test_hpcasia_submission.HPCAsiaSubmissionTests.test_pbs_passes_single_run_and_timeout) ... ok
+test_thirty_unique_jobs_and_four_hour_limits (test_hpcasia_submission.HPCAsiaSubmissionTests.test_thirty_unique_jobs_and_four_hour_limits) ... ok
+test_three_hour_dataset_subset (test_hpcasia_submission.HPCAsiaSubmissionTests.test_three_hour_dataset_subset) ... ok
+test_cli_separator_preserves_all_command_options (test_launcher.LauncherTests.test_cli_separator_preserves_all_command_options) ... ok
+test_detached_tmux_preserves_environment_arguments_and_rejects_duplicate (test_launcher.LauncherTests.test_detached_tmux_preserves_environment_arguments_and_rejects_duplicate) ... ERROR
+test_driver_interrupt_cleans_up_separately_sessioned_client (test_launcher.LauncherTests.test_driver_interrupt_cleans_up_separately_sessioned_client) ... ok
+test_driver_launch_options_default_to_foreground_and_last_flag_wins (test_launcher.LauncherTests.test_driver_launch_options_default_to_foreground_and_last_flag_wins) ... ok
+test_existing_driver_lock_blocks_launcher (test_launcher.LauncherTests.test_existing_driver_lock_blocks_launcher) ... ok
+test_foreground_interrupt_reaches_driver_and_is_recorded (test_launcher.LauncherTests.test_foreground_interrupt_reaches_driver_and_is_recorded) ... ok
+test_foreground_records_failure_and_preserves_resume_files (test_launcher.LauncherTests.test_foreground_records_failure_and_preserves_resume_files) ... [launcher] start 2026-09-30T03:31:28.032973+00:00 id=9b5c3229a4544e1e96b800bc6cc3c72f
+foreground output
+[launcher] end 2026-09-30T03:31:28.057491+00:00 exit_code=3 id=9b5c3229a4544e1e96b800bc6cc3c72f
+ok
+test_generic_command_creates_its_own_output_separate_from_metadata (test_launcher.LauncherTests.test_generic_command_creates_its_own_output_separate_from_metadata) ... ok
+test_help_and_malformed_options_do_not_launch (test_launcher.LauncherTests.test_help_and_malformed_options_do_not_launch) ... ok
+test_interrupt_before_spawn_does_not_start_driver (test_launcher.LauncherTests.test_interrupt_before_spawn_does_not_start_driver) ... [launcher] start 2026-09-30T03:31:28.204973+00:00 id=13a2fe3900364d029cefa120e93b6c52
+[launcher] Launch cancelled before driver startup
+[launcher] end 2026-09-30T03:31:28.205883+00:00 exit_code=143 id=13a2fe3900364d029cefa120e93b6c52
+ok
+
+======================================================================
+ERROR: test_detached_tmux_preserves_environment_arguments_and_rejects_duplicate (test_launcher.LauncherTests.test_detached_tmux_preserves_environment_arguments_and_rejects_duplicate)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/mencotton/research/gnn-modelzoo/benchmark_scripts/tests/test_launcher.py", line 245, in test_detached_tmux_preserves_environment_arguments_and_rejects_duplicate
+    subprocess.run(
+  File "/home/mencotton/.local/share/uv/python/cpython-3.11.13-linux-x86_64-gnu/lib/python3.11/subprocess.py", line 571, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['tmux', '-L', 'benchmark-test-stale-705f7531', '-f', '/dev/null', 'new-session', '-d', '-s', 'stale', '/bin/sh', '-c', 'sleep 60']' returned non-zero exit status 1.
+
+----------------------------------------------------------------------
+Ran 19 tests in 2.820s
+
+FAILED (errors=1)

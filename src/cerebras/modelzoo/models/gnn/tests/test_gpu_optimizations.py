@@ -1,6 +1,12 @@
 """Sample-preserving native optimizations, including optimizer and dropout parity."""
 
 import copy
+import contextlib
+import io
+import json
+from pathlib import Path
+import tempfile
+from unittest.mock import patch
 import unittest
 
 import numpy as np
@@ -168,6 +174,58 @@ class OptimizationTests(unittest.TestCase):
                                 torch.testing.assert_close(
                                     x[key], y[key], rtol=3e-5, atol=3e-6
                                 )
+
+    @unittest.skipUnless(torch.cuda.is_available(), "CUDA unavailable")
+    def test_native_cuda_switches_checkpoint_equivalence(self):
+        from cerebras.modelzoo.models.gnn import fixed_shape_gpu as runner
+        from cerebras.modelzoo.models.gnn.data_processing.sources.base import (
+            BaseGraphDataSource,
+        )
+        from cerebras.modelzoo.models.gnn.tests.test_fixed_shape_gpu import (
+            tiny_config,
+            tiny_graph,
+        )
+
+        cfg = tiny_config()
+        cfg["trainer"]["init"]["model"]["architecture"]["dropout"] = 0.5
+        with (
+            tempfile.TemporaryDirectory() as temp,
+            patch.object(BaseGraphDataSource, "load_graph", side_effect=tiny_graph),
+            contextlib.redirect_stdout(io.StringIO()),
+        ):
+            checkpoints = []
+            for optimized in (False, True):
+                output = Path(temp) / str(optimized)
+                summary = runner.train(
+                    cfg,
+                    output,
+                    device=torch.device("cuda"),
+                    dtype=torch.float32,
+                    warmup_steps=1,
+                    fuse_depth_linear=optimized,
+                    topology_cache_mb=int(optimized),
+                )
+                self.assertTrue(summary["completed"])
+                self.assertEqual(summary["optimizer_steps"], 4)
+                metadata = json.loads((output / "gpu_optimizations.json").read_text())
+                self.assertEqual(metadata["fuse_depth_linear"], optimized)
+                if optimized:
+                    self.assertEqual(metadata["topology_cache_bytes"], 108)
+                checkpoints.append(
+                    torch.load(output / "checkpoint.pt", weights_only=False)
+                )
+            for key, value in checkpoints[0]["model"].items():
+                torch.testing.assert_close(
+                    value, checkpoints[1]["model"][key], rtol=3e-5, atol=3e-6
+                )
+            for key, state in checkpoints[0]["optimizer"]["state"].items():
+                for name, value in state.items():
+                    torch.testing.assert_close(
+                        value,
+                        checkpoints[1]["optimizer"]["state"][key][name],
+                        rtol=3e-5,
+                        atol=3e-6,
+                    )
 
     def test_empty_supervision(self):
         batch = GraphSAGEBatch.from_payload(dataset()[1])
