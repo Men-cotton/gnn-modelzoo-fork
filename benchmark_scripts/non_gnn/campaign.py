@@ -9,7 +9,6 @@ from pathlib import Path
 import shlex
 import shutil
 import signal
-import subprocess
 import sys
 import uuid
 
@@ -20,7 +19,7 @@ import run
 import measurements
 import records
 
-from cerebras.modelzoo.tools import benchmark_launcher
+from cerebras.modelzoo.tools import benchmark_launcher, job_plan
 
 
 def parser():
@@ -161,9 +160,9 @@ def jobs(args, profiles, data):
                         "name": f"{name}_r{repeat:02d}",
                         "profile": profile,
                         "repeat": repeat,
-                        "gpu_implementation": implementation
-                        if args.backend == "GPU"
-                        else None,
+                        "gpu_implementation": (
+                            implementation if args.backend == "GPU" else None
+                        ),
                         "prepare_arguments": argv,
                         "config": str(output / "params.yaml"),
                         "state": "planned",
@@ -174,13 +173,11 @@ def jobs(args, profiles, data):
 
 def submit_gpu(job):
     output = Path(job["config"]).parent
-    command = [
-        "qsub",
-        "-v",
-        f"NON_GNN_CONFIG={job['config']}",
-        str(run.ROOT / "benchmark_scripts/pegasus/run_non_gnn_nqsv.pbs"),
-    ]
-    result = subprocess.run(command, cwd=run.ROOT, text=True, capture_output=True)
+    command = job_plan.qsub_command(
+        run.ROOT / "benchmark_scripts/pegasus/run_non_gnn_nqsv.pbs",
+        {"NON_GNN_CONFIG": job["config"]},
+    )
+    result = job_plan.execute_command(command, text=True, capture_output=True)
     (output / "qsub.log").write_text(result.stdout + result.stderr)
     if result.returncode:
         raise RuntimeError(f"qsub failed for {job['name']}: {result.stderr.strip()}")
@@ -249,15 +246,11 @@ def run_campaign(argv=None):
                 elif args.backend == "GPU":
                     print(
                         shlex.join(
-                            [
-                                "qsub",
-                                "-v",
-                                f"NON_GNN_CONFIG={job['config']}",
-                                str(
-                                    run.ROOT
-                                    / "benchmark_scripts/pegasus/run_non_gnn_nqsv.pbs"
-                                ),
-                            ]
+                            job_plan.qsub_command(
+                                run.ROOT
+                                / "benchmark_scripts/pegasus/run_non_gnn_nqsv.pbs",
+                                {"NON_GNN_CONFIG": job["config"]},
+                            )
                         )
                     )
                 else:
@@ -367,11 +360,11 @@ def run_campaign(argv=None):
         state["state"] = (
             "interrupted"
             if interrupted
-            else "failed"
-            if failed
-            else "submitted"
-            if args.backend == "GPU"
-            else "completed"
+            else (
+                "failed"
+                if failed
+                else "submitted" if args.backend == "GPU" else "completed"
+            )
         )
         state["finished_at"] = benchmark_launcher.timestamp()
         save()

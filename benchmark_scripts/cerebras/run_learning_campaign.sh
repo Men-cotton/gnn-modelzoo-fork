@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# One detached driver: record learning curves, then tune input parameters.
+# Compatibility entrypoint; the campaign retains scientific planning and locks.
 set -euo pipefail
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-exec uv run --no-sync --project "$PROJECT_ROOT" -- python -u \
-  "$PROJECT_ROOT/src/cerebras/modelzoo/models/gnn/tools/learning_campaign.py" \
-  --detach "$@"
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+project_root="$(cd "${script_dir}/../.." && pwd -P)"
+export PATH="${project_root}/.venv/bin:${PATH}"
+export PYTHONPATH="${project_root}/src${PYTHONPATH:+:${PYTHONPATH}}"
+exec "${project_root}/.venv/bin/python" -m cerebras.modelzoo.tools.benchmark_launcher jobs --job csx-learning -- "$@"

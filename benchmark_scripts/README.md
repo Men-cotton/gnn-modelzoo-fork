@@ -22,6 +22,41 @@ Pegasusの独立した30 runと54-run worker再実行は
 揃える設定と残す実装差は
 [GPU比較方針](../src/cerebras/modelzoo/models/gnn/docs/gpu_comparison_policy.md)を参照する。
 
+## JSON catalogからplanを作る
+
+ジョブ一覧・set・PyG profile・HPC Asiaのseed/run・GPU input sweepの展開表は
+[`jobs.json`](jobs.json)に置く。共通入口は既存launcherの `jobs` サブコマンドである。
+
+```bash
+PYTHONPATH=src .venv/bin/python -m cerebras.modelzoo.tools.benchmark_launcher jobs --list
+PYTHONPATH=src .venv/bin/python -m cerebras.modelzoo.tools.benchmark_launcher jobs --job fixed-shape --help
+PYTHONPATH=src .venv/bin/python -m cerebras.modelzoo.tools.benchmark_launcher jobs \
+  --set hpcasia-all --output /tmp/hpcasia-preview --dry-run
+PYTHONPATH=src .venv/bin/python -m cerebras.modelzoo.tools.benchmark_launcher jobs \
+  --job gpu-input --output /tmp/input-preview --phase workers --workers '2 4' --json
+```
+
+`--dry-run` は検証済みargvを表示し、`--json` は同じplanをJSONで表示する。
+いずれもschedulerへの投入や出力directory作成を行わない。これらの指定を外すと投入する。
+全jobの設定・引数を先に検証し、shellを介さずargvで実行する。設定は実行側と同じ
+`extends` 解決・重複YAMLキー検査を使う。qsubの `-v` 値にcomma/newline/NULを認めない。
+fixed-shapeのconfig pathに含まれる空白は保持する。HPC Asia/sweepは従来どおり空白を拒否する。
+
+既存のPegasus submitterはこの入口への互換wrapperである。non-GNNは既存run/campaignが
+入力と設定を準備し、dry-runと実投入の両方で共通qsub builder/executorを使う。
+CSXの3 campaign wrapperもcatalogのdriver定義を使い、相対出力pathは呼出元から解決する。
+`run_modelzoo.sh` の8設定も `csx-config` としてcatalogに置く。診断worker一覧は
+`presets.worker_diagnostics.workers` に置き、診断実行も共通launcherで監督する。
+診断の `--dry-run` は従来どおり設定ファイルを生成するが投入はしない。たとえば
+`jobs --job csx-worker -- --foreground --dry-run ...` の `--` 以後はcampaignへ渡す。
+campaign自身が研究条件・dry-run・予算・trial停止・lock・journalを管理し、
+既存 `benchmark_launcher.launch` がtmuxを管理する。PBS payloadとrun.pyの学習条件は変えない。
+HPC AsiaのPython planとPegasus planは同じcatalogのrun一覧を参照する。
+
+新しいjob/setはcatalogへ追加する。新しい実行形式だけを `job_plan.py` へ追加し、
+個別submitterへqsub処理を戻さない。catalogの未知field・未知job/set、不正設定、引数境界、
+全plan検証後の投入は `benchmark_scripts/tests/test_job_plan.py` で検証する。
+
 ## 別のbenchmarkをtmuxで実行する
 
 任意のコマンドを `--` の後へ渡せる。新しい実験名を使う際にlauncherへの登録は不要である。

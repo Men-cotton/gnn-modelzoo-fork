@@ -38,12 +38,10 @@ fi
 export PYTHONPATH="${project_root}/src${PYTHONPATH:+:${PYTHONPATH}}"
 prepare=(uv run --no-sync --project "${project_root}" python "${project_root}/benchmark_scripts/non_gnn/run.py"
     --backend GPU "${args[@]}" --output-dir "$output_dir" --prepare-only)
-command=(qsub -v "NON_GNN_CONFIG=${output_dir}/params.yaml" "${script_dir}/run_non_gnn_nqsv.pbs")
+command=("${project_root}/.venv/bin/python" -m cerebras.modelzoo.tools.benchmark_launcher jobs --job non-gnn --config "${output_dir}/params.yaml")
 if (( dry_run )); then
     "${prepare[@]}" --dry-run
-    printf 'cd %q && ' "$project_root"
-    printf '%q ' "${command[@]}"
-    printf '\n'
+    "${command[@]}" --dry-run
 else
     command -v qsub > /dev/null || { echo 'qsub not found; submit from Pegasus.' >&2; exit 2; }
     "${prepare[@]}"

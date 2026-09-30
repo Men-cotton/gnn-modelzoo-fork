@@ -325,6 +325,9 @@ def launch(
 
 def main(argv=None):
     argv = list(sys.argv[1:] if argv is None else argv)
+    if argv and argv[0] == "jobs":
+        from cerebras.modelzoo.tools.job_plan import main as jobs_main
+        return jobs_main(argv[1:])
     if argv and argv[0] == "_run":
         if len(argv) != 2:
             raise ValueError("Expected exactly one launcher request path")

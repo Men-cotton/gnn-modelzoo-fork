@@ -1,0 +1,210 @@
+{
+  "version": 1,
+  "jobs": {
+    "fixed-shape": {
+      "kind": "fixed",
+      "script": "benchmark_scripts/pegasus/run_fixed_shape_gpu_nqsv.pbs"
+    },
+    "hpcasia": {
+      "kind": "hpcasia",
+      "script": "benchmark_scripts/pegasus/run_hpcasia_nqsv.pbs",
+      "datasets": [
+        "arxiv",
+        "products"
+      ],
+      "seeds": [
+        42,
+        43,
+        44
+      ],
+      "runs": [
+        "learning_r1",
+        "throughput_r1",
+        "throughput_r2",
+        "throughput_r3",
+        "cache_r1"
+      ]
+    },
+    "gpu-input": {
+      "kind": "sweep",
+      "script": "benchmark_scripts/pegasus/run_gpu_input_sweep_nqsv.pbs",
+      "datasets": [
+        "arxiv",
+        "products"
+      ],
+      "backends": [
+        "fixed_shape",
+        "pyg"
+      ],
+      "phases": [
+        "tune",
+        "workers",
+        "prefetch1",
+        "persistent-off",
+        "feature-cache"
+      ],
+      "control_phases": [
+        "prefetch1",
+        "persistent-off",
+        "feature-cache"
+      ],
+      "control_worker": 4,
+      "workers": [
+        2,
+        4,
+        8,
+        12,
+        16,
+        24,
+        32,
+        40,
+        48,
+        64
+      ]
+    },
+    "pyg": {
+      "kind": "pyg",
+      "script": "benchmark_scripts/pegasus/run_pyg_nqsv.pbs",
+      "hardware_script": "benchmark_scripts/pegasus/collect_hwinfo_nqsv.pbs",
+      "profiles": [
+        {
+          "benchmark": "graphsage_ogbn_arxiv",
+          "profile": "throughput_nocache",
+          "config_prefix": "params_graphsage_ogbn_arxiv"
+        },
+        {
+          "benchmark": "graphsage_ogbn_arxiv",
+          "profile": "throughput_cache",
+          "config_prefix": "params_graphsage_ogbn_arxiv"
+        },
+        {
+          "benchmark": "graphsage_ogbn_arxiv",
+          "profile": "accuracy_nocache",
+          "config_prefix": "params_graphsage_ogbn_arxiv"
+        },
+        {
+          "benchmark": "graphsage_ogbn_products",
+          "profile": "throughput_nocache",
+          "config_prefix": "params_graphsage_ogbn_products"
+        },
+        {
+          "benchmark": "graphsage_ogbn_products",
+          "profile": "throughput_cache",
+          "config_prefix": "params_graphsage_ogbn_products"
+        },
+        {
+          "benchmark": "graphsage_ogbn_products",
+          "profile": "accuracy_nocache",
+          "config_prefix": "params_graphsage_ogbn_products"
+        },
+        {
+          "benchmark": "graphsage_ogbn_papers100m",
+          "profile": "throughput_nocache",
+          "config_prefix": "params_graphsage_ogbn_papers100m"
+        },
+        {
+          "benchmark": "graphsage_ogbn_papers100m",
+          "profile": "throughput_cache",
+          "config_prefix": "params_graphsage_ogbn_papers100m"
+        },
+        {
+          "benchmark": "graphsage_ogbn_papers100m",
+          "profile": "accuracy_nocache",
+          "config_prefix": "params_graphsage_ogbn_papers100m"
+        },
+        {
+          "benchmark": "gcn_ogbn_arxiv",
+          "profile": "throughput_nocache",
+          "config_prefix": "params_gcn_ogbn_arxiv"
+        },
+        {
+          "benchmark": "gcn_ogbn_arxiv",
+          "profile": "accuracy_nocache",
+          "config_prefix": "params_gcn_ogbn_arxiv"
+        }
+      ]
+    },
+    "non-gnn": {
+      "kind": "single",
+      "script": "benchmark_scripts/pegasus/run_non_gnn_nqsv.pbs",
+      "config_variable": "NON_GNN_CONFIG"
+    },
+    "csx-hpcasia": {
+      "kind": "driver",
+      "module": "cerebras.modelzoo.models.gnn.tools.hpcasia_campaign",
+      "arguments": [
+        "--detach"
+      ]
+    },
+    "csx-learning": {
+      "kind": "driver",
+      "module": "cerebras.modelzoo.models.gnn.tools.learning_campaign",
+      "arguments": [
+        "--detach"
+      ]
+    },
+    "csx-worker": {
+      "kind": "driver",
+      "module": "cerebras.modelzoo.models.gnn.tools.worker_campaign",
+      "arguments": [
+        "--detach"
+      ]
+    },
+    "csx-config": {
+      "kind": "csx",
+      "configs": [
+        {
+          "label": "ogbn-arxiv throughput",
+          "path": "params_graphsage_ogbn_arxiv.yaml"
+        },
+        {
+          "label": "ogbn-arxiv accuracy",
+          "path": "params_graphsage_ogbn_arxiv_accuracy.yaml"
+        },
+        {
+          "label": "ogbn-products throughput",
+          "path": "params_graphsage_ogbn_products.yaml"
+        },
+        {
+          "label": "ogbn-products accuracy",
+          "path": "params_graphsage_ogbn_products_accuracy.yaml"
+        },
+        {
+          "label": "ogbn-arxiv throughput cache",
+          "path": "params_graphsage_ogbn_arxiv_throughput_cache.yaml"
+        },
+        {
+          "label": "ogbn-products throughput cache",
+          "path": "params_graphsage_ogbn_products_throughput_cache.yaml"
+        },
+        {
+          "label": "ogbn-arxiv GCN throughput",
+          "path": "params_gcn_ogbn_arxiv_throughput_nocache.yaml"
+        },
+        {
+          "label": "ogbn-arxiv GCN accuracy",
+          "path": "params_gcn_ogbn_arxiv_accuracy_nocache.yaml"
+        }
+      ]
+    }
+  },
+  "sets": {
+    "pyg-all": [
+      "pyg"
+    ],
+    "hpcasia-all": [
+      "hpcasia"
+    ],
+    "gpu-input-all": [
+      "gpu-input"
+    ]
+  },
+  "presets": {
+    "worker_diagnostics": {
+      "workers": [
+        2,
+        40
+      ]
+    }
+  }
+}

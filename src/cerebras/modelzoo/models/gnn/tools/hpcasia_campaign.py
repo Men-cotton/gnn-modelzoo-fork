@@ -18,7 +18,7 @@ from cerebras.modelzoo.models.gnn.tools import autotune, learning_campaign
 from cerebras.modelzoo.models.gnn.tools.autotune_backends import CSXBackend, PyGBackend
 from cerebras.modelzoo.models.gnn.tools.job_labels import apply_job_labels
 from cerebras.modelzoo.models.gnn.worker_validation import get_available_cpu_cores
-from cerebras.modelzoo.tools import benchmark_launcher
+from cerebras.modelzoo.tools import benchmark_launcher, job_plan
 
 KNOBS = dict(num_workers=4, prefetch_factor=2, persistent_workers=True)
 
@@ -31,13 +31,9 @@ def plan(args, base: dict) -> list[dict]:
         seeded["trainer"]["init"]["seed"] = seed
         for name in ("train_dataloader", "val_dataloader"):
             seeded["trainer"]["fit"][name]["sampler_seed"] = seed
-        for kind, repeat in [
-            ("learning", 1),
-            ("throughput", 1),
-            ("throughput", 2),
-            ("throughput", 3),
-            ("cache", 1),
-        ]:
+        for run_name in job_plan.load_catalog()["jobs"]["hpcasia"]["runs"]:
+            kind, repeat_text = run_name.rsplit("_r", 1)
+            repeat = int(repeat_text)
             name = f"seed_{seed}/{kind}_r{repeat}"
             if args.run_id and args.run_id != name:
                 continue
@@ -57,9 +53,9 @@ def plan(args, base: dict) -> list[dict]:
                     args.job_time_sec,
                     args.warmup_steps,
                 )
-                config["trainer"]["init"]["model"]["task"]["compute_eval_metrics"] = (
-                    False
-                )
+                config["trainer"]["init"]["model"]["task"][
+                    "compute_eval_metrics"
+                ] = False
                 # prepare_config intentionally disables cache; apply this control last.
                 if kind == "cache":
                     config["trainer"]["fit"]["train_dataloader"]["cache_fraction"] = 1.0
@@ -313,7 +309,12 @@ def parse_args(argv=None):
     benchmark_launcher.add_arguments(parser)
     parser.add_argument("--backend", choices=("csx", "pyg"), default="csx")
     parser.add_argument("--dataset", choices=("arxiv", "products"), default="arxiv")
-    parser.add_argument("--seeds", type=int, nargs=3, default=[42, 43, 44])
+    parser.add_argument(
+        "--seeds",
+        type=int,
+        nargs=3,
+        default=job_plan.load_catalog()["jobs"]["hpcasia"]["seeds"],
+    )
     parser.add_argument(
         "--run-id",
         help="Run only seed_N/learning_r1, throughput_r1..3, or cache_r1; --output is that run's directory",
@@ -338,13 +339,7 @@ def parse_args(argv=None):
     allowed = {
         f"seed_{seed}/{kind}"
         for seed in args.seeds
-        for kind in (
-            "learning_r1",
-            "throughput_r1",
-            "throughput_r2",
-            "throughput_r3",
-            "cache_r1",
-        )
+        for kind in job_plan.load_catalog()["jobs"]["hpcasia"]["runs"]
     }
     if args.run_id and args.run_id not in allowed:
         parser.error(

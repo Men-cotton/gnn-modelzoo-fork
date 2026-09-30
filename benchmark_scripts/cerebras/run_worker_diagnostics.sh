@@ -53,6 +53,7 @@ import tempfile
 
 import yaml
 
+from cerebras.modelzoo.tools.job_plan import load_catalog
 from cerebras.modelzoo.common.utils.run.config_loader import load_params_file
 from cerebras.modelzoo.models.gnn.data_processing.worker_diagnostics_config import (
     WorkerDiagnosticsConfig,
@@ -60,19 +61,20 @@ from cerebras.modelzoo.models.gnn.data_processing.worker_diagnostics_config impo
 from cerebras.modelzoo.models.gnn.worker_validation import validate_num_workers
 
 base_path, project_root, dry_run = sys.argv[1:]
+workers_list = load_catalog()["presets"]["worker_diagnostics"]["workers"]
 base = load_params_file(base_path)
 loader = base["trainer"]["fit"]["train_dataloader"]
 if loader["batch_size"] != 4096 or loader["sampling_mode"] != "neighbor":
     raise ValueError("Expected an R04 neighbor configuration with batch_size=4096")
 if dry_run != "true":
-    validate_num_workers(40, context="R04 diagnostics preflight")
+    validate_num_workers(max(workers_list), context="R04 diagnostics preflight")
 parent = pathlib.Path(project_root) / "model_dirs/hpcasia_r04"
 parent.mkdir(parents=True, exist_ok=True)
 stamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
 root = pathlib.Path(tempfile.mkdtemp(prefix=f"worker_diag_{stamp}_", dir=parent))
 (root / "base.yaml").write_text(yaml.safe_dump(base, sort_keys=False))
 (root / "base-source.txt").write_text(base_path + "\n")
-for workers in (2, 40):
+for workers in workers_list:
     run = root / f"w{workers:02d}"
     run.mkdir()
     params = copy.deepcopy(base)
@@ -94,8 +96,7 @@ PY
 git rev-parse HEAD > "$DIAG_ROOT/git-revision.txt"
 hostname > "$DIAG_ROOT/client-hostname.txt"
 printf 'Output: %s\n' "$DIAG_ROOT"
-for w in 02 40; do
-    RUN="$DIAG_ROOT/w$w"
+for RUN in "$DIAG_ROOT"/w[0-9]*; do
     COMMAND=(uv run --no-sync -- cszoo fit "$RUN/params.yaml"
              --target_device CSX --model_dir "$RUN/model")
     if [[ "$DRY_RUN" == true ]]; then
@@ -103,7 +104,8 @@ for w in 02 40; do
         printf '\n'
         continue
     fi
-    "${COMMAND[@]}" 2>&1 | tee "$RUN/train.log"
+    uv run --no-sync -- python -m cerebras.modelzoo.tools.benchmark_launcher \
+        --foreground --output "$RUN/launcher" -- "${COMMAND[@]}" 2>&1 | tee "$RUN/train.log"
     uv run --no-sync tools/measure_window.py "$RUN/train.log" \
         --start-step 40 --end-step 80 --batch-size 4096 > "$RUN/throughput.json"
 done
