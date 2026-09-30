@@ -292,6 +292,9 @@ class GraphSAGENeighborSamplerDataset(Dataset):
         fanout: int,
         hop_idx: int,
     ) -> Tuple[np.ndarray, np.ndarray]:
+        cache = getattr(self, "_topology_cache", None)
+        if cache is not None:
+            return cache.sample(self, nodes, nodes_mask, fanout, hop_idx)
         num_parents = nodes.shape[0]
         next_nodes = np.full((num_parents, fanout), self.pad_id, dtype=np.int64)
         next_mask = np.zeros((num_parents, fanout), dtype=bool)

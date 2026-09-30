@@ -43,8 +43,10 @@ overrides it. FP16 uses dynamic gradient scaling. CPU correctness checks require
 This runner supports GraphSAGE, AdamW, `max_steps`, integer step-based
 `eval_frequency`, and full validation passes when `compute_eval_metrics` is
 true. Training cycles the sampler when exhausted. `steps_per_epoch` does not
-truncate the sampler. The sampler's fixed ordering and neighborhoods are reused
-on each pass, matching its current deterministic behavior.
+truncate the sampler. Training with shuffle enabled reshuffles target order using
+`sampler_seed + epoch` on each input pass, including persistent workers. Neighbor
+selection remains deterministic per node and hop. Validation, disabled shuffle,
+and diagnostic static replay retain their fixed ordering.
 It does not implement Trainer callbacks, checkpoint resume, scheduler policies,
 gradient accumulation, DDP, or epoch-based stopping. It saves a final checkpoint.
 Validation counts only real targets, including the final partial batch.
@@ -166,3 +168,31 @@ ModelZoo/native payload equality with zero and one worker, host caching,
 padding-independent loss/gradients, train/eval counts, and checkpoint updates.
 When CUDA is available they also check CPU/CUDA logits, loss and gradient parity,
 and FP32/FP16 GPU training. These checks do not measure OGB or Pegasus performance.
+
+## Optional native optimizations
+
+The default model and Cerebras path are unchanged. The native Python runner accepts
+`--topology-cache-mb N` and `--fuse-depth-linear`; these flags are opt-in and are
+not forwarded by the Pegasus PBS wrapper yet.
+
+The topology cache stores sampled IDs and validity masks per node/hop. It is
+reused across target reshuffles while every batch still gathers current features
+and labels. Graph topology, seed, fanouts, pad ID and node count must remain fixed;
+rebuild the loader after topology edits. The cap bounds table bytes
+`9 * num_nodes * sum(fanouts)`, not scratch space or per-worker copies. Construction
+is synchronous before workers start and is recorded in `gpu_optimizations.json`.
+This is independent of `static_batch_cache_size`, which remains diagnostic only.
+
+Depth fusion batches each layer's self/neighbor linear operations across active
+depths. Activation, dropout and parent masking retain their original call order
+and tensor shapes. This preserves mathematical training behavior within floating
+point tolerance, not bitwise GEMM results. No learned state or dropout output is
+cached, and no aggregation is moved across a learned transform. Concatenation can
+cost more than it saves on small shapes; leave the flag off unless measured.
+
+`tools/benchmark_gpu_optimizations.py` compares these choices with the current
+fixed-shape GraphSAGE core on a synthetic graph. It never downloads data or falls
+back to CPU. Each invocation is limited to 180 seconds and requires a new output
+file. Its serial host/H2D/device microbenchmark does not measure the complete
+DataLoader/Trainer pipeline. See the [local reproduction report](results/2026-09-30/reproduction-ja.md)
+for shapes, measured costs, negative results and exact commands.

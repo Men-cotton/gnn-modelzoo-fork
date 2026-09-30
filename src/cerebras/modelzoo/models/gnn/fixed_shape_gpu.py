@@ -107,6 +107,8 @@ def train(
     warmup_steps=40,
     measure_neighbor_padding=False,
     measure_input=False,
+    fuse_depth_linear=False,
+    topology_cache_mb=0,
 ):
     """Run synchronized training windows; exclude setup, warmup and evaluation."""
     if int(os.environ.get("WORLD_SIZE", "1")) != 1:
@@ -160,10 +162,30 @@ def train(
         if compute_metrics and eval_frequency
         else None
     )
+    optimization = {
+        "fuse_depth_linear": fuse_depth_linear,
+        "topology_cache_mb": topology_cache_mb,
+    }
+    if topology_cache_mb < 0:
+        raise ValueError("topology_cache_mb must be nonnegative")
+    if topology_cache_mb:
+        from .gpu_optimizations import enable_topology_cache
+
+        cache = enable_topology_cache(train_loader.dataset, topology_cache_mb * 1024**2)
+        optimization.update(
+            topology_cache_bytes=cache.nbytes,
+            topology_build_seconds=cache.build_seconds,
+        )
+    with (output_dir / "gpu_optimizations.json").open("x") as stream:
+        json.dump(optimization, stream, indent=2)
     # Native accuracy counting does not need the SDK's metric/backend state.
     native_model_cfg = copy.deepcopy(model_cfg)
     native_model_cfg.setdefault("task", {})["compute_eval_metrics"] = False
     model = GNNModel(native_model_cfg).to(device)
+    if fuse_depth_linear:
+        from .gpu_optimizations import fuse_depths
+
+        fuse_depths(model.model)
     optimizer = torch.optim.AdamW(adamw_param_groups(model), **adamw)
     save_provenance(output_dir, optimizer=optimizer, device=device)
     update_counter = OptimizerStepCounter(optimizer)
@@ -215,6 +237,7 @@ def train(
                 "torch_version": torch.__version__,
                 "precision": str(dtype),
                 "compile": compile_model,
+                "gpu_optimizations": optimization,
                 "warmup_steps": warmup_steps,
                 "measure_neighbor_padding": measure_neighbor_padding,
                 "measure_input": measure_input,
@@ -421,6 +444,17 @@ def main():
     parser.add_argument("--precision", choices=("fp32", "fp16", "bf16"))
     parser.add_argument("--compile", action="store_true")
     parser.add_argument(
+        "--fuse-depth-linear",
+        action="store_true",
+        help="native GPU depth-wise linear fusion",
+    )
+    parser.add_argument(
+        "--topology-cache-mb",
+        type=int,
+        default=0,
+        help="opt-in sampled topology cache byte cap in MiB; 0 disables",
+    )
+    parser.add_argument(
         "--measure-neighbor-padding",
         action="store_true",
         help="count neighbor padding on the CPU and include it in metrics (default: off)",
@@ -456,6 +490,8 @@ def main():
         warmup_steps=args.warmup_steps,
         measure_neighbor_padding=args.measure_neighbor_padding,
         measure_input=args.measure_input,
+        fuse_depth_linear=args.fuse_depth_linear,
+        topology_cache_mb=args.topology_cache_mb,
     )
 
 
