@@ -158,20 +158,27 @@ class JobPlanTests(unittest.TestCase):
         )
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("--target_device CSX", result.stdout)
-        self.assertIn(str(job_plan.CONFIGS.parent), result.stdout)
-        with patch.object(job_plan, "execute_command") as execute:
+        self.assertIn("/source/src/cerebras/modelzoo/models/gnn", result.stdout)
+        with (
+            patch.object(job_plan, "execute_command") as execute,
+            patch.object(job_plan.job_source.SourceRun, "prepare"),
+            patch.object(job_plan.job_source.SourceRun, "save"),
+        ):
             execute.return_value.returncode = 0
             job_plan.main(["--job", "csx-config", "--config-index", "1"])
-        self.assertEqual(execute.call_args.kwargs["cwd"], job_plan.CONFIGS.parent)
+        self.assertTrue(
+            str(execute.call_args.kwargs["cwd"]).endswith(
+                "/source/src/cerebras/modelzoo/models/gnn"
+            )
+        )
         with self.assertRaises(ValueError):
             job_plan.main(["--job", "csx-config", "--config-index", "9", "--dry-run"])
 
     def test_driver_arguments_preserve_campaign_conditions(self):
         with (
             patch.object(job_plan, "execute_command") as execute,
-            patch.object(job_plan.Path, "cwd", return_value=Path("/tmp/caller")),
+            contextlib.redirect_stdout(io.StringIO()) as out,
         ):
-            execute.return_value.returncode = 0
             self.assertEqual(
                 job_plan.main(
                     [
@@ -179,18 +186,38 @@ class JobPlanTests(unittest.TestCase):
                         "csx-worker",
                         "--",
                         "--foreground",
-                        "--dry-run",
+                        "--json",
+                        "--output",
+                        "relative-study",
                         "--budget-sec",
                         "120",
+                        "--job-time-sec",
+                        "60",
+                        "--trial-timeout-sec",
+                        "90",
                     ]
                 ),
                 0,
             )
-        self.assertEqual(execute.call_args.kwargs["cwd"], Path("/tmp/caller"))
-        command = execute.call_args.args[0]
+        execute.assert_not_called()
+        plan = json.loads(out.getvalue())
+        command = plan["commands"][0]
+        self.assertIn("--detach", command)
+        self.assertIn("--foreground", command)
         self.assertEqual(
-            command[-5:],
-            ["--detach", "--foreground", "--dry-run", "--budget-sec", "120"],
+            command[command.index("--output") + 1],
+            str(Path("relative-study").absolute()),
+        )
+        self.assertEqual(
+            command[-6:],
+            [
+                "--budget-sec",
+                "120",
+                "--job-time-sec",
+                "60",
+                "--trial-timeout-sec",
+                "90",
+            ],
         )
 
 

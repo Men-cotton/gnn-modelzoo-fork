@@ -99,6 +99,9 @@ class CSXBackend:
         init.setdefault("backend", {}).setdefault("cluster_config", {}).update(
             num_csx=1, num_workers_per_csx=1, job_time_sec=job_time_sec
         )
+        from cerebras.modelzoo.tools.job_source import pin_cluster_config
+
+        pin_cluster_config(config)
         loader = trainer["fit"]["train_dataloader"]
         if (
             loader.get("data_processor") != "GNNDataProcessor"

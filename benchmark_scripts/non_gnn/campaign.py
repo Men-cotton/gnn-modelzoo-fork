@@ -207,6 +207,23 @@ def main(argv=None):
 
 def run_campaign(argv=None):
     argv = list(sys.argv[1:] if argv is None else argv)
+    if not any(
+        x in argv
+        for x in (
+            "--help",
+            "-h",
+            "--dry-run",
+            "--list-configs",
+            "--check-dependencies",
+            "--prepare-only",
+        )
+    ):
+        from cerebras.modelzoo.tools.job_source import pin_entry
+
+        pinned = pin_entry(__file__, argv)
+        if pinned is not None:
+            return pinned
+
     p = parser()
     args = p.parse_args(argv)
     profiles = yaml.safe_load(run.PROFILES.read_text())

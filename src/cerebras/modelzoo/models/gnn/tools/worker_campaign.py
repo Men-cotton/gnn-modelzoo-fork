@@ -471,6 +471,13 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 def main(argv: list[str] | None = None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
+    if not any(x in argv for x in ("--help", "-h", "--dry-run")):
+        from cerebras.modelzoo.tools.job_source import pin_entry
+
+        pinned = pin_entry(__file__, argv)
+        if pinned is not None:
+            return pinned
+
     args = parse_args(argv)
     if args.detach and not args.dry_run:
         return benchmark_launcher.launch(

@@ -244,7 +244,7 @@ class BenchmarkTests(unittest.TestCase):
             text=True,
         )
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("qsub", result.stdout)
+        self.assertEqual(len(json.loads(result.stdout)["resolved_commit"]), 40)
         self.assertFalse(marker.exists())
         self.assertFalse(out.exists())
 
@@ -276,7 +276,10 @@ class BenchmarkTests(unittest.TestCase):
         )
         self.assertEqual(result.returncode, 0, result.stderr)
         argv = json.loads(captured.read_text())
-        self.assertEqual(argv[:2], ["-v", f"NON_GNN_CONFIG={out}/params.yaml"])
+        self.assertEqual(argv[0], "-v")
+        variables = dict(item.split("=", 1) for item in argv[1].split(","))
+        self.assertEqual(variables["NON_GNN_CONFIG"], f"{out}/params.yaml")
+        self.assertEqual(len(variables["JOB_SOURCE_COMMIT"]), 40)
         self.assertEqual(
             json.loads((out / "launch.json").read_text())["effective_batch_size"], 32
         )

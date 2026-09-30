@@ -120,7 +120,7 @@ log_run_metadata() {
             metadata_args+=(--no-compile)
         fi
         log_info "Run metadata: python_helper_begin"
-        uv run --python "${venv_python}" -- "${metadata_args[@]}" || true
+        uv run --no-sync --python "${venv_python}" -- "${metadata_args[@]}" || true
         log_info "Run metadata: python_helper_end"
     else
         log_error "Virtual environment python not found: ${venv_python}"
@@ -193,7 +193,7 @@ main() {
         cd "${model_run_dir}"
         local full_command=("${PYTHON_SCRIPT_NAME}" "${PYTHON_SCRIPT_ARGS[@]}")
         log_info "Executing: uv run ${full_command[*]}"
-        uv run --python "${PROJECT_ROOT}/.venv/bin/python" -- "${full_command[@]}"
+        uv run --no-sync --python "${PROJECT_ROOT}/.venv/bin/python" -- "${full_command[@]}"
         log_info "Model execution finished."
     )
     local execution_status=$?

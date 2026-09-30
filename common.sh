@@ -24,3 +24,10 @@ log_warn() {
 }
 
 SHARED_MODEL_SUBDIR="src/cerebras/modelzoo/models/gnn"
+
+# A pinned run uses its own project tree; dependencies remain a separate binding.
+if [[ -n "${JOB_SOURCE_ROOT:-}" ]]; then
+    [[ "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)" == "$JOB_SOURCE_ROOT" ]] || { echo 'Pinned source/common.sh mismatch' >&2; return 2; }
+    export PYTHONPATH="$JOB_SOURCE_ROOT/src"
+    export UV_NO_SYNC=1 UV_OFFLINE=1
+fi

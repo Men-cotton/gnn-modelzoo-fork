@@ -3,6 +3,10 @@
 set -euo pipefail
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 project_root="$(cd "${script_dir}/../.." && pwd -P)"
+if [[ -z "${JOB_SOURCE_ROOT:-}" && " $* " != *" --help "* && " $* " != *" -h "* && " $* " != *" --list-configs "* ]]; then
+    export PYTHONPATH="${project_root}/src"
+    exec "${project_root}/.venv/bin/python" -m cerebras.modelzoo.tools.job_source --entry "${BASH_SOURCE[0]}" -- "$@"
+fi
 single=0
 for arg in "$@"; do
     case "$arg" in

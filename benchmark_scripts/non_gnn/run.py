@@ -264,6 +264,10 @@ def build_config(args):
             length if args.llama_data_format == "corpus" else None
         )
     params = {"trainer": {"init": init, "fit": {"train_dataloader": loader}}}
+    if args.backend == "CSX":
+        from cerebras.modelzoo.tools.job_source import pin_cluster_config
+
+        pin_cluster_config(params)
     metadata = {
         "profile": args.profile,
         "backend": args.backend,
@@ -532,9 +536,9 @@ def execute_prepared(
             exit_code=code,
             finished_at=benchmark_launcher.timestamp(),
             wall_seconds=time.monotonic() - start,
-            client_wall_seconds=time.monotonic() - client_start
-            if process is not None
-            else None,
+            client_wall_seconds=(
+                time.monotonic() - client_start if process is not None else None
+            ),
         )
         if process is None:
             status["preflight_seconds"] = status["wall_seconds"]
@@ -574,6 +578,24 @@ def detach_driver(args, argv, script, name):
 
 def main(argv=None):
     argv = list(sys.argv[1:] if argv is None else argv)
+    if not any(
+        x in argv
+        for x in (
+            "--help",
+            "-h",
+            "--dry-run",
+            "--list-configs",
+            "--check-dependencies",
+            "--prepare-only",
+            "--preflight-error",
+        )
+    ):
+        from cerebras.modelzoo.tools.job_source import pin_entry
+
+        pinned = pin_entry(__file__, argv)
+        if pinned is not None:
+            return pinned
+
     p = parser()
     args = p.parse_args(argv)
     if args.list_configs:

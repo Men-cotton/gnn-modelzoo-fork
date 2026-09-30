@@ -3,6 +3,10 @@
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+if [[ -z "${JOB_SOURCE_ROOT:-}" && " $* " != *" --help "* && " $* " != *" -h "* && " $* " != *" --list-configs "* && " $* " != *" --check-dependencies "* ]]; then
+    export PYTHONPATH="${PROJECT_ROOT}/src"
+    exec "${PROJECT_ROOT}/.venv/bin/python" -m cerebras.modelzoo.tools.job_source --entry "${BASH_SOURCE[0]}" -- "$@"
+fi
 BASE="$PROJECT_ROOT/model_dirs/hpcasia_r04/arxiv_none/sensitivity_w02_p2_s1_r1/params.yaml"
 DRY_RUN=false
 

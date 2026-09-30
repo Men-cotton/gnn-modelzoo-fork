@@ -38,16 +38,23 @@ class FixedShapeJobTests(unittest.TestCase):
                 command, cwd=temp, env=env, check=True, capture_output=True, text=True
             )
             submission = json.loads(result.stdout)
-            self.assertEqual(submission["cwd"], str(ROOT))
+            source = Path(submission["cwd"])
+            self.assertTrue(source.is_relative_to(ROOT / "model_dirs/job_runs"))
+            self.assertEqual(source.name, "source")
             self.assertEqual(
-                submission["args"],
-                [
-                    "-v",
-                    f"FIXED_SHAPE_CONFIG={config},FIXED_SHAPE_COMPILE=1,"
-                    "FIXED_SHAPE_MEASURE_NEIGHBOR_PADDING=1,FIXED_SHAPE_MEASURE_INPUT=1",
-                    str(SCRIPTS / "run_fixed_shape_gpu_nqsv.pbs"),
-                ],
+                submission["args"][-1],
+                str(source / "benchmark_scripts/pegasus/run_fixed_shape_gpu_nqsv.pbs"),
             )
+            variables = dict(
+                item.split("=", 1) for item in submission["args"][1].split(",")
+            )
+            self.assertEqual(variables["JOB_SOURCE_ROOT"], str(source))
+            self.assertEqual(variables["PYTHONPATH"], str(source / "src"))
+            frozen = Path(variables["FIXED_SHAPE_CONFIG"])
+            self.assertEqual(frozen.read_text(), "trainer: {}\n")
+            self.assertEqual(variables["FIXED_SHAPE_COMPILE"], "1")
+            self.assertEqual(variables["FIXED_SHAPE_MEASURE_INPUT"], "1")
+            self.assertEqual(variables["FIXED_SHAPE_MEASURE_NEIGHBOR_PADDING"], "1")
             # No qsub output: the dry run prints the command without executing it.
             result = subprocess.run(
                 command + ["--dry-run"],

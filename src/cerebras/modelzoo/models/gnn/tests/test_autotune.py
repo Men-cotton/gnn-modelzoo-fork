@@ -250,7 +250,8 @@ class AutotuneTests(unittest.TestCase):
         self.assertIn("source_sha256", provenance)
         self.assertNotIn("uv", provenance)
 
-    def test_detach_validates_before_launch_and_reenters_in_foreground(self):
+    @patch("cerebras.modelzoo.tools.job_source.pin_entry", return_value=None)
+    def test_detach_validates_before_launch_and_reenters_in_foreground(self, _handoff):
         cli = [
             "--dataset",
             "arxiv",

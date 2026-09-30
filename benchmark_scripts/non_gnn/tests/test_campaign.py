@@ -48,6 +48,13 @@ class FakeTokenizer:
 
 class CampaignTests(unittest.TestCase):
     def setUp(self):
+        # Source handoff is integration-tested separately with real Git fixtures;
+        # keep these scientific campaign tests inside their mocked runtime.
+        handoff = mock.patch(
+            "cerebras.modelzoo.tools.job_source.pin_entry", return_value=None
+        )
+        handoff.start()
+        self.addCleanup(handoff.stop)
         self.temp = tempfile.TemporaryDirectory(prefix="test-non-gnn-campaign-")
         self.addCleanup(self.temp.cleanup)
         self.path = Path(self.temp.name)
@@ -357,12 +364,9 @@ class CampaignTests(unittest.TestCase):
                 capture_output=True,
             )
             self.assertEqual(result.returncode, 0, result.stderr)
-            self.assertIn("Salesforce/wikitext", result.stdout)
-            self.assertEqual(
-                result.stdout.count("--execute-config")
-                + result.stdout.count("qsub -v"),
-                12,
-            )
+            plan = json.loads(result.stdout)
+            self.assertEqual(len(plan["resolved_commit"]), 40)
+            self.assertFalse(Path(plan["manifest_path"]).exists())
             self.assertFalse(output.exists())
             self.assertFalse((self.path / "missing").exists())
 
@@ -746,6 +750,7 @@ class CampaignTests(unittest.TestCase):
                 "--execute-config",
                 str(config),
             ],
+            env={**os.environ, "JOB_SOURCE_ROOT": str(ROOT)},
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
