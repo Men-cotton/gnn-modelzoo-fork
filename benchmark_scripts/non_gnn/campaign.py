@@ -47,7 +47,10 @@ def parser():
     )
     p.add_argument("--tokenizer-revision", default="main")
     p.add_argument(
-        "--data-root", type=Path, default=run.ROOT / "model_dirs/non_gnn/data"
+        "--data-root",
+        type=Path,
+        default=Path(os.environ.get("JOB_SOURCE_ORIGINAL_ROOT", run.ROOT))
+        / "model_dirs/non_gnn/data",
     )
     p.add_argument("--output-dir", type=Path, help="New campaign directory")
     p.add_argument(

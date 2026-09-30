@@ -286,6 +286,9 @@ def stop_process(process):
 
 def execute(cmd, log, timeout):
     """Run one client; a stopped client does not prove its remote job has stopped."""
+    from cerebras.modelzoo.tools.job_source import record_dispatch
+
+    record_dispatch(cmd, GNN, log=str(log), timeout_sec=timeout)
     started = time.monotonic()
     process = None
     try:

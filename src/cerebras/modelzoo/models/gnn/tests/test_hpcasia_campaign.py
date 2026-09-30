@@ -335,7 +335,8 @@ class HPCAsiaCampaignTests(unittest.TestCase):
         )
         self.assertEqual(result["status"], "invalid_measurement")
 
-    def test_detach_uses_existing_launcher_and_concrete_output(self):
+    @patch("cerebras.modelzoo.tools.job_source.pin_entry", return_value=None)
+    def test_detach_uses_existing_launcher_and_concrete_output(self, _handoff):
         with patch.object(
             campaign.benchmark_launcher, "launch", return_value=0
         ) as launch:

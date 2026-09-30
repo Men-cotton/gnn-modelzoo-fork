@@ -103,6 +103,33 @@ class JobPlanTests(unittest.TestCase):
         execute.assert_not_called()
         self.assertEqual(len(out.getvalue().splitlines()), 3)
 
+    def test_different_jobs_form_one_json_document(self):
+        catalog = copy.deepcopy(job_plan.load_catalog())
+        catalog["sets"]["outer-readonly-pair"] = ["hpcasia", "gpu-input"]
+        with (
+            patch.object(job_plan, "load_catalog", return_value=catalog),
+            patch.object(job_plan, "execute_command") as execute,
+            contextlib.redirect_stdout(io.StringIO()) as out,
+        ):
+            job_plan.main(
+                [
+                    "--set",
+                    "outer-readonly-pair",
+                    "--output",
+                    "/tmp/modelzoo-preview-only",
+                    "--dataset",
+                    "arxiv",
+                    "--json",
+                ]
+            )
+        value = json.loads(out.getvalue())
+        self.assertEqual(len(value["jobs"]), 2)
+        self.assertEqual(
+            {job["resolved_commit"] for job in value["jobs"]},
+            {value["resolved_commit"]},
+        )
+        execute.assert_not_called()
+
     def test_late_invalid_config_prevents_any_submission(self):
         original = job_plan.config_path
 

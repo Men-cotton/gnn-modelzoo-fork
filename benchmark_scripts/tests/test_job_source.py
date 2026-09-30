@@ -304,6 +304,25 @@ class SourceTests(unittest.TestCase):
             with self.subTest(directory=directory), self.assertRaises(ValueError):
                 job_source.SourceRun(self.root, run_dir=directory)
 
+    def test_parallel_dispatch_provenance_is_preserved(self):
+        run = job_source.SourceRun(self.root)
+        self.prepare(run)
+        with ThreadPoolExecutor(max_workers=4) as pool:
+            list(
+                pool.map(
+                    lambda i: job_source.record_dispatch(
+                        ["fixture", str(i)], run.source, environment=run.environment()
+                    ),
+                    range(12),
+                )
+            )
+        run.save("submitted")
+        saved = json.loads(run.manifest.read_text())
+        self.assertEqual(len(saved["dispatches"]), 12)
+        self.assertEqual(
+            {row["resolved_commit"] for row in saved["dispatches"]}, {self.old}
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

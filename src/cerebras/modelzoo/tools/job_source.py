@@ -89,12 +89,16 @@ class SourceRun:
             name = self.relative(path)
         except ValueError:
             return Path(path).is_file()
+        if name.startswith("model_dirs/"):
+            return Path(path).is_file()
         return name in self.files and self.files[name][0] in ("100644", "100755")
 
     def read_text(self, path):
         try:
             name = self.relative(path)
         except ValueError:
+            return Path(path).read_text()
+        if name.startswith("model_dirs/"):
             return Path(path).read_text()
         if not self.exists(path):
             raise ValueError(
@@ -244,14 +248,19 @@ class SourceRun:
         return pinned
 
     def save(self, status, **extra):
-        if self.manifest.exists():
-            saved = json.loads(self.manifest.read_text())
-            if "nested_jobs" in saved:
-                self.document["nested_jobs"] = saved["nested_jobs"]
-        self.document.update(status=status, **extra)
-        temporary = self.manifest.with_suffix(".tmp")
-        temporary.write_text(json.dumps(self.document, indent=2) + "\n")
-        temporary.replace(self.manifest)
+        import fcntl
+
+        with self.manifest.with_suffix(".lock").open("a") as lock:
+            fcntl.flock(lock, fcntl.LOCK_EX)
+            if self.manifest.exists():
+                saved = json.loads(self.manifest.read_text())
+                for key in ("nested_jobs", "dispatches"):
+                    if key in saved:
+                        self.document[key] = saved[key]
+            self.document.update(status=status, **extra)
+            temporary = self.manifest.with_suffix(".tmp")
+            temporary.write_text(json.dumps(self.document, indent=2) + "\n")
+            temporary.replace(self.manifest)
 
     def prepare(self, document):
         self.run_dir.mkdir(parents=True, exist_ok=False)
@@ -351,7 +360,19 @@ def pin_entry(entry, argv, *, root=None):
         raise ValueError(
             "Selected commit lacks source handoff API for " + str(relative)
         )
+    validate_entry_arguments(entry, remaining, root)
     remaining = absolute_arguments(remaining)
+    if relative.name == "run_worker_diagnostics.sh" and "--base" not in remaining:
+        remaining += [
+            "--base",
+            str(
+                root
+                / "model_dirs/hpcasia_r04/arxiv_none/sensitivity_w02_p2_s1_r1/params.yaml"
+            ),
+        ]
+    for index, value in enumerate(remaining[:-1]):
+        if value in ("--base", "--base-config", "--config"):
+            remaining[index + 1] = run.freeze_config(remaining[index + 1])
     executable = (
         [str(run.source / ".venv/bin/python")] if entry.suffix == ".py" else ["bash"]
     )
@@ -372,6 +393,10 @@ def pin_entry(entry, argv, *, root=None):
         "commands": [command],
         "cwd": str(run.source),
         "dependency_environment": str(root / ".venv"),
+        "inputs": [
+            {"path": path, **{k: v for k, v in info.items() if k != "content"}}
+            for path, info in run.inputs.items()
+        ],
     }
     if "--dry-run" in remaining or "--json" in remaining:
         print(json.dumps(document, indent=2))
@@ -452,6 +477,68 @@ def pin_cluster_config(config, *, source=None, run_dir=None, original=None):
         dict.fromkeys([*cluster.get("mount_dirs", []), str(run_dir), str(original)])
     )
     return config
+
+
+def validate_entry_arguments(entry, argv, root):
+    import argparse
+    import runpy
+    import sys
+
+    name = entry.name
+    argv = [x for x in argv if x != "--json"]
+    if "non_gnn" in str(entry):
+        single = name == "run.py" or any(
+            x.split("=", 1)[0]
+            in ("--profile", "--data-dir", "--execute-config", "--check-dependencies")
+            for x in argv
+        )
+        target = (
+            root / "benchmark_scripts/non_gnn" / ("run.py" if single else "campaign.py")
+        )
+        sys.path.insert(0, str(target.parent))
+        try:
+            module = runpy.run_path(str(target), run_name="source_cli_validation")
+            if entry.suffix != ".py":
+                argv = ["--backend", "GPU" if "pegasus" in str(entry) else "CSX", *argv]
+            module["parser"]().parse_args(argv)
+        finally:
+            sys.path.pop(0)
+    elif name == "run_worker_diagnostics.sh":
+        parser = argparse.ArgumentParser(allow_abbrev=False)
+        parser.add_argument("--base")
+        parser.add_argument("--dry-run", action="store_true")
+        parser.parse_args(argv)
+    elif name == "run_worker_sensitivity.sh":
+        from cerebras.modelzoo.models.gnn.tools import autotune
+
+        autotune.parse_args(
+            ["--backend", "csx", "--mode", "sensitivity", "--detach", *argv]
+        )
+
+
+def record_dispatch(command, cwd, *, environment=None, **details):
+    """Append actual child-job provenance under a cross-process lock."""
+    import fcntl
+
+    env = os.environ if environment is None else environment
+    if not env.get("JOB_RUN_MANIFEST"):
+        return
+    path = Path(env["JOB_RUN_MANIFEST"])
+    with path.with_suffix(".lock").open("a") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        value = json.loads(path.read_text())
+        value.setdefault("dispatches", []).append(
+            {
+                "command": [str(x) for x in command],
+                "cwd": str(cwd),
+                "resolved_commit": env["JOB_SOURCE_COMMIT"],
+                "source_root": env["JOB_SOURCE_ROOT"],
+                **details,
+            }
+        )
+        temporary = path.with_suffix(".dispatch.tmp")
+        temporary.write_text(json.dumps(value, indent=2) + "\n")
+        temporary.replace(path)
 
 
 if __name__ == "__main__":

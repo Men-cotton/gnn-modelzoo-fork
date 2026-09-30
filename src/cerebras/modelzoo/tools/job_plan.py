@@ -235,6 +235,7 @@ def qsub_command(script, variables=None, resources=()):
 def execute_command(command, *, cwd=ROOT, **kwargs):
     if not command or not all(isinstance(x, str) and "\x00" not in x for x in command):
         raise ValueError("Expected a nonempty argv without NUL")
+    job_source.record_dispatch(command, cwd, environment=kwargs.get("env"))
     return subprocess.run(command, cwd=cwd, shell=False, **kwargs)
 
 
@@ -618,6 +619,9 @@ def run_plan(args, remaining, p, source):
                 raise ValueError(
                     "Required driver parse_args API missing at " + source.commit
                 )
+            for index, flag in enumerate(forwarded[:-1]):
+                if flag in ("--base-config", "--config"):
+                    forwarded[index + 1] = source.freeze_config(forwarded[index + 1])
             command = [
                 sys.executable,
                 "-u",

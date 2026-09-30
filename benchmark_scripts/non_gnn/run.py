@@ -339,6 +339,17 @@ def prepared_config(config, backend=None, *, evidence=None):
     """Reject changed inputs before starting a previously prepared command."""
     config = Path(config).resolve()
     launch = json.loads((config.parent / "launch.json").read_text())
+    pinned = os.environ.get("JOB_SOURCE_ROOT")
+    original = os.environ.get("JOB_SOURCE_ORIGINAL_ROOT")
+    if pinned and original and original != pinned:
+        for arg in launch.get("command", []):
+            if any(
+                str(arg).startswith(str(Path(original) / name) + "/")
+                for name in ("src", "benchmark_scripts")
+            ):
+                raise ValueError(
+                    "Prepared command refers to live source; reprepare inside the pinned run"
+                )
     if backend is not None and backend != launch["backend"]:
         raise ValueError("Prepared configuration backend does not match --backend")
     if hashlib.sha256(config.read_bytes()).hexdigest() != launch["params_sha256"]:
@@ -447,6 +458,9 @@ def execute_prepared(
             client_start = time.monotonic()
             status["client_started_at"] = benchmark_launcher.timestamp()
             status["preflight_seconds"] = client_start - start
+            from cerebras.modelzoo.tools.job_source import record_dispatch
+
+            record_dispatch(launch["command"], ROOT, config=str(config))
             process = subprocess.Popen(
                 launch["command"],
                 cwd=ROOT,

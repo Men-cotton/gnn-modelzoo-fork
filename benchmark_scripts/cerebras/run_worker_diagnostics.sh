@@ -93,6 +93,8 @@ for workers in workers_list:
         snapshot_interval_seconds=5.0,
         max_snapshots=80,
     ).model_dump()
+    from cerebras.modelzoo.tools.job_source import pin_cluster_config
+    pin_cluster_config(params)
     (run / "params.yaml").write_text(yaml.safe_dump(params, sort_keys=False))
 print(root)
 PY

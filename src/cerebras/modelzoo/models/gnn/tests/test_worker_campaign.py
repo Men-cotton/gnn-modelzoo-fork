@@ -178,7 +178,8 @@ class CampaignTests(unittest.TestCase):
             self.assertEqual(campaign.execute(self.args, stages, "identity"), 0)
         self.assertGreater(seen_budgets[1], seen_budgets[0] + 990)
 
-    def test_detach_validates_before_launch_and_reenters_in_foreground(self):
+    @patch("cerebras.modelzoo.tools.job_source.pin_entry", return_value=None)
+    def test_detach_validates_before_launch_and_reenters_in_foreground(self, _handoff):
         cli = [
             "--output",
             str(self.args.output),
