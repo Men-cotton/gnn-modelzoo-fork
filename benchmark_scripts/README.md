@@ -47,7 +47,7 @@ fixed-shapeのconfig pathに含まれる空白は保持する。HPC Asia/sweep�
 CSXの3 campaign wrapperもcatalogのdriver定義を使い、相対出力pathは呼出元から解決する。
 `run_modelzoo.sh` の8設定も `csx-config` としてcatalogに置く。診断worker一覧は
 `presets.worker_diagnostics.workers` に置き、診断実行も共通launcherで監督する。
-診断の `--dry-run` は従来どおり設定ファイルを生成するが投入はしない。たとえば
+シェル入口の診断 `--dry-run` も固定sourceのplanだけを表示する。たとえば
 `jobs --job csx-worker -- --foreground --dry-run ...` の `--` 以後はcampaignへ渡す。
 campaign自身が研究条件・dry-run・予算・trial停止・lock・journalを管理し、
 既存 `benchmark_launcher.launch` がtmuxを管理する。PBS payloadとrun.pyの学習条件は変えない。
@@ -56,6 +56,60 @@ HPC AsiaのPython planとPegasus planは同じcatalogのrun一覧を参照する
 新しいjob/setはcatalogへ追加する。新しい実行形式だけを `job_plan.py` へ追加し、
 個別submitterへqsub処理を戻さない。catalogの未知field・未知job/set、不正設定、引数境界、
 全plan検証後の投入は `benchmark_scripts/tests/test_job_plan.py` で検証する。
+
+## run単位のsource固定
+
+通常は現在のbranchの`HEAD`をrun開始時に一度だけfull commit hashへ解決する。
+set内の全job・並列worker・内側のcampaignは同じhashとsourceを使う。
+未commitの変更は実行sourceに入らない。過去sourceはrun-levelの
+`--revision <commit-hash>`を明示した場合だけ選ぶ。branch名やjob定義内のrevision/hashは拒否する。
+
+`--json`は複数jobでも単一JSON documentを返す。`resolved_commit`、`source_root`、
+`manifest_path`、`jobs`、固定inputのdigestを含む。従来の単一job用`cwd`と`commands`も残す。
+複数jobのcwdは`jobs[*].cwd`で確認する。previewはsource/manifest/outputを作らず、
+表示した将来のpathはまだ存在しない。`--prepare-only`はsnapshotとmanifestを準備し、
+実際のimport元を検証して終了する。実行するときは新しいrun directoryを使う。
+
+```bash
+# 検証済みplanのみ。HEADはこのrunの全jobで同一。
+PYTHONPATH=src .venv/bin/python -m cerebras.modelzoo.tools.benchmark_launcher jobs \
+  --set hpcasia-all --output model_dirs/hpcasia_preview --json
+# snapshot準備のみ。CSX clientやschedulerは起動しない。
+PYTHONPATH=src .venv/bin/python -m cerebras.modelzoo.tools.benchmark_launcher jobs \
+  --job csx-config --config-index 1 --run-dir model_dirs/source_inspection_01 --prepare-only
+# 明示的な過去commitのpreview。ここではsource固定実装のcommitを例示。
+PYTHONPATH=src .venv/bin/python -m cerebras.modelzoo.tools.benchmark_launcher jobs \
+  --revision e02e1452237af6e77c0a6e34c737a23c90b7d424 \
+  --job fixed-shape --config src/cerebras/modelzoo/models/gnn/configs/fixed_shape_gpu/arxiv.yaml --json
+```
+
+既定保存先は`model_dirs/job_runs/<UTC>-<unique>/`の一意なdirectoryで、`source/`は
+`git worktree add --detach`で作る。元checkoutをcheckout/switch/resetしない。
+tracked sourceだけを取り出し、sourceファイルをread-onlyにする。既存runは上書きしない。
+manifestには全jobのhash/cwd/argv、実dispatch、準備失敗、input digest、bindingを記録する。
+legacy source handoffは`exec`でpayloadへ移るため、完了状態は既存campaign/launcherのjournalも参照する。
+必要なpayloadやhandoff APIが過去commitにない場合は検証で失敗し、最新sourceへfallbackしない。
+
+PBSはsnapshotをqsubのcwdとして渡すので、`PBS_O_WORKDIR`とscriptが同じsourceを指す。
+`PYTHONPATH`はsnapshotの`src`へ固定し、既存editable環境でも`__file__`を新規processで確認する。
+`common.sh`はsourceを照合し、uvにはsnapshotのprojectと既存`.venv`を使わせる。
+`UV_NO_SYNC=1`/`UV_OFFLINE=1`および`--no-sync`で依存更新を行わない。
+CSX設定の`python_paths`/`mount_dirs`もsnapshotとinput/output bindingを参照する。
+実schedulerではproject・run directory・依存環境・dataが計算nodeから同じpathで見える必要がある。
+`/tmp`の共有は仮定しない。`--run-dir`を指定する場合も共有pathを選ぶ。
+
+`.venv`と既存dataは可変な依存環境・入力として別記録し、source hashによる固定対象に含めない。
+run内の`model_dirs`は専用outputへ向ける。non-GNNの既存data cacheと診断の保存済みbaseは
+元projectから参照する。`--base`/`--base-config`/`--config`は別token形式も`=PATH`形式も
+同じ処理で固定する。tracked YAMLとその`extends`は選択commitから読み、外部YAMLは解決済み内容を
+`inputs/<sha256>.yaml`へ保存する。output/data引数は入力configとしてコピーしない。
+`launch.json`を伴うprepared configや外側からの`--execute-config`は、新しいsource runへ
+持ち越さず投入前に拒否する。pinned campaign内で再準備する通常のnon-GNN経路は維持する。
+
+legacy non-GNN/diagnostics/sensitivity入口の保存先指定は`--source-run-dir`、過去sourceは
+同じ`--revision`を使う。低水準Python driverを直接呼ぶ科学条件のdry-runには既存のconfig生成動作が
+残るため、出力を書かない投入previewには`benchmark_launcher jobs`またはシェル入口を使う。
+汎用launcherへ渡す任意の外部コマンドまでsource固定する機能ではない。
 
 ## 別のbenchmarkをtmuxで実行する
 
