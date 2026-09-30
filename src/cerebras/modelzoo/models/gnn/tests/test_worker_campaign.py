@@ -19,9 +19,27 @@ from test_autotune import write_log
 
 class CampaignTests(unittest.TestCase):
     def setUp(self):
+        handoff = patch(
+            "cerebras.modelzoo.tools.job_source.pin_entry", return_value=None
+        )
+        handoff.start()
+        self.addCleanup(handoff.stop)
+        for owner, method in (
+            (campaign.autotune, "execute"),
+            (campaign.benchmark_launcher, "launch"),
+        ):
+            boundary = patch.object(
+                owner,
+                method,
+                side_effect=AssertionError(
+                    "Unexpected real client/launcher in unit test"
+                ),
+            )
+            boundary.start()
+            self.addCleanup(boundary.stop)
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
-        self.root = Path(self.tmp.name)
+        self.root = Path(self.tmp.name).resolve()
         self.args = campaign.parse_args(
             ["--output", str(self.root / "campaign"), "--no-archive"]
         )

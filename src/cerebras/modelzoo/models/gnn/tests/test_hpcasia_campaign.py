@@ -151,9 +151,27 @@ class HPCAsiaCampaignTests(unittest.TestCase):
                 campaign.parse_args(self.cli + ["--run-id", run_id])
 
     def setUp(self):
+        handoff = patch(
+            "cerebras.modelzoo.tools.job_source.pin_entry", return_value=None
+        )
+        handoff.start()
+        self.addCleanup(handoff.stop)
+        for owner, method in (
+            (campaign.autotune, "execute"),
+            (campaign.benchmark_launcher, "launch"),
+        ):
+            boundary = patch.object(
+                owner,
+                method,
+                side_effect=AssertionError(
+                    "Unexpected real client/launcher in unit test"
+                ),
+            )
+            boundary.start()
+            self.addCleanup(boundary.stop)
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
-        self.output = Path(temporary.name) / "study"
+        self.output = Path(temporary.name).resolve() / "study"
         self.output.mkdir()
         self.cli = [
             "--output",

@@ -604,6 +604,10 @@ def run_plan(args, remaining, p, source):
             payload = ROOT / "src" / (job["module"].replace(".", "/") + ".py")
             if not source.exists(payload):
                 raise ValueError("Required driver API missing at " + source.commit)
+            if not source.exists(ROOT / "src/cerebras/modelzoo/tools/job_source.py"):
+                raise ValueError(
+                    "Required source handoff API missing at " + source.commit
+                )
             # Existing scientific parsers validate without executing a driver.
             from importlib import import_module
 
@@ -619,15 +623,14 @@ def run_plan(args, remaining, p, source):
                 raise ValueError(
                     "Required driver parse_args API missing at " + source.commit
                 )
-            for index, flag in enumerate(forwarded[:-1]):
-                if flag in ("--base-config", "--config"):
-                    forwarded[index + 1] = source.freeze_config(forwarded[index + 1])
+            forwarded = job_source.freeze_config_arguments(
+                source, [*job["arguments"], *forwarded]
+            )
             command = [
                 sys.executable,
                 "-u",
                 "-m",
                 job["module"],
-                *job["arguments"],
                 *forwarded,
             ]
             # The driver owns its scientific validation/dry-run, locks and bounded trials.

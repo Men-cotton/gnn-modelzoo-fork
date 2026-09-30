@@ -142,10 +142,7 @@ class SourceRun:
             raise ValueError("Config requires a trainer mapping: " + str(path))
         # Prepared non-GNN configs carry a command/source contract in launch.json.
         # Re-prepare in the pinned campaign instead of replaying a mutable command.
-        if (
-            not path.is_relative_to(self.root)
-            and (path.parent / "launch.json").exists()
-        ):
+        if (path.parent / "launch.json").exists():
             raise ValueError(
                 "Prepared launch.json cannot be reused; prepare via a pinned campaign"
             )
@@ -362,7 +359,9 @@ def pin_entry(entry, argv, *, root=None):
         )
     validate_entry_arguments(entry, remaining, root)
     remaining = absolute_arguments(remaining)
-    if relative.name == "run_worker_diagnostics.sh" and "--base" not in remaining:
+    if relative.name == "run_worker_diagnostics.sh" and not any(
+        arg.split("=", 1)[0] == "--base" for arg in remaining
+    ):
         remaining += [
             "--base",
             str(
@@ -370,9 +369,7 @@ def pin_entry(entry, argv, *, root=None):
                 / "model_dirs/hpcasia_r04/arxiv_none/sensitivity_w02_p2_s1_r1/params.yaml"
             ),
         ]
-    for index, value in enumerate(remaining[:-1]):
-        if value in ("--base", "--base-config", "--config"):
-            remaining[index + 1] = run.freeze_config(remaining[index + 1])
+    remaining = freeze_config_arguments(run, remaining)
     executable = (
         [str(run.source / ".venv/bin/python")] if entry.suffix == ".py" else ["bash"]
     )
@@ -409,6 +406,32 @@ def pin_entry(entry, argv, *, root=None):
     except BaseException as exc:
         run.save("failed", error=str(exc))
         raise
+
+
+def freeze_config_arguments(run, argv):
+    """Freeze known YAML inputs for both Python drivers and legacy shell entries.
+
+    Normalize config equals syntax to two tokens, which the shell wrappers accept.
+    Prepared launches must be generated inside the pinned run, since flattening
+    only their YAML would discard the sibling command and provenance contract.
+    """
+    result = []
+    arguments = iter(argv)
+    for argument in arguments:
+        key, separator, value = argument.partition("=")
+        if key == "--execute-config":
+            raise ValueError(
+                "--execute-config requires an already pinned run; "
+                "reprepare via the pinned campaign"
+            )
+        if key in ("--base", "--base-config", "--config"):
+            value = value if separator else next(arguments, None)
+            if not value or value.startswith("--"):
+                raise ValueError(key + " requires a config path")
+            result.extend([key, run.freeze_config(value)])
+        else:
+            result.append(argument)
+    return result
 
 
 def absolute_arguments(argv):

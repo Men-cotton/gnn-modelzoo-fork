@@ -247,6 +247,58 @@ class JobPlanTests(unittest.TestCase):
             ],
         )
 
+    def test_driver_config_equals_and_separate_forms_are_frozen(self):
+        catalog = copy.deepcopy(job_plan.load_catalog())
+        catalog["jobs"]["config-driver"] = {
+            "kind": "driver",
+            "module": "cerebras.modelzoo.models.gnn.tools.autotune",
+            "arguments": [
+                "--backend",
+                "pyg",
+                "--dataset",
+                "arxiv",
+                "--budget-sec",
+                "20000",
+            ],
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            config = Path(tmp) / "input.yaml"
+            config.write_text("trainer: {marker: external}\n")
+            for equals in (False, True):
+                args = (
+                    ["--base-config=" + str(config)]
+                    if equals
+                    else ["--base-config", str(config)]
+                )
+                with (
+                    self.subTest(equals=equals),
+                    patch.object(job_plan, "load_catalog", return_value=catalog),
+                    patch.object(job_plan, "execute_command") as execute,
+                    contextlib.redirect_stdout(io.StringIO()) as out,
+                ):
+                    job_plan.main(
+                        [
+                            "--job",
+                            "config-driver",
+                            "--json",
+                            "--output",
+                            str(Path(tmp) / "out"),
+                            *args,
+                        ]
+                    )
+                plan = json.loads(out.getvalue())
+                command = plan["commands"][0]
+                self.assertEqual(
+                    command[command.index("--base-config") + 1],
+                    plan["inputs"][0]["path"],
+                )
+                self.assertEqual(plan["inputs"][0]["original"], str(config))
+                self.assertEqual(
+                    command[command.index("--output") + 1], str(Path(tmp) / "out")
+                )
+                self.assertFalse(Path(plan["source_root"]).exists())
+                execute.assert_not_called()
+
 
 if __name__ == "__main__":
     unittest.main()
