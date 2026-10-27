@@ -48,9 +48,13 @@ def main():
         args.seed = config["init"]["seed"]
     if (
         min(args.batch_size, args.hidden, *args.fanouts) < 1
+        or args.seed < 0
+        or (args.capacity is not None and args.capacity < 1)
         or not 0 <= args.dropout < 1
     ):
-        parser.error("positive sizes and dropout in [0,1) required")
+        parser.error(
+            "positive sizes/capacity, nonnegative seed and dropout in [0,1) required"
+        )
     from cerebras.modelzoo.models.gnn.data_processing.sources.ogb import (
         BaseGraphDataSource,
     )

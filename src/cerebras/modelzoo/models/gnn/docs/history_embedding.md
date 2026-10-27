@@ -3,9 +3,14 @@
 After the usual `./setup.sh` dataset preparation, run from the checkout:
 
 ```bash
-benchmark_scripts/cerebras/run_history_benchmark.sh \
-  --dataset ogbn-arxiv --output model_dirs/history-window-01
+benchmark_scripts/cerebras/run_history_benchmark.sh
 ```
+
+Both shell entrypoints accept no arguments: arxiv is the default, and a new
+UTC-timestamped output is selected under the pinned checkout's
+`model_dirs/history_benchmark/` or `model_dirs/history_campaign/`, bound to the
+run's outputs. `--output` overrides that location. `--dataset` accepts
+`arxiv`/`products` as well as `ogbn-arxiv`/`ogbn-products`.
 
 The shell wrapper uses the existing `.venv`, catalog, source pinning, SDK
 site authentication and tmux launcher. `--foreground` runs in the terminal;
@@ -15,7 +20,8 @@ committed HEAD. All files must be on the existing ALCF shared filesystem.
 One invocation prepares the graph bundle and initial histories, then executes
 both `tree` and `tree_mean`. Compilation is part of SDK execution. Add
 `--cases tree tree_mean history history-export` to include immutable history
-reads and returned activations. `--repeats` repeats the matched cases.
+reads and returned activations. List each case once; `--repeats` repeats the
+matched cases. `--warmup-steps` must be positive and less than `--steps`.
 Results are in `pilot.json` and each case's `result.json`; preparation and
 case logs are stored beside them. Runtime modules remain under
 `cerebras.modelzoo.models.gnn.tools.history_embedding`.
@@ -63,7 +69,13 @@ original full graph and current weights. The epoch campaign intentionally
 uses full epochs, not the throughput benchmark's fixed 240-step window.
 
 `--input <directory>` reuses a prepared bundle and its stored model/graph
-conditions. Otherwise preparation is included in the launch. `--data-dir`
+conditions. Do not combine it with `--dataset`, `--data-dir`, `--fanout`,
+`--hidden`, `--layers` or `--dropout`; prepare a new bundle to change those.
+`--batch-size` and `--seed` still control streamed target batches. The epoch
+campaign's `--refresh-device` selects both initial and between-epoch refresh;
+in the benchmark it applies only to preparation and cannot accompany `--input`.
+`--evaluation-device` selects the campaign's full-graph evaluation device.
+Otherwise preparation is included in the launch. `--data-dir`
 selects the ordinary datasets root. Missing data reports the existing
 `download_datasets` command. Inputs are never downloaded implicitly.
 

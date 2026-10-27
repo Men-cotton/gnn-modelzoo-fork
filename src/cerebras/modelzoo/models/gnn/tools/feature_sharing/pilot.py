@@ -1,6 +1,8 @@
 """Prepare inputs, then run and compare dense/dictionary jobs in one campaign."""
 
 import argparse
+from datetime import datetime, timezone
+import math
 import json
 from pathlib import Path
 import shlex
@@ -11,6 +13,7 @@ import torch
 from cerebras.modelzoo.models.gnn.tools.csx_backend import load_config, WARMUP_STEPS
 import cerebras.pytorch as cstorch
 from cerebras.modelzoo.tools import benchmark_launcher
+from cerebras.modelzoo.tools.job_plan import ROOT
 from cerebras.modelzoo.tools.job_source import require_pinned
 from cerebras.modelzoo.models.gnn.tools.download_datasets import DEFAULT_ROOT
 from cerebras.modelzoo.models.gnn.tools.feature_sharing.core import (
@@ -80,9 +83,15 @@ def compare(output, steps, rtol, atol):
 def parse_args(argv=None):
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--input", type=Path, help="Reuse a prepared frozen window")
-    p.add_argument("--output", type=Path, required=True)
-    p.add_argument("--data-dir", type=Path, default=DEFAULT_ROOT)
-    p.add_argument("--dataset", choices=["arxiv", "products"], default="arxiv")
+    p.add_argument(
+        "--output", type=Path, help="Default: model_dirs/shared_tree/<UTC timestamp>"
+    )
+    p.add_argument("--data-dir", type=Path)
+    p.add_argument(
+        "--dataset",
+        type=lambda name: name.removeprefix("ogbn-"),
+        choices=["arxiv", "products"],
+    )
     p.add_argument("--batch-size", type=int)
     p.add_argument("--fanouts", type=int, nargs="+")
     p.add_argument("--hidden", type=int)
@@ -98,6 +107,24 @@ def parse_args(argv=None):
     p.add_argument("--dry-run", action="store_true")
     benchmark_launcher.add_arguments(p)
     args = p.parse_args(argv)
+    if args.input and any(
+        value is not None
+        for value in (
+            args.dataset,
+            args.data_dir,
+            args.batch_size,
+            args.fanouts,
+            args.hidden,
+            args.seed,
+            args.dropout,
+            args.capacity,
+        )
+    ):
+        p.error(
+            "--input cannot be combined with preparation options (--dataset, --data-dir, --batch-size, --fanouts, --hidden, --seed, --dropout, --capacity)"
+        )
+    args.dataset = args.dataset or "arxiv"
+    args.data_dir = args.data_dir or DEFAULT_ROOT
     config = load_config(args.dataset)["trainer"]
     model = config["init"]["model"]["architecture"]
     loader = config["fit"]["train_dataloader"]
@@ -113,15 +140,23 @@ def parse_args(argv=None):
         args.seed = config["init"]["seed"]
     if args.steps is None:
         args.steps = config["init"]["loop"]["max_steps"]
-    args.output = args.output.resolve()
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S.%fZ")
+    args.output = (args.output or ROOT / "model_dirs/shared_tree" / stamp).resolve()
     if args.input:
         args.input = args.input.resolve()
     if min(args.batch_size, args.hidden, *args.fanouts) < 1:
         p.error("positive sizes required")
-    if not 0 <= args.warmup_steps < args.steps:
-        p.error("warmup must be less than steps")
-    if any(value is not None and value < 0 for value in (args.rtol, args.atol)):
-        p.error("negative comparison tolerance")
+    if args.seed < 0 or not 0 <= args.dropout < 1:
+        p.error("nonnegative seed and dropout in [0, 1) required")
+    if args.capacity is not None and args.capacity < 1:
+        p.error("capacity must be positive")
+    if not 0 < args.warmup_steps < args.steps:
+        p.error("warmup must be positive and less than steps")
+    if any(
+        value is not None and (not math.isfinite(value) or value < 0)
+        for value in (args.rtol, args.atol)
+    ):
+        p.error("comparison tolerances must be finite and nonnegative")
     return args
 
 
@@ -132,7 +167,16 @@ def main(argv=None):
         require_pinned()
     if args.detach and not args.dry_run:
         return benchmark_launcher.launch(
-            [sys.executable, "-u", "-m", __spec__.name, *argv, "--foreground"],
+            [
+                sys.executable,
+                "-u",
+                "-m",
+                __spec__.name,
+                *argv,
+                "--foreground",
+                "--output",
+                str(args.output),
+            ],
             args.output.with_name(args.output.name + "-launcher"),
             name="shared-tree",
             session=args.tmux_session,

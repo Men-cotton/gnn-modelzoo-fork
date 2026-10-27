@@ -77,7 +77,11 @@ def main():
             stored = torch.load(snapshot, weights_only=True)
             exact = refresh(model, b["features"], b["neighbors"], b["mask"])
             refresh_error = max(
-                (a - c).abs().max().item() for a, c in zip(stored["histories"], exact)
+                (
+                    (a - c).abs().max().item()
+                    for a, c in zip(stored["histories"], exact)
+                ),
+                default=0.0,
             )
             for a, c in zip(stored["histories"], exact):
                 torch.testing.assert_close(a, c, atol=args.atol, rtol=args.rtol)

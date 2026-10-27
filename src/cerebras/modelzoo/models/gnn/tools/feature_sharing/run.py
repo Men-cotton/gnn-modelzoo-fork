@@ -35,6 +35,8 @@ def main():
     p.add_argument("--steps", type=int)
     p.add_argument("--warmup-steps", type=int, default=WARMUP_STEPS)
     args = p.parse_args()
+    if args.warmup_steps < 1:
+        p.error("warmup must be positive")
     if args.backend == "CSX":
         from cerebras.modelzoo.tools.job_source import require_pinned
 
@@ -49,7 +51,7 @@ def main():
             "max_steps"
         ]
     )
-    if steps < len(dataset) or not 0 <= args.warmup_steps < steps:
+    if steps < len(dataset) or args.warmup_steps >= steps:
         p.error("run must cover the complete frozen window, with warmup < steps")
     args.output.mkdir(parents=True, exist_ok=False)
     options = dict(artifact_dir=str(args.output.resolve() / "runtime"))
@@ -158,7 +160,7 @@ def main():
         if len(records) != steps or not (args.output / "checkpoint.mdl").is_file():
             raise RuntimeError("missing activations or final checkpoint")
     rate = None
-    if not args.compile_only and args.warmup_steps > 0:
+    if not args.compile_only:
         interval = (
             records[-1]["elapsed_s"] - records[args.warmup_steps - 1]["elapsed_s"]
         )

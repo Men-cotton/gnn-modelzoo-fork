@@ -419,7 +419,7 @@ def train(args):
     if (
         effective_activation_steps == 1
         and len(records) == steps
-        and 0 < args.warmup_steps < steps
+        and args.warmup_steps < steps
     ):
         elapsed = (
             records[-1]["elapsed_since_execute_s"]
@@ -465,18 +465,23 @@ def train(args):
 
 
 def add_prepare_arguments(parser):
-    parser.add_argument("--data-dir", type=Path, default=DATA)
+    parser.add_argument("--data-dir", type=Path)
     parser.add_argument(
-        "--dataset", choices=["ogbn-arxiv", "ogbn-products"], default="ogbn-arxiv"
+        "--dataset",
+        type=lambda name: "ogbn-" + name.removeprefix("ogbn-"),
+        choices=["ogbn-arxiv", "ogbn-products"],
     )
     parser.add_argument("--fanout", type=int)
     parser.add_argument("--hidden", type=int)
     parser.add_argument("--layers", type=int)
     parser.add_argument("--dropout", type=float)
-    parser.add_argument("--refresh-device", default="cpu", choices=["cpu", "cuda"])
+    parser.add_argument("--refresh-device", choices=["cpu", "cuda"])
 
 
-def apply_prepare_defaults(args):
+def apply_prepare_defaults(args, parser):
+    args.dataset = args.dataset or "ogbn-arxiv"
+    args.data_dir = args.data_dir or DATA
+    args.refresh_device = args.refresh_device or "cpu"
     config = load_config(args.dataset)["trainer"]
     model = config["init"]["model"]["architecture"]
     loader = config["fit"]["train_dataloader"]
@@ -490,6 +495,10 @@ def apply_prepare_defaults(args):
     ):
         if getattr(args, name) is None:
             setattr(args, name, value)
+    if min(args.hidden, args.layers, args.fanout, args.batch_size) < 1:
+        parser.error("hidden size, layers, fanout and batch size must be positive")
+    if args.seed < 0 or not 0 <= args.dropout < 1:
+        parser.error("nonnegative seed and dropout in [0, 1) required")
     return config
 
 
@@ -516,7 +525,9 @@ def main():
     parser.add_argument("--compile-only", action="store_true")
     parser.add_argument("--compile-dir", type=Path)
     args = parser.parse_args()
-    apply_prepare_defaults(args)
+    if args.action == "train" and args.warmup_steps < 1:
+        parser.error("warmup must be positive")
+    apply_prepare_defaults(args, parser)
     if args.action == "train" and args.backend == "CSX":
         from cerebras.modelzoo.tools.job_source import require_pinned
 

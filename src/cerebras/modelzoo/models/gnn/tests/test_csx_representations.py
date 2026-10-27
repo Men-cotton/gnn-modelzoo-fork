@@ -19,24 +19,61 @@ from cerebras.modelzoo.tools import job_plan, job_source
 
 
 class CSXRepresentationTests(unittest.TestCase):
-    def test_catalog_parsers_are_side_effect_free(self):
+    def test_catalog_defaults_survive_detached_launch(self):
         catalog = job_plan.load_catalog()
         with tempfile.TemporaryDirectory() as temporary:
-            output = Path(temporary) / "output"
             for name in ("csx-shared-tree", "csx-history-pilot", "csx-history"):
                 job = catalog["jobs"][name]
                 driver = importlib.import_module(job["module"])
-                argv = [
-                    *job["arguments"],
+                with patch.object(driver, "ROOT", Path(temporary)):
+                    args = driver.parse_args(job["arguments"])
+                    self.assertEqual(args.backend, "CSX")
+                    self.assertTrue(args.detach)
+                    self.assertTrue(
+                        args.output.is_relative_to(Path(temporary) / "model_dirs")
+                    )
+                    self.assertFalse(args.output.exists())
+                    with patch.object(
+                        driver.benchmark_launcher, "launch", return_value=0
+                    ) as launch:
+                        driver.main([*job["arguments"], "--backend", "CPU"])
+                    command, launcher_dir = launch.call_args.args
+                    child = driver.parse_args(command[4:])
+                    self.assertFalse(child.detach)
+                    self.assertEqual(
+                        launcher_dir,
+                        child.output.with_name(child.output.name + "-launcher"),
+                    )
+                    self.assertFalse(child.output.exists())
+
+    def test_reused_inputs_reject_preparation_overrides(self):
+        catalog = job_plan.load_catalog()
+        for name in ("csx-shared-tree", "csx-history-pilot", "csx-history"):
+            driver = importlib.import_module(catalog["jobs"][name]["module"])
+            with self.subTest(job=name), contextlib.redirect_stderr(io.StringIO()):
+                with self.assertRaises(SystemExit) as failure:
+                    driver.parse_args(["--input", "prepared", "--dropout", "0"])
+                self.assertEqual(failure.exception.code, 2)
+
+    def test_history_refresh_device_reaches_later_epochs(self):
+        from cerebras.modelzoo.models.gnn.tools.history_embedding import campaign
+
+        stdout = io.StringIO()
+        with contextlib.redirect_stdout(stdout):
+            campaign.main(
+                [
                     "--input",
-                    "input with spaces",
-                    "--output",
-                    str(output),
+                    "prepared",
+                    "--refresh-device",
+                    "cuda",
+                    "--epochs",
+                    "2",
+                    "--dry-run",
                 ]
-                args = driver.parse_args(argv)
-                self.assertEqual(args.backend, "CSX")
-                self.assertTrue(args.detach)
-                self.assertFalse(output.exists())
+            )
+        commands = [shlex.split(line) for line in stdout.getvalue().splitlines()]
+        refresh = next(command for command in commands if "refresh" in command)
+        self.assertEqual(refresh[refresh.index("--refresh-device") + 1], "cuda")
 
     def test_history_dry_run_inherits_python_and_preserves_paths(self):
         from cerebras.modelzoo.models.gnn.tools.history_embedding import pilot

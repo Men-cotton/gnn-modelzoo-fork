@@ -1,6 +1,7 @@
 """Prepare and run the serial representation benchmark."""
 
 import argparse
+from datetime import datetime, timezone
 from cerebras.modelzoo.models.gnn.tools.csx_backend import WARMUP_STEPS
 import json
 import shlex
@@ -13,6 +14,7 @@ from cerebras.modelzoo.models.gnn.tools.history_embedding.hardware import (
     apply_prepare_defaults,
 )
 from cerebras.modelzoo.tools import benchmark_launcher
+from cerebras.modelzoo.tools.job_plan import ROOT
 from cerebras.modelzoo.tools.job_source import require_pinned
 import time
 
@@ -20,7 +22,11 @@ import time
 def parse_args(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--input", type=Path, help="Reuse prepared inputs")
-    parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument(
+        "--output",
+        type=Path,
+        help="Default: model_dirs/history_benchmark/<UTC timestamp>",
+    )
     parser.add_argument("--backend", choices=["CPU", "CSX"], default="CSX")
     parser.add_argument("--batch-size", type=int)
     parser.add_argument("--steps", type=int)
@@ -37,16 +43,34 @@ def parse_args(argv=None):
     parser.add_argument("--dry-run", action="store_true")
     benchmark_launcher.add_arguments(parser)
     args = parser.parse_args(argv)
-    config = apply_prepare_defaults(args)
+    if args.input and any(
+        value is not None
+        for value in (
+            args.dataset,
+            args.data_dir,
+            args.hidden,
+            args.layers,
+            args.fanout,
+            args.dropout,
+            args.refresh_device,
+        )
+    ):
+        parser.error("--input cannot be combined with input preparation options")
+    config = apply_prepare_defaults(args, parser)
     if args.steps is None:
         args.steps = config["init"]["loop"]["max_steps"]
     if args.input:
         args.input = args.input.resolve()
-    args.output = args.output.resolve()
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S.%fZ")
+    args.output = (
+        args.output or ROOT / "model_dirs/history_benchmark" / stamp
+    ).resolve()
+    if len(args.cases) != len(set(args.cases)):
+        parser.error("duplicate cases; use --repeats to repeat each case")
     if args.repeats < 1:
-        raise ValueError("repeats must be positive")
-    if args.batch_size < 1 or args.steps < 1 or not 0 <= args.warmup_steps < args.steps:
-        parser.error("positive batch size/steps and warmup < steps required")
+        parser.error("repeats must be positive")
+    if args.batch_size < 1 or not 0 < args.warmup_steps < args.steps:
+        parser.error("positive batch size and 0 < warmup < steps required")
     return args
 
 
@@ -57,7 +81,16 @@ def main(argv=None):
         require_pinned()
     if args.detach and not args.dry_run:
         return benchmark_launcher.launch(
-            [sys.executable, "-u", "-m", __spec__.name, *argv, "--foreground"],
+            [
+                sys.executable,
+                "-u",
+                "-m",
+                __spec__.name,
+                *argv,
+                "--foreground",
+                "--output",
+                str(args.output),
+            ],
             args.output.with_name(args.output.name + "-launcher"),
             name="history-pilot",
             session=args.tmux_session,

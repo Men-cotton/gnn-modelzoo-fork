@@ -3,9 +3,14 @@
 Run from the repository checkout after the usual `./setup.sh` dataset preparation:
 
 ```bash
-benchmark_scripts/cerebras/run_shared_tree.sh \
-  --dataset arxiv --output model_dirs/shared-tree-01
+benchmark_scripts/cerebras/run_shared_tree.sh
 ```
+
+With no arguments, use arxiv and a new UTC-timestamped directory under the
+pinned checkout's `model_dirs/shared_tree/` (bound to this run's outputs).
+`--output` explicitly selects a different location; relative paths are resolved
+from the caller's directory. The launcher reports its log/output location.
+`--dataset` accepts both `arxiv`/`products` and their `ogbn-` names.
 
 This uses the ordinary catalog, pinned source and detached tmux launcher.
 `--foreground` runs in the terminal; `--dry-run` previews the commands. Each
@@ -35,8 +40,10 @@ same features with `torch.gather`. Preparation uses `BaseGraphDataSource` and
 the native sampler. Missing data prints the existing `download_datasets`
 command; this experiment does not download data.
 
-`--input <directory>` reuses a previously prepared window; its stored model,
-batch size, seed and fanouts take precedence over preparation options.
+`--input <directory>` reuses a previously prepared window and its stored model,
+batch size, seed and fanouts. Preparation options (`--dataset`, `--data-dir`,
+`--batch-size`, `--fanouts`, `--hidden`, `--dropout`, `--seed`, `--capacity`)
+cannot be combined with `--input`; prepare a new window to change them.
 `--data-dir` selects the same datasets root used by ordinary GNN jobs.
 `--batch-size`, `--hidden`, `--fanouts`, `--dropout`, `--seed`, `--steps` and
 `--warmup-steps` are explicit overrides applied equally to both cases.
@@ -47,7 +54,10 @@ runs record `comparison.status=not_checked` and completion as `executed`.
 For a deterministic numerical comparison, use `--dropout 0` when preparing a
 new window. The same invocation then compares every captured loss/logit and
 final model, optimizer and scaler state. FP16 tolerance defaults to 0.01;
-CPU checks are exact. This check is reported separately from execution.
+CPU checks are exact. `--rtol` and `--atol` apply only to this dropout-zero
+comparison and must be finite and nonnegative. This check is reported
+separately from execution. `--warmup-steps` must be positive and less than
+`--steps`; the client rate excludes receipts before that boundary.
 
 The remaining experimental differences from ordinary training are deliberate:
 only the first, second and tail sampled batches are frozen and repeated;
