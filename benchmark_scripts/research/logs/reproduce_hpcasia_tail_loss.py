@@ -219,7 +219,7 @@ def configure(args):
 
 def make_dataset(args, config, dtype):
     if args.graph_loader == "bounded":
-        from benchmark_scripts.research.logs.local_ogb_graph import load_local_ogb_graph
+        from cerebras.modelzoo.models.gnn.research.ogb import load_local_ogb_graph
         from cerebras.modelzoo.models.gnn.data_processing.samplers.neighbor_tree import (
             GraphSAGENeighborSamplerDataset,
         )
@@ -418,7 +418,7 @@ def main():
                 "loss_definition": "instantaneous pre-update supervised-target mean at every step",
                 "control": "epoch target permutation only; sampler seed and neighbors remain fixed",
                 "script_sha256": file_sha256(__file__),
-                "bounded_loader_sha256": file_sha256(Path(__file__).with_name("local_ogb_graph.py"))}
+                "bounded_loader_sha256": file_sha256(ROOT / "src/cerebras/modelzoo/models/gnn/research/ogb.py")}
     cgroup_line = next(line for line in Path("/proc/self/cgroup").read_text().splitlines()
                        if line.startswith("0::"))
     cgroup_root = Path("/sys/fs/cgroup") / cgroup_line[3:].lstrip("/")

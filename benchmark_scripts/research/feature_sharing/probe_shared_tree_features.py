@@ -14,9 +14,10 @@ import time
 import numpy as np
 import torch
 
-ROOT = Path(__file__).resolve().parents[3]
 from benchmark_scripts.research.logs.local_factorial_sampler import FixedCyclicTreeProvider
-from benchmark_scripts.research.logs.local_ogb_graph import load_local_ogb_graph
+from cerebras.modelzoo.models.gnn.research.ogb import load_local_ogb_graph
+
+ROOT = Path(__file__).resolve().parents[3]
 
 
 def pack(dataset, tree, group_size, capacity):

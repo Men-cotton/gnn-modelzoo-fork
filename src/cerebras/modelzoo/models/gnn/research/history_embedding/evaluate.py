@@ -10,8 +10,10 @@ from scipy import sparse
 import torch
 import cerebras.pytorch as cstorch
 
-from benchmark_scripts.research.history_embedding.core import HistorySAGE
-from benchmark_scripts.research.history_embedding.data import full_neighbor_infer
+from cerebras.modelzoo.models.gnn.research.history_embedding.core import HistorySAGE
+from cerebras.modelzoo.models.gnn.research.history_embedding.data import (
+    full_neighbor_infer,
+)
 
 
 def main():

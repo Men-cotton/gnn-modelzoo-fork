@@ -16,8 +16,10 @@ for grad in (1e-6, 1e-3, 1.0):
     p, q = [torch.nn.Parameter(torch.tensor([1.0])) for _ in range(2)]
     a = cs.optim.AdamW([p], lr=.003, eps=1e-6, weight_decay=0)
     b = torch.optim.AdamW([q], lr=.003, eps=1e-6, weight_decay=0, foreach=False)
-    p.grad = torch.tensor([grad]); q.grad = torch.tensor([grad])
-    a.step(); b.step()
+    p.grad = torch.tensor([grad])
+    q.grad = torch.tensor([grad])
+    a.step()
+    b.step()
     print('OPTIMIZER_ONE_STEP', {'gradient':grad, 'cs_weight':p.item(), 'torch_weight':q.item(), 'cs_update':1-p.item(), 'torch_update':1-q.item()})
     assert p.item() != q.item()
 
@@ -26,7 +28,8 @@ for dataset in ('arxiv', 'products'):
     arch = cfg['trainer']['init']['model']['architecture']
     fixed = GraphSAGE(arch['n_feat'], arch['hidden_dim'], 3, .5, 'mean', arch['n_class'])
     pyg = get_model(cfg)
-    n = lambda m: sum(p.numel() for p in m.parameters())
+    def n(m):
+        return sum(p.numel() for p in m.parameters())
     print('PARAMETERS',dataset, {'cs':n(fixed), 'pyg':n(pyg), 'difference':n(fixed)-n(pyg), 'cs_biases':[name for name,p in fixed.named_parameters() if 'bias' in name], 'pyg_biases':[name for name,p in pyg.named_parameters() if 'bias' in name]})
     assert n(fixed)-n(pyg)==3072
     groups = configure_param_groups(fixed, {'weight_decay':.0005})

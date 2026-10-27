@@ -16,7 +16,9 @@ import time
 
 import torch
 
-from benchmark_scripts.research.history_embedding.core import (
+from cerebras.modelzoo.models.gnn.research import DATA
+
+from cerebras.modelzoo.models.gnn.research.history_embedding.core import (
     HistorySAGE,
     HistoryStore,
     masked_loss,
@@ -185,7 +187,7 @@ def prepare_bundle(args):
     args.output.mkdir(parents=True, exist_ok=False)
     if args.data_dir is None:
         raise ValueError("Real OGB preparation requires --data-dir")
-    from benchmark_scripts.research.history_embedding.data import load_graph
+    from cerebras.modelzoo.models.gnn.research.history_embedding.data import load_graph
 
     graph = load_graph(args.data_dir, args.dataset, args.fanout)
     features, neighbors, mask, labels = (
@@ -274,25 +276,17 @@ def train(args):
     torch.manual_seed(args.seed + args.epoch)
     backend_options = dict(artifact_dir=str(args.output / "runtime"))
     if args.backend == "CSX":
-        if not args.cluster_config:
-            raise ValueError(
-                "CSX needs --cluster-config JSON with the site's address and mounts"
-            )
-        cluster_options = json.loads(args.cluster_config.read_text())
-        if "REPLACE_WITH" in json.dumps(cluster_options):
-            raise ValueError(
-                "Replace the example cluster paths/address with the site's configuration"
-            )
-        if (
-            cluster_options.get("num_workers_per_csx", 1) != 1
-            or cluster_options.get("num_csx", 1) != 1
-        ):
-            raise ValueError("Pilot requires num_csx=1 and num_workers_per_csx=1")
-        cluster_options.update(num_csx=1, num_workers_per_csx=1)
+        from cerebras.modelzoo.models.gnn.research.csx import (
+            backend_options as csx_backend_options,
+        )
+
         backend_options.update(
-            cluster_config=cstorch.distributed.ClusterConfig(**cluster_options),
-            compile_dir=str(args.compile_dir.resolve()),
-            compile_only=args.compile_only,
+            csx_backend_options(
+                args.output,
+                args.compile_dir,
+                [args.bundle, args.snapshot, args.checkpoint],
+                args.compile_only,
+            )
         )
     elif args.compile_only:
         raise ValueError("compile-only is a CSX operation")
@@ -457,7 +451,7 @@ def main():
     parser.add_argument("--bundle", type=Path)
     parser.add_argument("--snapshot", type=Path)
     parser.add_argument("--checkpoint", type=Path)
-    parser.add_argument("--data-dir", type=Path)
+    parser.add_argument("--data-dir", type=Path, default=DATA)
     parser.add_argument(
         "--dataset", choices=["ogbn-arxiv", "ogbn-products"], default="ogbn-arxiv"
     )
@@ -478,12 +472,13 @@ def main():
     parser.add_argument("--export-history", action="store_true")
     parser.add_argument("--activation-steps", type=int, default=20)
     parser.add_argument("--warmup-steps", type=int, default=20)
-    parser.add_argument("--cluster-config", type=Path)
     parser.add_argument("--compile-only", action="store_true")
-    parser.add_argument(
-        "--compile-dir", type=Path, default=Path("/tmp/history-embedding-compile")
-    )
+    parser.add_argument("--compile-dir", type=Path)
     args = parser.parse_args()
+    if args.action == "train" and args.backend == "CSX":
+        from cerebras.modelzoo.tools.job_source import require_pinned
+
+        require_pinned()
     torch.set_num_threads(4)
     {"prepare": prepare_bundle, "train": train, "refresh": refresh_snapshot}[
         args.action

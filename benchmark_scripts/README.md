@@ -173,11 +173,7 @@ PYTHONPATH=src .venv/bin/python -m unittest discover \
 
 ## 実データの研究実験
 
-[research/](research/README.md)にHistory・正確な生特徴mean前集約・Tree特徴共有の
-実行コードを置く。`research/run.sh` は既存のuv projectを
-`uv run --no-sync` で使い、`launcher` 指定では共通tmuxランチャーを起動する。
-Wafer-GNN-managerは保存結果の解析のみを担当する。
-
-```bash
-benchmark_scripts/research/run.sh history_embedding.pilot --help
-```
+[研究実験の手順](research/README.md)を参照する。実装は通常の
+`cerebras.modelzoo.models.gnn.research` 配下に置き、`csx-shared-tree`、
+`csx-history-pilot`、`csx-history` のcatalog entryから既存のsource固定・tmux起動を使う。
+ALCFのSDK環境と共有データをそのまま使い、別のcluster JSONや研究用launcherは設けない。

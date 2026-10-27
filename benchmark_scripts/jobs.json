@@ -186,6 +186,33 @@
           "path": "params_gcn_ogbn_arxiv_accuracy_nocache.yaml"
         }
       ]
+    },
+    "csx-shared-tree": {
+      "kind": "driver",
+      "module": "cerebras.modelzoo.models.gnn.research.feature_sharing.device.pilot",
+      "arguments": [
+        "--backend",
+        "CSX",
+        "--detach"
+      ]
+    },
+    "csx-history-pilot": {
+      "kind": "driver",
+      "module": "cerebras.modelzoo.models.gnn.research.history_embedding.pilot",
+      "arguments": [
+        "--backend",
+        "CSX",
+        "--detach"
+      ]
+    },
+    "csx-history": {
+      "kind": "driver",
+      "module": "cerebras.modelzoo.models.gnn.research.history_embedding.campaign",
+      "arguments": [
+        "--backend",
+        "CSX",
+        "--detach"
+      ]
     }
   },
   "sets": {

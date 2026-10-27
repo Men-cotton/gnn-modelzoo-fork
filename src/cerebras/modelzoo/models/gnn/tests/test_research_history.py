@@ -3,7 +3,7 @@ import unittest
 
 import torch
 
-from benchmark_scripts.research.history_embedding.core import (
+from cerebras.modelzoo.models.gnn.research.history_embedding.core import (
     HistorySAGE,
     HistoryStore,
     infer,
@@ -137,7 +137,7 @@ class HistoryTests(unittest.TestCase):
 
     def test_sdk_sample_survives_dataloader_tuple_to_list_conversion(self):
         from torch.utils.data import default_convert
-        from benchmark_scripts.research.history_embedding.hardware import (
+        from cerebras.modelzoo.models.gnn.research.history_embedding.hardware import (
             StaticModel,
             pack_batch,
         )
@@ -169,6 +169,24 @@ class HistoryTests(unittest.TestCase):
         expected.sum().backward()
         for p, q in zip(self.model.parameters(), other.parameters()):
             torch.testing.assert_close(p.grad, q.grad)
+
+    def test_preaggregation_preserves_native_dropout_order_and_gradients(self):
+        model = HistorySAGE(4, 7, 3, 2, dropout=0.35)
+        other = copy.deepcopy(model)
+        roots = torch.tensor([3, 0, 5])
+        dense = prepare_tree(self.x, self.n, self.mask, self.labels, roots, 3, 5)
+        means = prepare_tree_mean(
+            self.x, self.mean, self.n, self.mask, self.labels, roots, 3, 5
+        )
+        torch.manual_seed(29)
+        expected = model(dense)[0]
+        torch.manual_seed(29)
+        actual = other(means)[0]
+        torch.testing.assert_close(actual, expected)
+        masked_loss(expected, dense["labels"], dense["valid"]).backward()
+        masked_loss(actual, means["labels"], means["valid"]).backward()
+        for a, b in zip(model.parameters(), other.parameters()):
+            torch.testing.assert_close(a.grad, b.grad)
 
     def test_native_model_semantics(self):
         # Existing native model remains the semantic reference, without edits.

@@ -228,10 +228,10 @@ def main():
         gpu=torch.cuda.get_device_name(), memory_limits=limits, runs=[], cells={},
         condition_policy={name: POLICIES[name] for name in args.conditions},
         loss_definition="instantaneous pre-update supervised-target mean at every step",
-        local_source_sha256={str(Path(__file__).with_name(name)): reference.file_sha256(
-            Path(__file__).with_name(name)) for name in
+        local_source_sha256={str((Path(__file__).parent / name)): reference.file_sha256(
+            (Path(__file__).parent / name)) for name in
             (Path(__file__).name, "local_factorial_sampler.py", "local_resampled_sampler.py",
-             "local_ogb_graph.py", "reproduce_hpcasia_tail_loss.py", "run_hpcasia_sampling_fix.py")})
+             str(ROOT / "src/cerebras/modelzoo/models/gnn/research/ogb.py"), "reproduce_hpcasia_tail_loss.py", "run_hpcasia_sampling_fix.py")})
     try:
         config, config_path = reference.configure(args)
         expected_config = json.loads((args.baseline / "resolved_config.json").read_text())

@@ -8,8 +8,8 @@ import cerebras.pytorch as cstorch
 from cerebras.pytorch.utils.data.utils import infer_batch_size
 import torch
 
-from benchmark_scripts.research.history_embedding.core import tensor_bytes
-from benchmark_scripts.research.history_embedding.hardware import (
+from cerebras.modelzoo.models.gnn.research.history_embedding.core import tensor_bytes
+from cerebras.modelzoo.models.gnn.research.history_embedding.hardware import (
     SnapshotDataset,
     StaticModel,
 )

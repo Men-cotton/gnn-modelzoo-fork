@@ -11,7 +11,9 @@ import time
 import numpy as np
 import torch
 
-from benchmark_scripts.research.history_embedding.core import (
+from cerebras.modelzoo.models.gnn.research import DATA
+
+from cerebras.modelzoo.models.gnn.research.history_embedding.core import (
     HistorySAGE,
     HistoryStore,
     infer,
@@ -24,7 +26,7 @@ from benchmark_scripts.research.history_embedding.core import (
     tensor_bytes,
     to_device,
 )
-from benchmark_scripts.research.history_embedding.data import (
+from cerebras.modelzoo.models.gnn.research.history_embedding.data import (
     full_neighbor_infer,
     load_graph,
 )
@@ -289,7 +291,7 @@ def trial(args, graph, mode, seed):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--data-dir", type=Path, required=True)
+    parser.add_argument("--data-dir", type=Path, default=DATA)
     parser.add_argument(
         "--dataset", default="ogbn-arxiv", choices=["ogbn-arxiv", "ogbn-products"]
     )

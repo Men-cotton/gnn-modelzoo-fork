@@ -5,7 +5,7 @@ import torch
 
 
 def load_graph(data_dir, name="ogbn-arxiv", fanout=10, seed=20261027):
-    from benchmark_scripts.research.logs.local_ogb_graph import (
+    from cerebras.modelzoo.models.gnn.research.ogb import (
         canonical_undirected_csr,
         local_ogb_paths,
     )

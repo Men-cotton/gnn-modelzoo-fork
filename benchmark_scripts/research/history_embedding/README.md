@@ -2,7 +2,7 @@
 
 This prototype evaluates a sampled history variant with host mean aggregation. The reference architecture has the same two biased linear transformations, ReLU placement, dropout placement and classifier as the existing `gnn-modelzoo` GraphSAGE. The runtime lives in this ModelZoo fork; Wafer-GNN-manager owns the saved-result analysis.
 
-`core.py` implements the model, a single-owner history store, fixed-shape batches, recursive expansion and exact layerwise refresh. `run.py` compares native CPU/CUDA learning. `hardware.py` and `campaign.py` implement a separate Cerebras SDK path. Local CUDA timing is not a prediction of CSX throughput.
+`cerebras.modelzoo.models.gnn.research.history_embedding.core` extends native GraphSAGE with a single-owner history store, fixed-shape batches, recursive expansion and exact layerwise refresh. `run.py` compares native CPU/CUDA learning. `hardware.py` and `campaign.py` implement a separate Cerebras SDK path. Local CUDA timing is not a prediction of CSX throughput.
 
 ## What is compared
 
@@ -24,13 +24,12 @@ Snapshot runs cache both histories and their neighbor means. Online writes inval
 ## Execution
 
 See [real-data deployment](DEPLOY.md) for preparation, direct CSX execution,
-tmux, numerical replay and full-neighbor checkpoint evaluation. All entrypoints
-run from the fork root as Python modules with `PYTHONPATH=$PWD:$PWD/src`.
+tmux, numerical replay and full-neighbor checkpoint evaluation. Runtime entrypoints use the normal `PYTHONPATH=$PWD/src`; ALCF jobs use the existing job catalog and pinned source.
 
 For local CUDA reproduction, use the fork environment and existing OGB data:
 
 ```bash
-PYTHONPATH="$PWD:$PWD/src" uv run --no-sync -- python -m benchmark_scripts.research.history_embedding.run \
+PYTHONPATH="$PWD/src" uv run --no-sync -- python -m cerebras.modelzoo.models.gnn.research.history_embedding.run \
   --data-dir src/cerebras/modelzoo/models/gnn/data/datasets --device cuda \
   --output /tmp/history-arxiv-comparison --epochs 10 --seeds 42 43 44 \
   --modes tree tree_mean snapshot1 snapshot5 snapshot32 online1
@@ -43,8 +42,7 @@ numerical checker uses the SDK optimizer too. Timing includes host batches,
 transfers, updates, history returns and refresh; native CUDA validation and
 checkpoint serialization are outside its training timer.
 
-The sampler helpers under `../logs` and the feature-sharing probes under
-`../feature_sharing` also belong to this fork. Plotting and capacity analysis
+The local reproduction scripts under `../logs` also belong to this fork. Plotting and capacity analysis
 remain in Wafer-GNN-manager. There is no runtime import from that repository.
 
 ## Sources

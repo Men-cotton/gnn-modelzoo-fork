@@ -1,21 +1,32 @@
-# GNN research execution
+# GNN research experiments
 
-This directory owns experimental GNN execution, data preparation and numerical
-reference runs. Invoke Python entrypoints with `python -m` from the fork root;
-use `uv run --no-sync -- python -m MODULE` with `PYTHONPATH=$PWD:$PWD/src`
-in the client and both paths in the input Worker.
-`benchmark_scripts/research/run.sh MODULE ...` sets this up automatically.
-The script supports `launcher` for the existing tmux launcher; all driver
-subprocesses also use this uv project.
-Use the existing `cerebras.modelzoo.tools.benchmark_launcher` for tmux.
+The executable models and input factories live in
+[`cerebras.modelzoo.models.gnn.research`](../../src/cerebras/modelzoo/models/gnn/research).
+They use the same `src` import path, installed environment and shared data
+location as the other GNN jobs. There is no separate research shell dispatcher
+or site configuration file.
 
-- [History and exact feature means](history_embedding/DEPLOY.md): full real OGB
-  graphs, SDK CPU/CSX runs, CUDA comparisons, checkpoint evaluation.
-- [Shared tree features](feature_sharing/device/DEPLOY.md): real-data paired
-  dense/dictionary probes importing the fork's native GraphSAGE.
-- `logs`: existing local HPC Asia reproduction runners and their samplers.
-  Historical baselines are explicit `--baseline` paths; factorial also accepts
-  `--sampling-baseline`. These are local reproduction tools, not new CSX jobs.
+- [Shared tree features](feature_sharing/device/DEPLOY.md): native GraphSAGE
+  with dense inputs or a dictionary of shared features.
+- [History and exact feature means](history_embedding/DEPLOY.md): recursive,
+  exact raw-feature means and immutable epoch histories.
+- `logs/` and `feature_sharing/probe_shared_tree_features.py`: local historical
+  reproduction tools. They remain local probes; their `--baseline` arguments
+  refer to saved results.
 
-Wafer-GNN-manager retains raw results, plots and scripts that analyze them.
-It must not contain a second executable GNN implementation or runtime archive.
+On ALCF, use the existing shared checkout, `.venv`, SDK authentication and
+processed OGB datasets. The `csx-shared-tree`, `csx-history-pilot` and
+`csx-history` entries in `benchmark_scripts/jobs.json` use the existing
+`benchmark_launcher jobs` path. It fixes one committed source per run and
+launches the driver in tmux. Child processes inherit that Python environment;
+Worker imports use the pinned `src`. Inputs, outputs and compilation files
+must be on the shared filesystem, as for the existing GNN campaigns.
+
+`jobs --dry-run` previews without launching. Uncommitted edits are excluded
+from a source run. Local development checks can call modules directly:
+
+```bash
+PYTHONPATH=src uv run --no-sync -- python -m cerebras.modelzoo.models.gnn.research.history_embedding.pilot --help
+```
+
+Wafer-GNN-manager retains saved-result analysis, plots and raw results.

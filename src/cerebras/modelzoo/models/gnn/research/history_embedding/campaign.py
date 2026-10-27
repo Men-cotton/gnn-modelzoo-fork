@@ -9,11 +9,14 @@ import json
 from pathlib import Path
 import shlex
 import subprocess
-from benchmark_scripts.research.runtime import module_command
+import sys
+
+from cerebras.modelzoo.tools import benchmark_launcher
+from cerebras.modelzoo.tools.job_source import require_pinned
 import time
 
 
-def main():
+def parse_args(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--input",
@@ -30,15 +33,30 @@ def main():
     parser.add_argument("--batch-size", type=int, default=256)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--lr", type=float, default=0.003)
-    parser.add_argument("--cluster-config", type=Path)
     parser.add_argument("--evaluation-device", choices=["cpu", "cuda"], default="cpu")
     parser.add_argument("--dry-run", action="store_true")
-    args = parser.parse_args()
+    benchmark_launcher.add_arguments(parser)
+    args = parser.parse_args(argv)
+    args.input = args.input.resolve()
+    args.output = args.output.resolve()
     if args.epochs < 1:
         raise ValueError("epochs must be positive")
-    if args.backend == "CSX" and not args.cluster_config:
-        raise ValueError("CSX requires --cluster-config")
-    entry = "benchmark_scripts.research.history_embedding.hardware"
+    return args
+
+
+def main(argv=None):
+    argv = list(sys.argv[1:] if argv is None else argv)
+    args = parse_args(argv)
+    if args.backend == "CSX" and not args.dry_run:
+        require_pinned()
+    if args.detach and not args.dry_run:
+        return benchmark_launcher.launch(
+            [sys.executable, "-u", "-m", __spec__.name, *argv, "--foreground"],
+            args.output.with_name(args.output.name + "-launcher"),
+            name="history-campaign",
+            session=args.tmux_session,
+        )
+    entry = "cerebras.modelzoo.models.gnn.research.history_embedding.hardware"
     bundle = args.input.resolve() / "bundle.pt"
     snapshot = args.input.resolve() / "snapshot-0.pt"
     checkpoint = None
@@ -48,7 +66,7 @@ def main():
     events = []
     for epoch in range(args.epochs):
         destination = args.output.resolve() / f"epoch-{epoch}"
-        command = module_command(entry) + [
+        command = [sys.executable, "-u", "-m", entry] + [
             "train",
             "--backend",
             args.backend,
@@ -73,8 +91,6 @@ def main():
             command += ["--snapshot", str(snapshot)]
         if checkpoint:
             command += ["--checkpoint", str(checkpoint)]
-        if args.cluster_config:
-            command += ["--cluster-config", str(args.cluster_config.resolve())]
         print(shlex.join(command), flush=True)
         if not args.dry_run:
             start = time.perf_counter()
@@ -90,9 +106,12 @@ def main():
                 )
             )
         checkpoint = destination / "checkpoint.mdl"
-        evaluation = module_command(
-            "benchmark_scripts.research.history_embedding.evaluate"
-        ) + [
+        evaluation = [
+            sys.executable,
+            "-u",
+            "-m",
+            "cerebras.modelzoo.models.gnn.research.history_embedding.evaluate",
+        ] + [
             "--bundle",
             str(bundle),
             "--checkpoint",
@@ -119,7 +138,7 @@ def main():
             )
         if args.mode == "history" and epoch + 1 < args.epochs:
             snapshot = args.output.resolve() / f"snapshot-{epoch + 1}.pt"
-            command = module_command(entry) + [
+            command = [sys.executable, "-u", "-m", entry] + [
                 "refresh",
                 "--bundle",
                 str(bundle),
@@ -158,4 +177,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

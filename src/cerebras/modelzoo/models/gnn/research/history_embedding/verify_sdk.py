@@ -11,8 +11,11 @@ from pathlib import Path
 import cerebras.pytorch as cstorch
 import torch
 
-from benchmark_scripts.research.history_embedding.core import masked_loss, refresh
-from benchmark_scripts.research.history_embedding.hardware import (
+from cerebras.modelzoo.models.gnn.research.history_embedding.core import (
+    masked_loss,
+    refresh,
+)
+from cerebras.modelzoo.models.gnn.research.history_embedding.hardware import (
     SnapshotDataset,
     StaticModel,
 )

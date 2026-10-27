@@ -65,16 +65,11 @@ def local_ogb_paths(dataset_name: str, data_dir: str | Path) -> tuple[Path, Path
         raise ValueError("Only ogbn-arxiv and ogbn-products are supported")
     root = Path(data_dir).expanduser().resolve()
     underscore_name = dataset_name.replace("-", "_")
-    candidates = (
-        root / dataset_name / underscore_name,
-        root / underscore_name,
-        root,
-    )
-    for directory in candidates:
-        processed = directory / "processed/geometric_data_processed.pt"
-        train_split = directory / "split" / split_names[dataset_name] / "train.csv.gz"
-        if processed.is_file() and train_split.is_file():
-            return processed, train_split
+    directory = root / dataset_name / underscore_name
+    processed = directory / "processed/geometric_data_processed.pt"
+    train_split = directory / "split" / split_names[dataset_name] / "train.csv.gz"
+    if processed.is_file() and train_split.is_file():
+        return processed, train_split
     raise FileNotFoundError(
         f"Existing processed graph and training split for {dataset_name} "
         f"were not found under {root}; this helper never downloads data"

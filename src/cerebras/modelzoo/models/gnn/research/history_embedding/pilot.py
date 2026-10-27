@@ -4,11 +4,14 @@ import argparse
 import json
 from pathlib import Path
 import subprocess
-from benchmark_scripts.research.runtime import module_command
+import sys
+
+from cerebras.modelzoo.tools import benchmark_launcher
+from cerebras.modelzoo.tools.job_source import require_pinned
 import time
 
 
-def main():
+def parse_args(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--input", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
@@ -24,18 +27,35 @@ def main():
         default=["tree", "tree_mean"],
         choices=["tree", "tree_mean", "history", "history-export"],
     )
-    parser.add_argument("--cluster-config", type=Path)
     parser.add_argument("--dry-run", action="store_true")
-    args = parser.parse_args()
+    benchmark_launcher.add_arguments(parser)
+    args = parser.parse_args(argv)
+    args.input = args.input.resolve()
+    args.output = args.output.resolve()
     if args.repeats < 1:
         raise ValueError("repeats must be positive")
-    if args.backend == "CSX" and not args.cluster_config:
-        raise ValueError("CSX requires --cluster-config")
     if args.phase == "compile" and args.backend != "CSX":
         raise ValueError("CPU is not a CSX compiler check")
+    if args.batch_size < 1 or args.steps < 1 or not 0 <= args.warmup_steps < args.steps:
+        parser.error("positive batch size/steps and warmup < steps required")
+    return args
+
+
+def main(argv=None):
+    argv = list(sys.argv[1:] if argv is None else argv)
+    args = parse_args(argv)
+    if args.backend == "CSX" and not args.dry_run:
+        require_pinned()
+    if args.detach and not args.dry_run:
+        return benchmark_launcher.launch(
+            [sys.executable, "-u", "-m", __spec__.name, *argv, "--foreground"],
+            args.output.with_name(args.output.name + "-launcher"),
+            name="history-pilot",
+            session=args.tmux_session,
+        )
+    entry = "cerebras.modelzoo.models.gnn.research.history_embedding.hardware"
     if not args.dry_run:
         args.output.mkdir(parents=True, exist_ok=False)
-    entry = "benchmark_scripts.research.history_embedding.hardware"
     records = []
     cases = [
         (name.removesuffix("-export"), name.endswith("-export")) for name in args.cases
@@ -43,7 +63,7 @@ def main():
     for repeat in range(args.repeats):
         for mode, export in cases:
             name = f"{mode}{'-export' if export else ''}-r{repeat}"
-            command = module_command(entry) + [
+            command = [sys.executable, "-u", "-m", entry] + [
                 "train",
                 "--backend",
                 args.backend,
@@ -70,8 +90,6 @@ def main():
                 command.append("--export-history")
             if args.phase == "compile":
                 command.append("--compile-only")
-            if args.cluster_config:
-                command += ["--cluster-config", str(args.cluster_config.resolve())]
             if args.dry_run:
                 import shlex
 
@@ -102,4 +120,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

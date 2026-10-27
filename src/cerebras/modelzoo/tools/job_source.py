@@ -448,6 +448,9 @@ def absolute_arguments(argv):
         "--data-root",
         "--base",
         "--output-root",
+        "--input",
+        "--verification",
+        "--compile-dir",
     }
     for index, item in enumerate(argv):
         key, separator, value = item.partition("=")

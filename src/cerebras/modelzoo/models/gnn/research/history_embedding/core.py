@@ -1,4 +1,4 @@
-"""Fixed-shape history GraphSAGE, independent of the Cerebras runtime.
+"""Fixed-shape history GraphSAGE using the native GraphSAGE parameters and loss.
 
 Mean aggregation permits sending the boundary mean rather than F embeddings.
 Current in-batch neighbors retain their autograd paths. Historical boundary
@@ -9,58 +9,44 @@ the recursive baseline and a fresh history have identical forward semantics.
 from __future__ import annotations
 
 import torch
-from torch import nn
 from torch.nn import functional as F
 
-
-class Layer(nn.Module):
-    def __init__(self, inputs, outputs, activate, dropout):
-        super().__init__()
-        self.self_linear = nn.Linear(inputs, outputs)
-        self.neighbor_linear = nn.Linear(inputs, outputs)
-        self.activation = nn.ReLU() if activate else nn.Identity()
-        self.dropout = nn.Dropout(dropout) if activate else nn.Identity()
-
-    def forward(self, x, mean):
-        return self.dropout(
-            self.activation(self.self_linear(x) + self.neighbor_linear(mean))
-        )
+from cerebras.modelzoo.models.gnn.architectures.graphsage import GraphSAGE
+from cerebras.modelzoo.models.gnn.task.loss import masked_classification_loss
+from cerebras.modelzoo.models.gnn.data_processing.batches import GraphSAGEBatch
 
 
-class HistorySAGE(nn.Module):
+class HistorySAGE(GraphSAGE):
     def __init__(self, input_dim, hidden_dim, num_layers, num_classes, dropout=0.0):
-        super().__init__()
-        if min(input_dim, hidden_dim, num_layers, num_classes) < 1:
-            raise ValueError("Dimensions and layer count must be positive")
-        self.layers = nn.ModuleList(
-            [
-                Layer(
-                    input_dim if i == 0 else hidden_dim,
-                    hidden_dim,
-                    i != num_layers - 1,
-                    dropout,
-                )
-                for i in range(num_layers)
-            ]
+        super().__init__(
+            input_dim, hidden_dim, num_layers, dropout, "mean", num_classes
         )
-        self.final_dropout = nn.Dropout(dropout)
-        self.classifier = nn.Linear(hidden_dim, num_classes)
 
     def forward(self, batch):
+        if "node_features" in batch and "node_means" not in batch:
+            payload = GraphSAGEBatch(
+                node_features=batch["node_features"],
+                node_masks=tuple(
+                    torch.ones(x.shape[0], dtype=torch.bool, device=x.device)
+                    for x in batch["node_features"]
+                ),
+                neighbor_masks=batch["neighbor_masks"],
+                labels=batch["labels"],
+                target_mask=batch["valid"],
+            )
+            return super().forward(payload), ()
         if "node_features" in batch:
             states = list(batch["node_features"])
             for i, layer in enumerate(self.layers):
-                updated = []
-                for depth in range(len(self.layers) - i):
+                updated = [None] * (len(self.layers) - i)
+                for depth in range(len(self.layers) - i - 1, -1, -1):
                     if i == 0 and "node_means" in batch:
                         mean = batch["node_means"][depth]
                     else:
-                        m = batch["neighbor_masks"][depth]
-                        child = states[depth + 1].reshape(*m.shape, -1)
-                        mean = (child * m.unsqueeze(-1)).sum(1) / m.sum(1).clamp_min(
-                            1
-                        ).unsqueeze(-1)
-                    updated.append(layer(states[depth], mean))
+                        mean = self._aggregate_neighbors(
+                            states[depth + 1], batch["neighbor_masks"][depth]
+                        )
+                    updated[depth] = layer(states[depth], mean)
                 states = updated
             return self.classifier(self.final_dropout(states[0])), ()
         x = batch["x"]
@@ -80,31 +66,19 @@ class HistorySAGE(nn.Module):
 
     def tree(self, features, neighbors, mask, roots):
         """Exact recursive expansion with gradients through every occurrence."""
-        ids = [roots]
-        for _ in self.layers:
-            ids.append(neighbors[ids[-1]].flatten())
-        states = [features[index] for index in ids]
-        for i, layer in enumerate(self.layers):
-            updated = []
-            for depth in range(len(self.layers) - i):
-                m = mask[ids[depth]]
-                child = states[depth + 1].reshape(
-                    len(ids[depth]), neighbors.shape[1], -1
-                )
-                mean = (child * m.unsqueeze(-1)).sum(1) / m.sum(1).clamp_min(
-                    1
-                ).unsqueeze(-1)
-                updated.append(layer(states[depth], mean))
-            states = updated
-        return self.classifier(self.final_dropout(states[0]))
+        batch = prepare_tree(
+            features,
+            neighbors,
+            mask,
+            torch.zeros(len(features), dtype=torch.long, device=features.device),
+            roots,
+            self.num_layers,
+        )
+        return self(batch)[0]
 
 
 def masked_loss(logits, labels, valid):
-    selected = valid & (labels >= 0)
-    safe_labels = torch.where(selected, labels, 0).long()
-    loss = F.cross_entropy(logits.float(), safe_labels, reduction="none")
-    weights = selected.to(torch.float32)
-    return (loss * weights).sum() / weights.sum().clamp_min(1.0)
+    return masked_classification_loss(logits, labels, valid, disable_log_softmax=True)
 
 
 @torch.no_grad()

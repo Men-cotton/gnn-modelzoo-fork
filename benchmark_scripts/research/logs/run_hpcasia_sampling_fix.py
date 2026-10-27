@@ -216,9 +216,9 @@ def main():
         differences_from_cs3=["native CUDA and torch.optim.AdamW/GradScaler",
             "hidden width 128 instead of 1024", "no validation or CS-3 execution segments",
             "GPU feature store with original feature gathering", "modified local input provider"],
-        local_source_sha256={str(Path(__file__).with_name(name)): reference.file_sha256(
-            Path(__file__).with_name(name)) for name in
-            (Path(__file__).name, "local_resampled_sampler.py", "local_ogb_graph.py",
+        local_source_sha256={str((Path(__file__).parent / name)): reference.file_sha256(
+            (Path(__file__).parent / name)) for name in
+            (Path(__file__).name, "local_resampled_sampler.py", str(ROOT / "src/cerebras/modelzoo/models/gnn/research/ogb.py"),
              "reproduce_hpcasia_tail_loss.py")}, runs=[])
     try:
         config, config_path = reference.configure(args)
