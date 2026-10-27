@@ -136,6 +136,7 @@ def main():
         loss, logits = compiled(batch)
         if scaler:
             scaler.scale(loss).backward()
+            scaler.unscale_(optimizer)
             scaler.step(optimizer)
             scaler.update()
         else:

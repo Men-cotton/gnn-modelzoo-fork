@@ -386,6 +386,7 @@ def train(args):
         loss = masked_loss(logits, batch["labels"][0], batch["valid"][0])
         if scaler:
             scaler.scale(loss).backward()
+            scaler.unscale_(optimizer)
             scaler.step(optimizer)
             scaler.update()
         else:
