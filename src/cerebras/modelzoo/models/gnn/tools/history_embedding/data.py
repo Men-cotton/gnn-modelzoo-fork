@@ -4,29 +4,41 @@ import numpy as np
 import torch
 
 
-def load_graph(data_dir, name="ogbn-arxiv", fanout=10, seed=20261027):
+def load_graph(data_dir, name="ogbn-arxiv", fanout=15, seed=42):
     from cerebras.modelzoo.models.gnn.data_processing.sources import BaseGraphDataSource
+    from cerebras.modelzoo.models.gnn.data_processing.samplers.neighbor_tree import (
+        GraphSAGENeighborSamplerDataset,
+    )
     from torch_geometric.utils import to_scipy_sparse_matrix
 
     source = BaseGraphDataSource(
         dataset_name=name,
         data_dir=str(data_dir),
         current_split="train",
-        float_dtype=torch.float32,
+        float_dtype=torch.float16,
         label_dtype=torch.int64,
         adj_normalization_fn=None,
     )
     features, edge_index, labels, split_masks = source.prepare_graph_components()
+    # Match native input quantization; accumulate host means in FP32.
+    features = features.float()
     # The native source has already canonicalized and symmetrized the edges.
     adjacency = to_scipy_sparse_matrix(edge_index, num_nodes=len(features)).tocsr()
-    neighbors = np.zeros((len(features), fanout), dtype=np.int64)
-    mask = np.zeros_like(neighbors, dtype=np.bool_)
-    rng = np.random.default_rng(seed)
-    for node in range(len(features)):
-        row = adjacency.indices[adjacency.indptr[node] : adjacency.indptr[node + 1]]
-        selected = rng.choice(row, fanout, replace=False) if len(row) > fanout else row
-        neighbors[node, : len(selected)] = selected
-        mask[node, : len(selected)] = True
+    sampler = GraphSAGENeighborSamplerDataset(
+        features=features,
+        edge_index=edge_index,
+        labels=labels,
+        mask=split_masks["train"],
+        edge_index_is_undirected=True,
+        fanouts=[fanout],
+        batch_size=1,
+        shuffle=False,
+        pad_id=0,
+        seed=seed,
+    )
+    neighbors, mask = sampler._sample_neighbors(
+        np.arange(len(features)), np.ones(len(features), dtype=bool), fanout, 0
+    )
     splits = {
         split: split_masks[split].nonzero(as_tuple=True)[0]
         for split in ("train", "valid", "test")
@@ -46,7 +58,7 @@ def load_graph(data_dir, name="ogbn-arxiv", fanout=10, seed=20261027):
             "undirected_edges": adjacency.nnz,
             "fanout": fanout,
             "sample_seed": seed,
-            "sampling": "frozen_uniform_without_replacement",
+            "sampling": "frozen_native_root_neighbors",
             "input_dim": features.shape[1],
             "classes": int(labels.max()) + 1,
             "split_counts": {k: len(v) for k, v in splits.items()},

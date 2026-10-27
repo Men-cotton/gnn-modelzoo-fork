@@ -13,6 +13,9 @@ tmuxが必要な実行では、外側の一箇所で
 | `cerebras/run_modelzoo.sh` | 選択した設定で一つの学習を前景実行 |
 | `cerebras/run_worker_diagnostics.sh` | 保存した設定から診断を逐次実行 |
 | `cerebras/run_non_gnn.sh` | 入力準備・条件ごとの反復測定・集計まで逐次実行。既定でtmux起動 |
+| `cerebras/run_shared_tree.sh` | 同じ sampled tree の dense/dictionary 入力を比較。準備から実行まで一度の投入。既定でtmux起動 |
+| `cerebras/run_history_benchmark.sh` | tree・raw-feature mean・history 表現の固定区間測定。既定でtmux起動 |
+| `cerebras/run_history_campaign.sh` | epochごとの学習・host refresh・full-graph validation。既定でtmux起動 |
 | `pegasus/submit_*` | `qsub`で実行をスケジューラへ渡す |
 
 Worker実験の既存コマンド、監視、CSX job labelは
@@ -173,12 +176,7 @@ PYTHONPATH=src .venv/bin/python -m unittest discover \
 
 ## Cerebras の GraphSAGE 表現比較
 
-実行手順は既存の `cerebras/` 配下に置く。
-
-- [Tree 特徴共有](cerebras/feature_sharing/README.md): dense/dictionary 入力の比較。
-- [History と生特徴 mean 前集約](cerebras/history_embedding/README.md): 固定形状の学習・評価。
-
-実行モジュールは `cerebras.modelzoo.models.gnn.tools` に置く。データ読み込みは既存の
-`BaseGraphDataSource` を使い、未準備なら `download_datasets.py` の実行を案内して停止する。`csx-shared-tree`、`csx-history-pilot`、
-`csx-history` は既存 catalog・source 固定・tmux 起動を使う。
-ALCF の SDK 環境と既存のデータ準備処理を使い、別の cluster JSON は設けない。
+入口は `cerebras/run_shared_tree.sh`、`cerebras/run_history_benchmark.sh`、
+`cerebras/run_history_campaign.sh`。他のcampaignと同じcatalog・source固定・tmuxを使う。
+詳細は [Tree特徴共有](../src/cerebras/modelzoo/models/gnn/docs/shared_tree.md) と
+[History表現](../src/cerebras/modelzoo/models/gnn/docs/history_embedding.md) を参照する。

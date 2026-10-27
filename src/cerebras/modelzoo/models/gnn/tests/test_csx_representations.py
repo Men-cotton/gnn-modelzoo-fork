@@ -33,8 +33,6 @@ class CSXRepresentationTests(unittest.TestCase):
                     "--output",
                     str(output),
                 ]
-                if name == "csx-history-pilot":
-                    argv += ["--phase", "execute"]
                 args = driver.parse_args(argv)
                 self.assertEqual(args.backend, "CSX")
                 self.assertTrue(args.detach)
@@ -53,8 +51,6 @@ class CSXRepresentationTests(unittest.TestCase):
                         "input with spaces",
                         "--output",
                         str(output),
-                        "--phase",
-                        "execute",
                         "--dry-run",
                     ]
                 )
@@ -76,7 +72,7 @@ class CSXRepresentationTests(unittest.TestCase):
             [
                 "--input",
                 "input with spaces",
-                "--verification=verify/pilot.json",
+                "--data-dir=data/datasets",
                 "--compile-dir",
                 "compile cache",
             ]
@@ -86,7 +82,7 @@ class CSXRepresentationTests(unittest.TestCase):
             [
                 "--input",
                 str(Path("input with spaces").absolute()),
-                "--verification=" + str(Path("verify/pilot.json").absolute()),
+                "--data-dir=" + str(Path("data/datasets").absolute()),
                 "--compile-dir",
                 str(Path("compile cache").absolute()),
             ],

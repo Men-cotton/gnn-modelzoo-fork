@@ -1,7 +1,6 @@
-"""One dense or shared-feature SDK job. Use pilot.py for paired admission."""
+"""One SDK job in the shared-tree comparison."""
 
 import argparse
-from contextlib import nullcontext
 import json
 from pathlib import Path
 import time
@@ -10,6 +9,12 @@ import torch
 import cerebras.pytorch as cstorch
 
 from cerebras.modelzoo.models.gnn.gpu_measurements import logical_tensor_bytes
+from cerebras.modelzoo.models.gnn.tools.csx_backend import (
+    configure_precision,
+    configure_optimizer,
+    load_config,
+    WARMUP_STEPS,
+)
 
 from cerebras.modelzoo.models.gnn.tools.feature_sharing.core import (
     FrozenInputs,
@@ -25,12 +30,10 @@ def main():
     p.add_argument("--output", type=Path, required=True)
     p.add_argument("--mode", choices=["dense", "dictionary"], required=True)
     p.add_argument("--backend", choices=["CPU", "CSX"], default="CSX")
-    p.add_argument("--precision", choices=["fp32", "bf16"], default="bf16")
     p.add_argument("--compile-dir", type=Path)
     p.add_argument("--compile-only", action="store_true")
     p.add_argument("--steps", type=int)
-    p.add_argument("--warmup-steps", type=int, default=1)
-    p.add_argument("--capture-logits", action="store_true")
+    p.add_argument("--warmup-steps", type=int, default=WARMUP_STEPS)
     args = p.parse_args()
     if args.backend == "CSX":
         from cerebras.modelzoo.tools.job_source import require_pinned
@@ -38,7 +41,14 @@ def main():
         require_pinned()
     dataset = FrozenInputs(args.input.resolve(), args.mode)
     meta = dataset.metadata
-    steps = args.steps or len(dataset)
+    capture_logits = meta["model_config"]["dropout"] == 0
+    steps = (
+        args.steps
+        if args.steps is not None
+        else load_config(meta["source"]["dataset"])["trainer"]["init"]["loop"][
+            "max_steps"
+        ]
+    )
     if steps < len(dataset) or not 0 <= args.warmup_steps < steps:
         p.error("run must cover the complete frozen window, with warmup < steps")
     args.output.mkdir(parents=True, exist_ok=False)
@@ -52,16 +62,15 @@ def main():
                 args.compile_dir,
                 [args.input / "input.json"],
                 args.compile_only,
+                dataset=meta["source"]["dataset"],
             )
         )
     elif args.compile_only:
         p.error("compile-only requires CSX")
     torch.set_num_threads(4)
-    cstorch.amp.enable_mixed_precision(args.precision == "bf16")
-    if args.precision == "bf16":
-        cstorch.amp.set_half_dtype(torch.bfloat16)
     torch.manual_seed(meta["seed"])
     backend = cstorch.backend(args.backend, **options)
+    precision = configure_precision(args.backend, meta["source"]["dataset"])
     with backend.device:
         model = SharedTreeModel(
             meta["model_config"], meta["logical_batch_size"], args.mode
@@ -71,17 +80,20 @@ def main():
     )
     model.train()
     compiled = cstorch.compile(model, backend)
-    optimizer = cstorch.optim.AdamW(
-        model.parameters(), lr=0.003, eps=1e-6, weight_decay=0.0
+    optimizer = configure_optimizer(model, meta["source"]["dataset"])
+    scaler = (
+        cstorch.amp.GradScaler(loss_scale=precision["loss_scaling_factor"])
+        if precision["enabled"]
+        else None
     )
     loader = cstorch.utils.data.DataLoader(
-        input_fn, str(args.input.resolve()), args.mode
+        input_fn, str(args.input.resolve()), args.mode, args.backend
     )
     torch.manual_seed(meta["seed"])
     records = []
 
     @cstorch.step_closure
-    def capture(loss, logits, sample_id, valid):
+    def capture(loss, logits, sample_id, valid, skipped):
         if not torch.isfinite(loss):
             raise ValueError("nonfinite training loss")
         index = len(records)
@@ -93,9 +105,10 @@ def main():
             sample_id=expected,
             loss=float(loss),
             valid_targets=int(valid.sum()),
+            skipped_optimizer_steps=int(skipped),
             elapsed_s=time.perf_counter() - start,
         )
-        if args.capture_logits:
+        if capture_logits:
             if not torch.isfinite(logits).all():
                 raise ValueError("nonfinite logits")
             torch.save(logits.cpu(), args.output / f"logits-{index + 1:05d}.pt")
@@ -110,6 +123,7 @@ def main():
                 "model": model.state_dict(),
                 "optimizer": optimizer.state_dict(),
                 "steps": steps,
+                "grad_scaler": scaler.state_dict() if scaler else None,
             },
             str(args.output / "checkpoint.mdl"),
         )
@@ -117,15 +131,20 @@ def main():
     @cstorch.trace
     def step(batch):
         optimizer.zero_grad()
-        with cstorch.amp.autocast() if args.precision == "bf16" else nullcontext():
-            loss, logits = compiled(batch)
-        loss.backward()
-        optimizer.step()
+        loss, logits = compiled(batch)
+        if scaler:
+            scaler.scale(loss).backward()
+            scaler.step(optimizer)
+            scaler.update()
+        else:
+            loss.backward()
+            optimizer.step()
         capture(
             loss,
-            logits if args.capture_logits else (),
+            logits if capture_logits else (),
             batch["sample_id"],
             batch["target_mask"],
+            scaler.get_num_skipped_steps() if scaler else torch.tensor(0),
         )
         checkpoint()
 
@@ -148,13 +167,13 @@ def main():
         status="compiled_not_executed" if args.compile_only else "executed",
         backend=args.backend,
         mode=args.mode,
-        precision=args.precision,
+        precision=precision,
         sdk=cstorch.__version__,
         torch=torch.__version__,
         input_sha256=file_hash(args.input / "input.json"),
         planned_steps=steps,
         captured_steps=len(records),
-        capture_logits=args.capture_logits,
+        capture_logits=capture_logits,
         full_batch_input_bytes=logical_tensor_bytes(dataset[0]),
         logical_batch_size=meta["logical_batch_size"],
         sdk_batch_size=1,
@@ -163,7 +182,7 @@ def main():
         client_observed_targets_per_s_after_warmup=rate,
         timing_scope="client activation receipts including capture overhead; not isolated device time",
         scope=meta["scope"],
-        optimizer="cstorch.optim.AdamW lr=0.003 eps=1e-6 weight_decay=0",
+        optimizer={"name": "cstorch.optim.AdamW", "options": optimizer.defaults},
     )
     (args.output / "result.json").write_text(json.dumps(result, indent=2) + "\n")
     print(json.dumps(result), flush=True)

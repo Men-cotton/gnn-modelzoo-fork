@@ -7,6 +7,7 @@ from pathlib import Path
 
 import numpy as np
 import torch
+from cerebras.modelzoo.models.gnn.tools.csx_backend import load_config
 
 from cerebras.modelzoo.models.gnn.tools.feature_sharing.core import (
     SharedTreeModel,
@@ -21,17 +22,30 @@ def main():
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--dataset", choices=["arxiv", "products"], default="arxiv")
     parser.add_argument("--data-dir", type=Path, default=DATA)
-    parser.add_argument("--batch-size", type=int, default=128)
-    parser.add_argument("--fanouts", type=int, nargs="+", default=[15, 10, 5])
-    parser.add_argument("--hidden", type=int, default=128)
+    parser.add_argument("--batch-size", type=int)
+    parser.add_argument("--fanouts", type=int, nargs="+")
+    parser.add_argument("--hidden", type=int)
     parser.add_argument(
         "--capacity",
         type=int,
         help="Fixed rows including zero; default covers this frozen window",
     )
-    parser.add_argument("--dropout", type=float, default=0.0)
-    parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--dropout", type=float)
+    parser.add_argument("--seed", type=int)
     args = parser.parse_args()
+    config = load_config(args.dataset)["trainer"]
+    model = config["init"]["model"]["architecture"]
+    loader = config["fit"]["train_dataloader"]
+    if args.batch_size is None:
+        args.batch_size = loader["batch_size"]
+    if args.fanouts is None:
+        args.fanouts = loader["fanouts"]
+    if args.hidden is None:
+        args.hidden = model["hidden_dim"]
+    if args.dropout is None:
+        args.dropout = model["dropout"]
+    if args.seed is None:
+        args.seed = config["init"]["seed"]
     if (
         min(args.batch_size, args.hidden, *args.fanouts) < 1
         or not 0 <= args.dropout < 1

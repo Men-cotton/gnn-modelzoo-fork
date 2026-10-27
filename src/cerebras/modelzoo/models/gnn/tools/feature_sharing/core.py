@@ -127,11 +127,16 @@ class FrozenInputs(torch.utils.data.Dataset):
         return batch
 
 
-def input_fn(input_dir, mode):
+def input_fn(input_dir, mode, backend="CSX"):
     import cerebras.pytorch as cstorch
+    from cerebras.modelzoo.models.gnn.tools.csx_backend import loader_options
 
     if cstorch.distributed.is_streamer() and cstorch.distributed.num_streamers() != 1:
         raise ValueError("feature-sharing pilot requires exactly one input streamer")
+    dataset = FrozenInputs(input_dir, mode)
     return torch.utils.data.DataLoader(
-        FrozenInputs(input_dir, mode), batch_size=None, shuffle=False, num_workers=0
+        dataset,
+        batch_size=None,
+        shuffle=False,
+        **loader_options(backend, dataset.metadata["source"]["dataset"]),
     )

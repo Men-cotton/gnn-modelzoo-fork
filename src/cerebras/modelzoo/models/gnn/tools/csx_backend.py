@@ -5,14 +5,61 @@ from pathlib import Path
 from cerebras.modelzoo.common.utils.run.config_loader import load_params_file
 from cerebras.modelzoo.tools.job_source import pin_cluster_config, require_pinned
 
+WARMUP_STEPS = 40
 
-def backend_options(output, compile_dir, inputs, compile_only=False):
+
+def load_config(dataset="arxiv"):
+    name = dataset.removeprefix("ogbn-")
+    return load_params_file(
+        Path(__file__).resolve().parents[1] / f"configs/autotune/{name}_w40.yaml"
+    )
+
+
+def configure_optimizer(model, dataset, lr=None):
+    import cerebras.pytorch as cstorch
+    from cerebras.modelzoo.common.optim_utils import configure_param_groups
+    from cerebras.modelzoo.models.gnn.gpu_policy import adamw_kwargs
+
+    options = adamw_kwargs(load_config(dataset)["trainer"]["init"])
+    if lr is not None:
+        options["lr"] = lr
+    return cstorch.optim.AdamW(configure_param_groups(model, options), **options)
+
+
+def loader_options(backend, dataset):
+    config = load_config(dataset)["trainer"]["fit"]["train_dataloader"]
+    if backend == "CPU":
+        return dict(num_workers=0)
+    return {
+        key: config[key]
+        for key in (
+            "num_workers",
+            "prefetch_factor",
+            "persistent_workers",
+            "pin_memory",
+        )
+    }
+
+
+def configure_precision(backend, dataset):
+    import cerebras.pytorch as cstorch
+
+    if backend == "CPU":
+        cstorch.amp.enable_mixed_precision(False)
+        return {"enabled": False, "fp16_type": "float32"}
+    precision = load_config(dataset)["trainer"]["init"]["precision"]
+    cstorch.amp.enable_mixed_precision(precision["enabled"])
+    cstorch.amp.set_half_dtype(precision["fp16_type"])
+    return precision
+
+
+def backend_options(
+    output, compile_dir, inputs, compile_only=False, *, dataset="arxiv"
+):
     import cerebras.pytorch as cstorch
 
     require_pinned()
-    config = load_params_file(
-        Path(__file__).resolve().parents[1] / "configs/autotune/arxiv_w40.yaml"
-    )
+    config = load_config(dataset)
     pin_cluster_config(config)
     cluster = config["trainer"]["init"]["backend"]["cluster_config"]
     compile_dir = (compile_dir or output / "compile").resolve()

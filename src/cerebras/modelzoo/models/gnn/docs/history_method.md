@@ -15,15 +15,15 @@ This prototype evaluates a sampled history variant with host mean aggregation. T
 | `snapshot32` | Cached hidden representations | All-node refresh every 32 optimizer steps and at epoch starts |
 | `online1` | Cached hidden representations | Training-root writes each step, plus all-node refresh each epoch |
 
-The frozen sampled graph chooses up to F unique neighbors per node uniformly without replacement. The same graph is used at every depth. This makes the tree and fresh history forward computations comparable. It differs from the native `[15,10,5]` sampler; native depth-dependent neighbor contexts cannot be represented by one context-free history per node without changing the approximation. Full-neighbor validation uses the original undirected graph, with fresh weights and no historical embeddings. Training labels are never read from validation/test nodes. All-node refresh uses their features and edges, as in transductive node classification.
+The frozen sampled graph reuses the native sampler at root depth for every node. The same graph is used at every depth. This makes the tree and fresh history forward computations comparable. It differs from the native `[15,10,5]` sampler; native depth-dependent neighbor contexts cannot be represented by one context-free history per node without changing the approximation. Full-neighbor validation uses the original undirected graph, with fresh weights and no historical embeddings. Training labels are never read from validation/test nodes. All-node refresh uses their features and edges, as in transductive node classification.
 
 For layer l, the host sends `boundary_mean[l] = sum(history[neighbors outside batch]) / degree`. The model adds the current in-batch neighbor sum divided by the same degree, then applies its learned transformation. This preserves in-batch gradients and stops gradients through boundary histories. Even an exactly fresh history does not restore the omitted boundary gradient. Mean aggregation is essential to this representation; GAT attention and nonlinear per-edge message functions require another derivation.
 
-Snapshot runs cache both histories and their neighbor means. Online writes invalidate the cached means. Padded roots never update node zero. Versions record the weights used to produce an embedding; age counts completed optimizer updates, and does not measure the recursively inherited approximation error. Refresh runs with dropout disabled. Cached state is not a trainable parameter or an optimizer embedding table.
+Snapshot runs cache both histories and their neighbor means. Online writes invalidate the cached means. Padded roots never update node zero. Versions record the weights used to produce an embedding; age counts training steps, including updates skipped by loss scaling, and does not measure the recursively inherited approximation error. Refresh runs with dropout disabled. Cached state is not a trainable parameter or an optimizer embedding table.
 
 ## Execution
 
-See [real-data deployment](README.md) for preparation, direct CSX execution,
+See [ALCF execution](history_embedding.md) for preparation, direct CSX execution,
 tmux, numerical replay and full-neighbor checkpoint evaluation. Runtime entrypoints use the normal `PYTHONPATH=$PWD/src`; ALCF jobs use the existing job catalog and pinned source.
 
 For local CUDA reproduction, use the fork environment and existing OGB data:
@@ -35,12 +35,12 @@ PYTHONPATH="$PWD/src" uv run --no-sync -- python -m cerebras.modelzoo.models.gnn
   --modes tree tree_mean snapshot1 snapshot5 snapshot32 online1
 ```
 
-Default learning uses H128/L3/F10/B256, dropout 0.5, FP32 and native AdamW
-lr0.003 with zero weight decay. SDK runs use cstorch.optim.AdamW; optimizer
-implementations have different epsilon/bias-correction placement. The SDK
-numerical checker uses the SDK optimizer too. Timing includes host batches,
-transfers, updates, history returns and refresh; native CUDA validation and
-checkpoint serialization are outside its training timer.
+Model, batch, dropout and optimizer defaults follow the existing dataset
+throughput preset. Native CUDA uses the existing GPU precision and optimizer
+policy; CPU checks use FP32. SDK jobs use cstorch.optim.AdamW and dynamic loss
+scaling. Timing includes host batches, transfers, updates, history returns
+and refresh; local validation and checkpoint serialization are outside the
+native training timer.
 
 Plotting and capacity analysis remain in Wafer-GNN-manager. There is no runtime import from that repository.
 

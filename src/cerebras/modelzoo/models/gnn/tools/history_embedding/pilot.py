@@ -1,11 +1,17 @@
-"""Serial compiler/transfer pilot; invoke through the existing tmux launcher."""
+"""Prepare and run the serial representation benchmark."""
 
 import argparse
+from cerebras.modelzoo.models.gnn.tools.csx_backend import WARMUP_STEPS
 import json
+import shlex
 from pathlib import Path
 import subprocess
 import sys
 
+from cerebras.modelzoo.models.gnn.tools.history_embedding.hardware import (
+    add_prepare_arguments,
+    apply_prepare_defaults,
+)
 from cerebras.modelzoo.tools import benchmark_launcher
 from cerebras.modelzoo.tools.job_source import require_pinned
 import time
@@ -13,14 +19,15 @@ import time
 
 def parse_args(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--input", type=Path, required=True)
+    parser.add_argument("--input", type=Path, help="Reuse prepared inputs")
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--backend", choices=["CPU", "CSX"], default="CSX")
-    parser.add_argument("--phase", choices=["compile", "execute"], required=True)
-    parser.add_argument("--batch-size", type=int, default=256)
-    parser.add_argument("--steps", type=int, default=128)
-    parser.add_argument("--warmup-steps", type=int, default=20)
+    parser.add_argument("--batch-size", type=int)
+    parser.add_argument("--steps", type=int)
+    parser.add_argument("--warmup-steps", type=int, default=WARMUP_STEPS)
     parser.add_argument("--repeats", type=int, default=1)
+    parser.add_argument("--seed", type=int)
+    add_prepare_arguments(parser)
     parser.add_argument(
         "--cases",
         nargs="+",
@@ -30,12 +37,14 @@ def parse_args(argv=None):
     parser.add_argument("--dry-run", action="store_true")
     benchmark_launcher.add_arguments(parser)
     args = parser.parse_args(argv)
-    args.input = args.input.resolve()
+    config = apply_prepare_defaults(args)
+    if args.steps is None:
+        args.steps = config["init"]["loop"]["max_steps"]
+    if args.input:
+        args.input = args.input.resolve()
     args.output = args.output.resolve()
     if args.repeats < 1:
         raise ValueError("repeats must be positive")
-    if args.phase == "compile" and args.backend != "CSX":
-        raise ValueError("CPU is not a CSX compiler check")
     if args.batch_size < 1 or args.steps < 1 or not 0 <= args.warmup_steps < args.steps:
         parser.error("positive batch size/steps and warmup < steps required")
     return args
@@ -56,6 +65,39 @@ def main(argv=None):
     entry = "cerebras.modelzoo.models.gnn.tools.history_embedding.hardware"
     if not args.dry_run:
         args.output.mkdir(parents=True, exist_ok=False)
+    input_dir = args.input or args.output / "input"
+    if not args.input:
+        command = [
+            sys.executable,
+            "-u",
+            "-m",
+            entry,
+            "prepare",
+            "--output",
+            str(input_dir),
+            "--data-dir",
+            str(args.data_dir.resolve()),
+            "--dataset",
+            args.dataset,
+            "--fanout",
+            str(args.fanout),
+            "--hidden",
+            str(args.hidden),
+            "--layers",
+            str(args.layers),
+            "--dropout",
+            str(args.dropout),
+            "--seed",
+            str(args.seed),
+            "--refresh-device",
+            args.refresh_device,
+        ]
+        print(shlex.join(command), flush=True)
+        if not args.dry_run:
+            with (args.output / "prepare.log").open("x") as log:
+                subprocess.run(
+                    command, stdout=log, stderr=subprocess.STDOUT, check=True
+                )
     records = []
     cases = [
         (name.removesuffix("-export"), name.endswith("-export")) for name in args.cases
@@ -70,13 +112,15 @@ def main(argv=None):
                 "--mode",
                 mode,
                 "--bundle",
-                str(args.input.resolve() / "bundle.pt"),
+                str(input_dir / "bundle.pt"),
                 "--snapshot",
-                str(args.input.resolve() / "snapshot-0.pt"),
+                str(input_dir / "snapshot-0.pt"),
                 "--output",
                 str(args.output.resolve() / name),
                 "--batch-size",
                 str(args.batch_size),
+                "--seed",
+                str(args.seed),
                 "--steps",
                 str(args.steps),
                 "--activation-steps",
@@ -88,11 +132,7 @@ def main(argv=None):
             ]
             if export:
                 command.append("--export-history")
-            if args.phase == "compile":
-                command.append("--compile-only")
             if args.dry_run:
-                import shlex
-
                 print(shlex.join(command))
                 continue
             start = time.perf_counter()
@@ -109,7 +149,7 @@ def main(argv=None):
             records.append(record)
             (args.output / "pilot.json").write_text(
                 json.dumps(
-                    dict(backend=args.backend, phase=args.phase, cases=records),
+                    dict(backend=args.backend, cases=records),
                     indent=2,
                 )
                 + "\n"

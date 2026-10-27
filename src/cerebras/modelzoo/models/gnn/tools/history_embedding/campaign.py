@@ -11,6 +11,10 @@ import shlex
 import subprocess
 import sys
 
+from cerebras.modelzoo.models.gnn.tools.history_embedding.hardware import (
+    add_prepare_arguments,
+    apply_prepare_defaults,
+)
 from cerebras.modelzoo.tools import benchmark_launcher
 from cerebras.modelzoo.tools.job_source import require_pinned
 import time
@@ -21,23 +25,27 @@ def parse_args(argv=None):
     parser.add_argument(
         "--input",
         type=Path,
-        required=True,
-        help="Prepared bundle.pt and snapshot-0.pt directory",
+        help="Reuse prepared bundle.pt and snapshot-0.pt directory",
     )
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--backend", choices=["CPU", "CSX"], default="CPU")
     parser.add_argument(
         "--mode", choices=["tree", "tree_mean", "history"], default="history"
     )
+    add_prepare_arguments(parser)
     parser.add_argument("--epochs", type=int, default=2)
-    parser.add_argument("--batch-size", type=int, default=256)
-    parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--lr", type=float, default=0.003)
+    parser.add_argument("--batch-size", type=int)
+    parser.add_argument("--seed", type=int)
+    parser.add_argument("--lr", type=float)
     parser.add_argument("--evaluation-device", choices=["cpu", "cuda"], default="cpu")
     parser.add_argument("--dry-run", action="store_true")
     benchmark_launcher.add_arguments(parser)
     args = parser.parse_args(argv)
-    args.input = args.input.resolve()
+    config = apply_prepare_defaults(args)
+    if args.lr is None:
+        args.lr = config["init"]["optimizer"]["AdamW"]["learning_rate"]
+    if args.input:
+        args.input = args.input.resolve()
     args.output = args.output.resolve()
     if args.epochs < 1:
         raise ValueError("epochs must be positive")
@@ -57,11 +65,44 @@ def main(argv=None):
             session=args.tmux_session,
         )
     entry = "cerebras.modelzoo.models.gnn.tools.history_embedding.hardware"
-    bundle = args.input.resolve() / "bundle.pt"
-    snapshot = args.input.resolve() / "snapshot-0.pt"
     checkpoint = None
     if not args.dry_run:
         args.output.mkdir(parents=True, exist_ok=False)
+    input_dir = args.input or args.output / "input"
+    if not args.input:
+        command = [
+            sys.executable,
+            "-u",
+            "-m",
+            entry,
+            "prepare",
+            "--output",
+            str(input_dir),
+            "--data-dir",
+            str(args.data_dir.resolve()),
+            "--dataset",
+            args.dataset,
+            "--fanout",
+            str(args.fanout),
+            "--hidden",
+            str(args.hidden),
+            "--layers",
+            str(args.layers),
+            "--dropout",
+            str(args.dropout),
+            "--seed",
+            str(args.seed),
+            "--refresh-device",
+            args.refresh_device,
+        ]
+        print(shlex.join(command), flush=True)
+        if not args.dry_run:
+            with (args.output / "prepare.log").open("x") as log:
+                subprocess.run(
+                    command, stdout=log, stderr=subprocess.STDOUT, check=True
+                )
+    bundle = input_dir / "bundle.pt"
+    snapshot = input_dir / "snapshot-0.pt"
     overall = time.perf_counter()
     events = []
     for epoch in range(args.epochs):

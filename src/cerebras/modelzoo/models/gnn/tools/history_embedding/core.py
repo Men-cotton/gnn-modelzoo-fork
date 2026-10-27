@@ -66,7 +66,7 @@ class HistorySAGE(GraphSAGE):
 
 
 def masked_loss(logits, labels, valid):
-    return masked_classification_loss(logits, labels, valid, disable_log_softmax=True)
+    return masked_classification_loss(logits, labels, valid)
 
 
 @torch.no_grad()
@@ -128,7 +128,7 @@ class HistoryStore:
 
     A frozen epoch snapshot may cache global neighbor means. Online writes
     invalidate those means; in that mode gather boundary rows for each batch.
-    Versions identify pre-forward weights by completed optimizer steps. Duplicate-ID/out-of-order writes
+    Versions identify pre-forward weights by completed training steps. Duplicate-ID/out-of-order writes
     are rejected before mutation. Padding never writes node zero.
     """
 

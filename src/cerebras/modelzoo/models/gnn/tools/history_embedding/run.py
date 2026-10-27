@@ -9,6 +9,14 @@ from pathlib import Path
 import time
 
 import torch
+import numpy as np
+from cerebras.modelzoo.models.gnn.gpu_policy import (
+    adamw_kwargs,
+    adamw_param_groups,
+    precision_dtype,
+    grad_scaler_kwargs,
+)
+from cerebras.modelzoo.models.gnn.tools.csx_backend import load_config
 
 from cerebras.modelzoo.models.gnn.gpu_measurements import logical_tensor_bytes
 
@@ -56,7 +64,13 @@ def trial(args, graph, mode, seed):
         args.dropout,
     ).to(device)
     initial_hash = state_hash(model)
-    optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=0.0)
+    config = load_config(args.dataset)["trainer"]["init"]
+    options = adamw_kwargs(config)
+    if args.lr is not None:
+        options["lr"] = args.lr
+    optimizer = torch.optim.AdamW(adamw_param_groups(model), **options)
+    dtype = precision_dtype(config) if device.type == "cuda" else torch.float32
+    scaler = torch.amp.GradScaler(device.type, **grad_scaler_kwargs(config, dtype))
     x, n, m, labels = (graph[k] for k in ("features", "neighbors", "mask", "labels"))
     gx, gn, gm = x.to(device), n.to(device), m.to(device)
     x_mean = neighbor_mean(gx, gn, gm).cpu()
@@ -86,7 +100,8 @@ def trial(args, graph, mode, seed):
         initial_model_sha256=initial_hash,
         device_name=torch.cuda.get_device_name() if device.type == "cuda" else "CPU",
         scope="sampled-history variant; native GPU/CPU, not Cerebras",
-        float_dtype="float32",
+        float_dtype=str(dtype),
+        optimizer_options=options,
         tf32=torch.backends.cuda.matmul.allow_tf32,
     )
     (output / "config.json").write_text(json.dumps(metadata, indent=2) + "\n")
@@ -108,8 +123,11 @@ def trial(args, graph, mode, seed):
                     ]
                 sync(device)
                 refresh_s = time.perf_counter() - t
-            generator = torch.Generator().manual_seed(seed * 1000 + epoch)
-            order = roots[torch.randperm(len(roots), generator=generator)]
+            order = roots[
+                torch.from_numpy(
+                    np.random.default_rng(seed + epoch).permutation(len(roots))
+                )
+            ]
             totals = dict(
                 prepare_s=0.0,
                 h2d_s=0.0,
@@ -171,10 +189,14 @@ def trial(args, graph, mode, seed):
                 totals["h2d_s"] += time.perf_counter() - t
                 t = time.perf_counter()
                 optimizer.zero_grad(set_to_none=True)
-                logits, hidden = model(batch)
-                loss = masked_loss(logits, batch["labels"], batch["valid"])
-                loss.backward()
-                optimizer.step()
+                with torch.autocast(
+                    device_type=device.type, dtype=dtype, enabled=dtype != torch.float32
+                ):
+                    logits, hidden = model(batch)
+                    loss = masked_loss(logits, batch["labels"], batch["valid"])
+                scaler.scale(loss).backward()
+                scaler.step(optimizer)
+                scaler.update()
                 sync(device)
                 totals["compute_s"] += time.perf_counter() - t
                 # Embeddings are from pre-update weights: tag that exact weight version.
@@ -296,12 +318,12 @@ def main():
     )
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--device", default="cuda")
-    parser.add_argument("--fanout", type=int, default=10)
-    parser.add_argument("--hidden", type=int, default=128)
-    parser.add_argument("--layers", type=int, default=3)
-    parser.add_argument("--batch-size", type=int, default=256)
-    parser.add_argument("--dropout", type=float, default=0.5)
-    parser.add_argument("--lr", type=float, default=0.003)
+    parser.add_argument("--fanout", type=int)
+    parser.add_argument("--hidden", type=int)
+    parser.add_argument("--layers", type=int)
+    parser.add_argument("--batch-size", type=int)
+    parser.add_argument("--dropout", type=float)
+    parser.add_argument("--lr", type=float)
     parser.add_argument("--epochs", type=int, default=10)
     parser.add_argument("--seeds", type=int, nargs="+", default=[42, 43, 44])
     parser.add_argument(
@@ -318,6 +340,18 @@ def main():
         ],
     )
     args = parser.parse_args()
+    config = load_config(args.dataset)["trainer"]
+    model = config["init"]["model"]["architecture"]
+    loader = config["fit"]["train_dataloader"]
+    for name, value in (
+        ("hidden", model["hidden_dim"]),
+        ("layers", model["num_layers"]),
+        ("dropout", model["dropout"]),
+        ("fanout", loader["fanouts"][0]),
+        ("batch_size", loader["batch_size"]),
+    ):
+        if getattr(args, name) is None:
+            setattr(args, name, value)
     torch.set_num_threads(4)
     torch.backends.cuda.matmul.allow_tf32 = False
     if args.device == "cuda" and not torch.cuda.is_available():

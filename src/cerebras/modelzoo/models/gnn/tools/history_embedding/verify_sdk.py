@@ -19,6 +19,7 @@ from cerebras.modelzoo.models.gnn.tools.history_embedding.hardware import (
     SnapshotDataset,
     StaticModel,
 )
+from cerebras.modelzoo.models.gnn.tools.csx_backend import configure_optimizer
 
 
 def main():
@@ -26,8 +27,8 @@ def main():
     parser.add_argument("--input", type=Path, required=True)
     parser.add_argument("--epoch0", type=Path, required=True)
     parser.add_argument("--epoch1", type=Path)
-    parser.add_argument("--atol", type=float, default=1e-6)
-    parser.add_argument("--rtol", type=float, default=1e-5)
+    parser.add_argument("--atol", type=float)
+    parser.add_argument("--rtol", type=float)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     torch.set_num_threads(4)
@@ -38,9 +39,15 @@ def main():
     model = StaticModel(**b["model_config"])
     model.load_state_dict(b["initial_model"])
     first = json.loads((args.epoch0 / "result.json").read_text())
-    optimizer = cstorch.optim.AdamW(
-        model.parameters(), lr=first["learning_rate"], eps=1e-8, weight_decay=0.0
+    optimizer = configure_optimizer(
+        model, b["source"]["dataset"], first["learning_rate"]
     )
+    mixed = first["precision"]["enabled"]
+    if args.atol is None:
+        args.atol = 0.01 if mixed else 1e-6
+    if args.rtol is None:
+        args.rtol = 0.01 if mixed else 1e-5
+    skipped_steps = 0
     result, total_steps = {}, 0
     previous_complete = False
     for epoch, output in enumerate(
@@ -91,7 +98,9 @@ def main():
             raise ValueError("Missing step records")
         ids, history_error = [], None
         for i in range(steps):
-            batch = dataset[i]
+            batch = dataset[(i // len(dataset), i % len(dataset))]
+            if i % len(dataset) == 0:
+                ids = []
             valid, labels = batch["valid"][0], batch["labels"][0]
             optimizer.zero_grad()
             logits, hidden = model(batch)
@@ -106,6 +115,12 @@ def main():
                 raise AssertionError("Observed supervised-target count mismatch")
             roots = batch["root_ids"][0][valid]
             ids.extend(roots.tolist())
+            if len(set(ids)) != len(ids):
+                raise AssertionError("Duplicate roots within one input pass")
+            if (i + 1) % len(dataset) == 0 and sorted(ids) != sorted(
+                b["train_ids"].tolist()
+            ):
+                raise AssertionError("Complete input pass did not cover training split")
             if receipt["export_history"]:
                 capture = torch.load(output / f"capture-{i:05d}.pt", weights_only=True)
                 torch.testing.assert_close(roots, capture["root_ids"])
@@ -118,9 +133,12 @@ def main():
                         history_error or 0.0, (actual - expected).abs().max().item()
                     )
             loss.backward()
-            optimizer.step()
-        if len(set(ids)) != len(ids):
-            raise AssertionError("Duplicate roots in the replay window")
+            skipped = rows[i]["skipped_optimizer_steps"]
+            if skipped == skipped_steps:
+                optimizer.step()
+            elif skipped != skipped_steps + 1:
+                raise AssertionError("Invalid skipped optimizer step count")
+            skipped_steps = skipped
         previous_complete = steps == len(dataset)
         if previous_complete and sorted(ids) != sorted(b["train_ids"].tolist()):
             raise AssertionError("Complete epoch did not cover the training split")
@@ -137,7 +155,7 @@ def main():
             max_weight_abs_error=weight_error,
             max_history_abs_error=history_error,
             max_refresh_abs_error=refresh_error,
-            checked_root_ids=len(ids),
+            checked_root_ids=sum(row["valid_roots"] for row in rows),
             optimizer_steps=steps,
             complete_epoch=previous_complete,
         )

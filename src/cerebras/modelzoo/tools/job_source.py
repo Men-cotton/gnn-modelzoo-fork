@@ -449,7 +449,6 @@ def absolute_arguments(argv):
         "--base",
         "--output-root",
         "--input",
-        "--verification",
         "--compile-dir",
     }
     for index, item in enumerate(argv):

@@ -1,16 +1,18 @@
-"""Sequential dense/dictionary compile, numerical admission, or bounded timing."""
+"""Prepare inputs, then run and compare dense/dictionary jobs in one campaign."""
 
 import argparse
 import json
 from pathlib import Path
+import shlex
 import subprocess
 import sys
 
+import torch
+from cerebras.modelzoo.models.gnn.tools.csx_backend import load_config, WARMUP_STEPS
+import cerebras.pytorch as cstorch
 from cerebras.modelzoo.tools import benchmark_launcher
 from cerebras.modelzoo.tools.job_source import require_pinned
-
-import torch
-import cerebras.pytorch as cstorch
+from cerebras.modelzoo.models.gnn.tools.download_datasets import DEFAULT_ROOT
 from cerebras.modelzoo.models.gnn.tools.feature_sharing.core import (
     FrozenInputs,
     file_hash,
@@ -27,10 +29,16 @@ def compare(output, steps, rtol, atol):
         raise ValueError("incomplete activation capture")
     loss_diff = logit_diff = 0.0
     for index, (a, b) in enumerate(zip(*records)):
-        if (a["step"], a["sample_id"], a["valid_targets"]) != (
+        if (
+            a["step"],
+            a["sample_id"],
+            a["valid_targets"],
+            a["skipped_optimizer_steps"],
+        ) != (
             b["step"],
             b["sample_id"],
             b["valid_targets"],
+            b["skipped_optimizer_steps"],
         ):
             raise ValueError("paired input order mismatch")
         torch.testing.assert_close(
@@ -52,6 +60,9 @@ def compare(output, steps, rtol, atol):
     torch.testing.assert_close(
         checkpoints[0]["optimizer"], checkpoints[1]["optimizer"], rtol=rtol, atol=atol
     )
+    torch.testing.assert_close(
+        checkpoints[0]["grad_scaler"], checkpoints[1]["grad_scaler"], rtol=0, atol=0
+    )
     parameter_diff = max(
         float((checkpoints[0]["model"][n] - checkpoints[1]["model"][n]).abs().max())
         for n in checkpoints[0]["model"]
@@ -68,30 +79,49 @@ def compare(output, steps, rtol, atol):
 
 def parse_args(argv=None):
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("--input", type=Path, required=True)
+    p.add_argument("--input", type=Path, help="Reuse a prepared frozen window")
     p.add_argument("--output", type=Path, required=True)
-    p.add_argument(
-        "--phase", choices=["compile", "verify", "measure"], default="verify"
-    )
+    p.add_argument("--data-dir", type=Path, default=DEFAULT_ROOT)
+    p.add_argument("--dataset", choices=["arxiv", "products"], default="arxiv")
+    p.add_argument("--batch-size", type=int)
+    p.add_argument("--fanouts", type=int, nargs="+")
+    p.add_argument("--hidden", type=int)
+    p.add_argument("--seed", type=int)
+    p.add_argument("--dropout", type=float)
+    p.add_argument("--capacity", type=int)
     p.add_argument("--backend", choices=["CPU", "CSX"], default="CSX")
-    p.add_argument("--precision", choices=["fp32", "bf16"], default="bf16")
     p.add_argument("--compile-dir", type=Path)
     p.add_argument("--steps", type=int)
-    p.add_argument("--warmup-steps", type=int, default=1)
-    p.add_argument(
-        "--verification",
-        type=Path,
-        help="passed same-input/backend/precision pilot.json required for measure",
-    )
+    p.add_argument("--warmup-steps", type=int, default=WARMUP_STEPS)
     p.add_argument("--rtol", type=float)
     p.add_argument("--atol", type=float)
     p.add_argument("--dry-run", action="store_true")
     benchmark_launcher.add_arguments(p)
     args = p.parse_args(argv)
-    args.input = args.input.resolve()
+    config = load_config(args.dataset)["trainer"]
+    model = config["init"]["model"]["architecture"]
+    loader = config["fit"]["train_dataloader"]
+    if args.batch_size is None:
+        args.batch_size = loader["batch_size"]
+    if args.fanouts is None:
+        args.fanouts = loader["fanouts"]
+    if args.hidden is None:
+        args.hidden = model["hidden_dim"]
+    if args.dropout is None:
+        args.dropout = model["dropout"]
+    if args.seed is None:
+        args.seed = config["init"]["seed"]
+    if args.steps is None:
+        args.steps = config["init"]["loop"]["max_steps"]
     args.output = args.output.resolve()
-    if args.phase == "compile" and args.backend != "CSX":
-        p.error("compile phase is CSX only")
+    if args.input:
+        args.input = args.input.resolve()
+    if min(args.batch_size, args.hidden, *args.fanouts) < 1:
+        p.error("positive sizes required")
+    if not 0 <= args.warmup_steps < args.steps:
+        p.error("warmup must be less than steps")
+    if any(value is not None and value < 0 for value in (args.rtol, args.atol)):
+        p.error("negative comparison tolerance")
     return args
 
 
@@ -107,115 +137,103 @@ def main(argv=None):
             name="shared-tree",
             session=args.tmux_session,
         )
-    dataset = FrozenInputs(args.input, "dictionary")
-    if dataset.metadata["model_config"]["dropout"] != 0:
-        raise ValueError(
-            "paired pilot requires dropout=0; compiler RNG parity is not established"
-        )
-    steps = args.steps or (30 if args.phase == "measure" else len(dataset))
-    if steps < len(dataset) or not 0 <= args.warmup_steps < steps:
-        raise ValueError("steps must cover the frozen window, with warmup < steps")
-    rtol = (
-        args.rtol
-        if args.rtol is not None
-        else (0.0 if args.precision == "fp32" else 0.01)
-    )
-    atol = (
-        args.atol
-        if args.atol is not None
-        else (0.0 if args.precision == "fp32" else 0.01)
-    )
-    if min(rtol, atol) < 0:
-        raise ValueError("negative comparison tolerance")
-    result = dict(
-        status="starting",
-        phase=args.phase,
-        backend=args.backend,
-        precision=args.precision,
-        input_sha256=file_hash(args.input / "input.json"),
-        planned_steps=steps,
-        cases={},
-    )
-    result["runtime_sha256"] = {
-        n: file_hash(Path(__file__).with_name(n))
-        for n in ("core.py", "run.py", "pilot.py")
-    }
-    if args.phase == "measure":
-        if not args.verification:
-            raise ValueError(
-                "measure requires --verification from a passed paired numerical pilot"
-            )
-        verified = json.loads(args.verification.read_text())
-        if (
-            verified.get("status") != "passed"
-            or verified.get("phase") != "verify"
-            or any(
-                verified.get(k) != result[k]
-                for k in ("backend", "precision", "input_sha256", "runtime_sha256")
-            )
-        ):
-            raise ValueError("verification does not match this input/backend/precision")
-        result["verification_sha256"] = file_hash(args.verification)
+    input_dir = args.input or args.output / "input"
+    prepare = [
+        sys.executable,
+        "-u",
+        "-m",
+        "cerebras.modelzoo.models.gnn.tools.feature_sharing.prepare",
+        "--output",
+        str(input_dir),
+        "--data-dir",
+        str(args.data_dir.resolve()),
+        "--dataset",
+        args.dataset,
+        "--batch-size",
+        str(args.batch_size),
+        "--hidden",
+        str(args.hidden),
+        "--seed",
+        str(args.seed),
+        "--dropout",
+        str(args.dropout),
+        "--fanouts",
+        *map(str, args.fanouts),
+    ]
+    if args.capacity is not None:
+        prepare += ["--capacity", str(args.capacity)]
     commands = {}
     for mode in ("dense", "dictionary"):
-        cmd = [
+        commands[mode] = [
             sys.executable,
             "-u",
             "-m",
             "cerebras.modelzoo.models.gnn.tools.feature_sharing.run",
-        ] + [
             "--input",
-            str(args.input.resolve()),
+            str(input_dir),
             "--output",
-            str((args.output / mode).resolve()),
+            str(args.output / mode),
             "--mode",
             mode,
             "--backend",
             args.backend,
-            "--precision",
-            args.precision,
             "--steps",
-            str(steps),
+            str(args.steps),
             "--warmup-steps",
             str(args.warmup_steps),
+            "--compile-dir",
+            str(((args.compile_dir or args.output / "compile") / mode).resolve()),
         ]
-        if args.backend == "CSX":
-            cmd += [
-                "--compile-dir",
-                str(((args.compile_dir or args.output / "compile") / mode).resolve()),
-            ]
-        if args.phase == "compile":
-            cmd += ["--compile-only"]
-        if args.phase == "verify":
-            cmd += ["--capture-logits"]
-        commands[mode] = cmd
     if args.dry_run:
-        print(json.dumps(commands, indent=2))
+        for command in ([prepare] if not args.input else []) + list(commands.values()):
+            print(shlex.join(command))
         return
     args.output.mkdir(parents=True, exist_ok=False)
-    status_path = args.output / "pilot.json"
+    result = dict(
+        status="starting", backend=args.backend, planned_steps=args.steps, cases={}
+    )
+    status_path = args.output / "campaign.json"
     try:
+        if not args.input:
+            result["active_mode"] = "prepare"
+            status_path.write_text(json.dumps(result, indent=2) + "\n")
+            with (args.output / "prepare.log").open("w") as log:
+                subprocess.run(
+                    prepare, stdout=log, stderr=subprocess.STDOUT, check=True
+                )
+        dataset = FrozenInputs(input_dir, "dictionary")
+        deterministic = dataset.metadata["model_config"]["dropout"] == 0
+        if args.steps < len(dataset):
+            raise ValueError("steps must cover the complete frozen window")
+        result["input_sha256"] = file_hash(input_dir / "input.json")
         for mode, cmd in commands.items():
             result["active_mode"] = mode
             status_path.write_text(json.dumps(result, indent=2) + "\n")
-            print(f"Starting {args.phase}: {mode}", flush=True)
+            print(f"Starting {mode}", flush=True)
             with (args.output / f"{mode}.log").open("w") as log:
                 subprocess.run(cmd, stdout=log, stderr=subprocess.STDOUT, check=True)
             case = json.loads((args.output / mode / "result.json").read_text())
-            expected = (
-                "compiled_not_executed" if args.phase == "compile" else "executed"
-            )
             if (
-                case["status"] != expected
+                case["status"] != "executed"
                 or case["input_sha256"] != result["input_sha256"]
             ):
                 raise ValueError("case completion/input mismatch")
             result["cases"][mode] = case
-        if args.phase == "verify":
-            result["comparison"] = compare(args.output, steps, rtol, atol)
-        result["status"] = (
-            "compiled_not_executed" if args.phase == "compile" else "passed"
-        )
+        default_tolerance = 0.0 if args.backend == "CPU" else 0.01
+        if deterministic:
+            result["comparison"] = compare(
+                args.output,
+                args.steps,
+                args.rtol if args.rtol is not None else default_tolerance,
+                args.atol if args.atol is not None else default_tolerance,
+            )
+            result["status"] = "passed"
+        else:
+            result["comparison"] = {
+                "status": "not_checked",
+                "reason": "dropout is enabled; compiler RNG parity is not established",
+            }
+            result["status"] = "executed"
         result.pop("active_mode", None)
     except BaseException as exc:
         result.update(status="failed", error=str(exc))
