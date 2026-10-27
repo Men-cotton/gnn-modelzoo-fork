@@ -171,9 +171,14 @@ PYTHONPATH=src .venv/bin/python -m unittest discover \
 
 条件・予算・再開のテストは対応する実験のtest directoryで実行する。
 
-## 実データの研究実験
+## Cerebras の GraphSAGE 表現比較
 
-[研究実験の手順](research/README.md)を参照する。実装は通常の
-`cerebras.modelzoo.models.gnn.research` 配下に置き、`csx-shared-tree`、
-`csx-history-pilot`、`csx-history` のcatalog entryから既存のsource固定・tmux起動を使う。
-ALCFのSDK環境と共有データをそのまま使い、別のcluster JSONや研究用launcherは設けない。
+実行手順は既存の `cerebras/` 配下に置く。
+
+- [Tree 特徴共有](cerebras/feature_sharing/README.md): dense/dictionary 入力の比較。
+- [History と生特徴 mean 前集約](cerebras/history_embedding/README.md): 固定形状の学習・評価。
+
+実行モジュールは `cerebras.modelzoo.models.gnn.tools` に置く。データ読み込みは既存の
+`BaseGraphDataSource` を使い、未準備なら `download_datasets.py` の実行を案内して停止する。`csx-shared-tree`、`csx-history-pilot`、
+`csx-history` は既存 catalog・source 固定・tmux 起動を使う。
+ALCF の SDK 環境と既存のデータ準備処理を使い、別の cluster JSON は設けない。

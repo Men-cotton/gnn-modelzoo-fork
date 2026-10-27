@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import logging
 import os
+from pathlib import Path
+import shlex
 from typing import Callable, Dict, List, Optional, Tuple, Union, cast
 
 import numpy as np
@@ -225,11 +227,40 @@ class BaseGraphDataSource:
                 "Install it via `uv pip install ogb` before using these configs."
             )
 
-        dataset_root = os.path.join(self.data_dir, self.dataset_name)
+        from ...tools.download_datasets import (
+            _get_ogb_dataset_metadata,
+            _ogb_raw_is_ready,
+        )
+
+        data_dir = Path(self.data_dir).expanduser().resolve()
+        dataset_root = data_dir / self.dataset_name
+        metadata = _get_ogb_dataset_metadata(self.dataset_name)
+        dataset_dir = dataset_root / self.dataset_name.replace("-", "_")
+        if not _ogb_raw_is_ready(dataset_dir, metadata):
+            command = shlex.join(
+                [
+                    "uv",
+                    "run",
+                    "--no-sync",
+                    "--",
+                    "python",
+                    "-m",
+                    "cerebras.modelzoo.models.gnn.tools.download_datasets",
+                    "--root",
+                    str(data_dir),
+                    "--datasets",
+                    self.dataset_name,
+                ]
+            )
+            raise FileNotFoundError(
+                f"OGB raw data or splits are missing/incomplete under {dataset_dir}.\n"
+                f"Prepare the dataset before training:\n  {command}\n"
+                "The GNN loader does not download datasets."
+            )
         try:
             dataset = PygNodePropPredDataset(
                 name=self.dataset_name,
-                root=dataset_root,
+                root=str(dataset_root),
             )
         except Exception as exc:
             raise RuntimeError(

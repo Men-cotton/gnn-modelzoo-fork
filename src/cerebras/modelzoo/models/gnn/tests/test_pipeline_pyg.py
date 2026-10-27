@@ -392,6 +392,78 @@ class PipelineTests(unittest.TestCase):
         (split / "paper" / "test.csv.gz").unlink()
         self.assertFalse(downloader._ogb_raw_is_ready(dataset, metadata))
 
+    def test_missing_ogb_stops_before_loader_and_suggests_downloader(self):
+        from cerebras.modelzoo.models.gnn.data_processing.sources import (
+            BaseGraphDataSource,
+        )
+        from cerebras.modelzoo.models.gnn.data_processing.sources import base
+        import shlex
+
+        root = self.root / "data with spaces"
+        source = BaseGraphDataSource(
+            "ogbn-arxiv", str(root), "train", torch.float16, torch.int64, None
+        )
+        with patch.object(base, "PygNodePropPredDataset") as factory:
+            with self.assertRaises(FileNotFoundError) as raised:
+                source.prepare_graph_components()
+            factory.assert_not_called()
+        message = str(raised.exception)
+        command = shlex.split(
+            message.split("before training:\n  ", 1)[1].splitlines()[0]
+        )
+        self.assertEqual(
+            command[-4:], ["--root", str(root), "--datasets", "ogbn-arxiv"]
+        )
+        self.assertIn("cerebras.modelzoo.models.gnn.tools.download_datasets", command)
+        self.assertFalse(root.exists())
+
+    def test_staged_ogb_uses_existing_loader_and_native_components(self):
+        from cerebras.modelzoo.models.gnn.data_processing.sources import (
+            BaseGraphDataSource,
+        )
+        from cerebras.modelzoo.models.gnn.data_processing.sources import base
+
+        directory = self.root / "ogbn-arxiv/ogbn_arxiv"
+        for name in (
+            "edge",
+            "node-feat",
+            "node-label",
+            "node_year",
+            "num-node-list",
+            "num-edge-list",
+        ):
+            gz(directory / "raw" / f"{name}.csv.gz", "0\n")
+        for split in ("train", "valid", "test"):
+            gz(directory / "split/time" / f"{split}.csv.gz", "0\n")
+        dataset = TinyDataset()
+        source = BaseGraphDataSource(
+            "ogbn-arxiv", str(self.root), "train", torch.float16, torch.int64, None
+        )
+        with patch.object(
+            base, "PygNodePropPredDataset", return_value=dataset
+        ) as factory:
+            features, edges, labels, masks = source.prepare_graph_components()
+        factory.assert_called_once_with(
+            name="ogbn-arxiv", root=str(self.root / "ogbn-arxiv")
+        )
+        torch.testing.assert_close(features, dataset.data.x.half())
+        torch.testing.assert_close(labels, dataset.data.y)
+        torch.testing.assert_close(edges, to_undirected(dataset.data.edge_index))
+        for split in ("train", "valid", "test"):
+            self.assertEqual(int(masks[split].sum()), 8)
+
+    def test_processed_ogb_without_raw_files_is_not_prepared(self):
+        directory = self.root / "ogbn-arxiv/ogbn_arxiv"
+        (directory / "processed").mkdir(parents=True)
+        (directory / "processed/geometric_data_processed.pt").write_bytes(b"cached")
+        for split in ("train", "valid", "test"):
+            gz(directory / "split/time" / f"{split}.csv.gz", "0\n")
+        with patch.object(
+            downloader, "_request_download", return_value=False
+        ) as request:
+            downloader.download_ogb_dataset("ogbn-arxiv", self.root)
+        request.assert_called_once_with("ogbn-arxiv")
+
     def test_empty_processed_directory_is_not_prepared(self):
         processed = self.root / "ogbn-arxiv" / "ogbn_arxiv" / "processed"
         processed.mkdir(parents=True)

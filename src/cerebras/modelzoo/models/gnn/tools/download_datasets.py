@@ -365,10 +365,10 @@ def download_ogb_dataset(dataset_name: str, root_dir: Path) -> None:
     dataset_dir = root_dir / dataset_name
     dataset_subdir = dataset_dir / dataset_name.replace("-", "_")
     processed_path = dataset_subdir / "processed" / "geometric_data_processed.pt"
-    if _nonempty_file(processed_path) and _ogb_split_is_ready(dataset_subdir, metadata):
+    raw_ready = _ogb_raw_is_ready(dataset_subdir, metadata)
+    if _nonempty_file(processed_path) and raw_ready:
         print(f"[{dataset_name}] Dataset already prepared at {processed_path}.")
         return
-    raw_ready = _ogb_raw_is_ready(dataset_subdir, metadata)
     if not raw_ready and not _request_download(dataset_name):
         return
 
